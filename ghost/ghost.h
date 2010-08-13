@@ -273,6 +273,7 @@ public:
 	bool m_AltFindIP;						// config value: find external IP with different site
 	bool m_RootAdminsSpoofCheck;			// config value: root admins need to spoof check or not.
 	bool m_AdminsSpoofCheck;				// config value: admins need to spoof check or not.
+	bool m_AutoKickSpoofPlayer;				// config value: automaticly kick the spoofed player or not.
 	bool m_TwoLinesBanAnnouncement;			// config value: announce bans+reason on two lines, otherwise on one
 	bool m_addcreatorasfriendonhost;		// config value: add the creator as friend on hosting a game
 	bool m_autohclfromgamename;				// config value: auto set HCL based on gamename, ignore map_defaulthcl

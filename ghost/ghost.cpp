@@ -3798,6 +3798,7 @@ void CGHost :: ReloadConfig ()
 	m_KickBannedFromChannel = CFG->GetInt( "bot_kickbannedfromchannel", 0 ) == 0 ? false : true;
 	m_BanBannedFromChannel = CFG->GetInt( "bot_banbannedfromchannel", 0) == 0 ? false :true;
 	m_AdminsSpoofCheck = CFG->GetInt( "bot_adminsspoofcheck", 1 ) == 0 ? false : true;
+	m_AutoKickSpoofPlayer = CFG->GetInt( "bot_autokickspoofplayer", 0 ) == 1 ? true : false;
 	m_TwoLinesBanAnnouncement = CFG->GetInt( "bot_twolinesbanannouncement", 1 ) == 0 ? false : true;
 	m_CustomVersionText = CFG->GetString( "bot_customversiontext", string( ) );
 	m_autoinsultlobby = CFG->GetInt( "bot_autoinsultlobby", 0 ) == 0 ? false : true;
