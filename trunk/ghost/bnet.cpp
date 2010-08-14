@@ -6226,7 +6226,7 @@ CDBBan *CBNET :: IsBannedName( string name )
 		{         */
 //				CONSOLE_Print("[GHOST] Searching bans from "+ m_Bans[x]->GetName()+ " through "+m_Bans[y]->GetName());
 //				for( vector<CDBBan *> :: iterator i = m_Bans.begin()+x; i != m_Bans.begin()+y; i++ )
-			for(uint32_t i=0; i<=m_Bans.size(); i++)
+			for(uint32_t i=0; i<m_Bans.size(); i++)
 			{	
 				if (m_Bans[i]->GetName() == name)
 					return m_Bans[i];
