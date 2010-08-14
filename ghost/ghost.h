@@ -25,8 +25,6 @@
 #include "config.h"
 #include "ghostdb.h"
 
-
-
 //
 // CGHost
 //
@@ -115,7 +113,7 @@ public:
 	string m_DeniedCountries;
 	string m_OneVersion;
 	string m_RootAdmin;
-	bool m_AutoBan;							// if we have auto ban on by default or not
+	bool m_AutoBan;							// if we have auto ban on by default or not				
 	uint32_t m_AutoBanTeamDiffMax;			// if we have more then x number of players more then other team
 	uint32_t m_AutoBanTimer;				// time in mins the auto ban will stay on in game.
 	bool m_AutoBanAll;						// ban even if it does not make game uneven
@@ -273,12 +271,11 @@ public:
 	bool m_AltFindIP;						// config value: find external IP with different site
 	bool m_RootAdminsSpoofCheck;			// config value: root admins need to spoof check or not.
 	bool m_AdminsSpoofCheck;				// config value: admins need to spoof check or not.
-	bool m_AutoKickSpoofPlayer;				// config value: automaticly kick the spoofed player or not.
 	bool m_TwoLinesBanAnnouncement;			// config value: announce bans+reason on two lines, otherwise on one
 	bool m_addcreatorasfriendonhost;		// config value: add the creator as friend on hosting a game
 	bool m_autohclfromgamename;				// config value: auto set HCL based on gamename, ignore map_defaulthcl
 	bool m_norank;
-	bool m_nostatsdota;
+	bool m_nostatsdota; 
 	bool m_UsersCanHost;
 	bool m_SafeCanHost;
 	bool m_Console;
@@ -429,7 +426,7 @@ public:
 	// UDPCommandSocket patch
 	CUDPServer *m_UDPCommandSocket;		// a UDP socket for receiving commands
 	string m_UDPCommandSpoofTarget;     // the realm to send udp received commands to
-
+		
 	// Metal_Koola's attempts
 	bool m_dropifdesync;				// config value: Drop desynced players
 	int m_CookieOffset;					// System used to remove need for bnet_bnlswardencookie. May need further optimization.

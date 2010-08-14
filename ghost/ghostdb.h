@@ -63,7 +63,6 @@ class CCallableWarnCount;
 class CCallableRunQuery;
 class CCallableBanUpdate;
 class CCallableScoreCheck;
-//class CCallableStatusFill;
 class CCallableW3MMDPlayerAdd;
 class CCallableW3MMDVarAdd;
 class CDBBan;
@@ -193,7 +192,6 @@ public:
 	virtual CCallableBanUpdate *ThreadedBanUpdate( string name, string ip );
 	virtual CCallableRunQuery *ThreadedRunQuery( string query );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
-//	virtual CCallableStatusFill *ThreadedStatusFill( uint32_t gameid, string gamename, uint32_t team1count,uint32_t team2count, string time);
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals );
@@ -864,12 +862,7 @@ public:
 	virtual uint32_t GetResult( )				{ return m_Result; }
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };
-/*
-class CCallableStatusFill : virtual public CBaseCallable
-{
 
-};
-*/
 class CCallableW3MMDVarAdd : virtual public CBaseCallable
 {
 protected:
@@ -925,7 +918,7 @@ public:
 	string GetAdmin( )		{ return m_Admin; }
 	string GetReason( )		{ return m_Reason; }
 	string GetExpireDate( ) { return m_ExpireDate; }
-	string GetDaysRemaining( ) {
+	string GetDaysRemaining( ) { 
 		using namespace boost::gregorian;
 		days daysremaining(0);
 		if (m_ExpireDate.size()>1)
@@ -935,7 +928,7 @@ public:
 			date enddate;
 			if (loc>=4)
 				enddate = from_simple_string(m_ExpireDate);
-			else
+			else 
 				enddate = from_uk_string(m_ExpireDate);
 			daysremaining = enddate - today;
 		}
@@ -1220,7 +1213,7 @@ private:
 public:
 	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills,
 		double nWinsPerGame, double nLossesPerGame,
-		double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame,
+		double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame, 
 		double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, double nTowerKillsPerGame, double nRaxKillsPerGame, double nCourierKillsPerGame, uint32_t nRank  );
 //	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, double nWinsPerGame, double nLossesPerGame, double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame, double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills );
 	~CDBDotAPlayerSummary( );

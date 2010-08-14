@@ -1466,7 +1466,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			if( ( Command == "delban" || Command == "unban" || Command == "db" || Command == "ub" ) && !Payload.empty( ) )
 			{
-				if (!CMDCheck(CMD_delban, AdminAccess))
+				if (!CMDCheck(CMD_delban, AdminAccess) || !RootAdminCheck )
 				{
 					SendChat(player->GetPID(),(m_GHost->m_Language->YouDontHaveAccessToThatCommand( )));
 					return HideCommand;
