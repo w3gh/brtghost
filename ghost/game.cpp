@@ -94,6 +94,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 
 	m_CallableGameAdd = NULL;
 
+	m_KilledTowers = "";
 	m_GameOverTime = 0;
 	m_GameLoadedTime = 0;
 	m_Server = nCreatorServer;
