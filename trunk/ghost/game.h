@@ -64,8 +64,8 @@ public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
 	vector<PairedBanRemove> m_PairedBanRemoves;	// vector of paired threaded database ban removes in progress
-	string m_KilledTowers;
-	
+
+
 	virtual ~CGame( );
 
 	virtual bool Update( void *fd, void *send_fd );

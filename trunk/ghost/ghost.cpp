@@ -2700,6 +2700,46 @@ void CGHost :: UDPCommands( string Message )
 
 //	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
 
+
+    if (Command == "sendgamesstatus")
+    {
+        string games;
+
+		//if( m_CurrentGame )
+		//	games = games + "L "+m_CurrentGame->GetKilledTowers()+"|";
+
+		games = "|gamesinfo|--|";
+
+//		games = games + UTIL_ToString(m_Games.size( ));
+//		games = "|games "+games+" ";
+
+		if (m_Games.size( )>0)
+		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
+		{
+
+          //  if (GetTime() < (*g)->GetGameLoadedTime())
+            int iTime = (int)(GetTime() - (*g)->GetGameLoadedTime()); // time in seconds since game loaded
+
+            string reserv1, reserv2, tower_kills, game_name;
+
+            reserv1 = "";
+            reserv2 = "";
+
+            game_name = (*g)->GetGameName();
+
+            for (int i=0; i < 32 - (*g)->GetGameName().size(); i++)
+                game_name += " ";
+
+			games = games + game_name + "," + (*g)->GetKilledTowers() + "," + UTIL_ToString(iTime) + "," + reserv1 + "," + reserv2+"|--|";
+		} else
+            games = "|gamesinfo|--|";
+
+
+		UDPChatSendBack(games);
+
+     //   UDPChatSend("|gamesstatus "+);
+    }
+
 	if (Command == "readwelcome")
 	{
 		ReadWelcome();
