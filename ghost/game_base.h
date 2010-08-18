@@ -252,6 +252,8 @@ public:
 	uint32_t m_GetMapNumTeams;
 	unsigned char m_GetMapGameType;
 	uint32_t m_GetMapOnlyAutoWarnIfMoreThanXPlayers;
+	string m_KilledTowers;
+
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
 
@@ -289,6 +291,7 @@ public:
 	virtual bool GetGameLoaded( )					{ return m_GameLoaded; }
 	virtual bool GetLagging( )						{ return m_Lagging; }
 	virtual vector<CGamePlayer*> GetPlayers ( ) 	{ return m_Players; }
+	virtual string GetKilledTowers( )               { return m_KilledTowers; }
 
 	virtual void SetEnforceSlots( vector<CGameSlot> nEnforceSlots )		{ m_EnforceSlots = nEnforceSlots; }
 	virtual void SetEnforcePlayers( vector<PIDPlayer> nEnforcePlayers )	{ m_EnforcePlayers = nEnforcePlayers; }

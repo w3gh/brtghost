@@ -68,19 +68,19 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 	while( ActionData->size( ) >= i + 6 )
 	{
-		
-		
+
+
 		if( (*ActionData)[i] == 0x6b && (*ActionData)[i + 1] == 0x64 && (*ActionData)[i + 2] == 0x72 && (*ActionData)[i + 3] == 0x2e && (*ActionData)[i + 4] == 0x78 && (*ActionData)[i + 5] == 0x00 )
 		{
 			// we think we've found an action with real time replay data (but we can't be 100% sure)
 			// next we parse out two null terminated strings and a 4 byte integer
-			
+
 			if( ActionData->size( ) >= i + 7 )
 			{
 				// the first null terminated string should either be the strings "Data" or "Global" or a player id in ASCII representation, e.g. "1" or "2"
 
 				Data = UTIL_ExtractCString( *ActionData, i + 6 );
-				
+
 				if( ActionData->size( ) >= i + 8 + Data.size( ) )
 				{
 					// the second null terminated string should be the key
@@ -177,7 +177,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string SideString;
 								string code_killed_tower = "";
 								uint32_t place_code = 1;
-								
+
 								if( Alliance == "0" )
 								{
 									AllianceString = "Sentinel";
@@ -192,22 +192,28 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									AllianceString = "unknown";
 
 								if( Side == "0" )
+								{
 									SideString = "top";
 									code_killed_tower = UTIL_ToString(0 + place_code) + Level;
+								}
 								else if( Side == "1" )
+								{
 									SideString = "mid";
 									code_killed_tower = UTIL_ToString(1 + place_code) + Level;
+								}
 								else if( Side == "2" )
+								{
 									SideString = "bottom";
 									code_killed_tower = UTIL_ToString(2 + place_code) + Level;
+								}
 								else
 									SideString = "unknown";
 
-								if( AllianceString = "unknown" ||  SideString == "unknown")
-									code_killed_tower = ""
+								if( AllianceString == "unknown" ||  SideString == "unknown")
+									code_killed_tower = "";
 
 								m_Game->m_KilledTowers = m_Game->m_KilledTowers + code_killed_tower;
-								
+
 								if( Killer )
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] destroyed a level [" + Level + "] " + AllianceString + " tower (" + SideString + ")" );
 								else
