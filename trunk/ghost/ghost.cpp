@@ -2716,9 +2716,10 @@ void CGHost :: UDPCommands( string Message )
 		if (m_Games.size( )>0)
 		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
 		{
+            int iTime;
 
-          //  if (GetTime() < (*g)->GetGameLoadedTime())
-            int iTime = (int)(GetTime() - (*g)->GetGameLoadedTime()); // time in seconds since game loaded
+            if (GetTime() < (*g)->GetGameLoadedTime()) iTime = 0; else
+            iTime = (int)(GetTime() - (*g)->GetGameLoadedTime()); // time in seconds since game loaded
 
             string reserv1, reserv2, tower_kills, game_name;
 
@@ -2730,14 +2731,14 @@ void CGHost :: UDPCommands( string Message )
             for (int i=0; i < 32 - (*g)->GetGameName().size(); i++)
                 game_name += " ";
 
-			games = games + game_name + "," + (*g)->GetKilledTowers() + "," + UTIL_ToString(iTime) + "," + reserv1 + "," + reserv2+"|--|";
+			games = games + game_name + "," + (*g)->GetKilledTowers() + "," + UTIL_ToString(iTime) + "," + (*g)->GetCreatorName() + "," + reserv2+"|--|";
 		} else
             games = "|gamesinfo|--|";
 
 
 		UDPChatSendBack(games);
 
-     //   UDPChatSend("|gamesstatus "+);
+
     }
 
 	if (Command == "readwelcome")
