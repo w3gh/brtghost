@@ -293,6 +293,18 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a player disconnected
 							}
+							else if( KeyString.size( ) >= 9 && KeyString == "GameStart" )
+							{
+								// Zero time in the game, creeps spawn.
+								if (ValueInt == 1)
+								{
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] creeps spawned." );
+								}
+								else
+								{
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] i dont know what happens here, it's must be creeps spawn." );
+								}
+							}
 						}
 						else if( DataString == "Global" )
 						{
