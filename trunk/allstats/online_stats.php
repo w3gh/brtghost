@@ -21,7 +21,7 @@ function get_info($bot)
 
 	if($fp)
 	{
-		fputs($fp,"||".$bot['ip_self']." connect ".$bot['password']);
+	//	fputs($fp,"||".$bot['ip_in']." connect ".$bot['password']);
 	//	socket_recvfrom($socketD, $buf, $bot['port_in'], 0, $clientIP, $clientPort);
 	//	echo $buf;
 		//if($buf && !strstr($buf, "connected"))
@@ -29,11 +29,16 @@ function get_info($bot)
 		//	fclose($fp);
 		//	return "err";
 		//}
-  		fputs($fp, "||".$bot['ip_self']." sendgamesstatus");
+  		fputs($fp, "||".$bot['ip_in']." sendgamesstatus");
    		fclose($fp);
+	//}
+
+
+
 	}
 
-   socket_recvfrom($socketD, $buf, $bot['port_in'], 0, $clientIP, $clientPort);
+   socket_recv($socketD, $buf, 65535, 0);
+  // socket_recv($socketD, $buf, 65535, 0);
 
    if($buf === FALSE) { 
     
@@ -45,7 +50,7 @@ function get_info($bot)
 
    if(!socket_connect($socketD, $clientIP, $clientPort)) {
            socket_close($socketD);
-       return "err";
+   //    return "err";
    }
 
   return $buf;
@@ -82,13 +87,15 @@ function print_stats($stats, $bot_name){
 	{
 		$i++;
 
-		if ($i%2 != 0) $out .= "</tr><tr>";
-
-
+		if ($i%2 != 0) $out .= "</tr>"; 
+		
 		$out .= "<th><font color=white>";
 		$out .= "Game name: ".trim($v[0])." <br />";
 		$out .= "Game time: ".(floor((int)trim($v[2]) / 60))." min ".((int)trim($v[2]) % 60)." sec <br />";
+		$out .= "Bot: ".$bot_name." Creator: ".trim($v[3])."<br />";
 		$out .= "<img src='map_img.php?kt=".trim($v[1])."' /></font></th>";
+
+		
 
 	}
 	$out .= "</tr>";
@@ -100,7 +107,57 @@ function print_stats($stats, $bot_name){
 /* Проверяем работает ли бот. */
 function isBotAlive($bot)
 {
-	return True;
+
+   $socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP); 
+
+   if($socketD === FALSE)  return false;
+
+   if(!socket_bind($socketD,$bot['ip_in'], $bot['port_in'])) {
+       socket_close($socketD);
+       return false;
+   }
+  
+	$fp = fsockopen('udp://'.$bot['ip_out'], $bot['port_out']);  
+
+
+	if($fp)
+	{
+		fputs($fp,"||".$bot['ip_in']." connect ".$bot['password']);
+		fputs($fp,"||".$bot['ip_in']." ping");
+		
+   		fclose($fp);
+
+		socket_set_nonblock($socketD);
+		$timeout = time() + (1);  // wait for 0.5 sec
+
+		while (time() <= $timeout)
+		{
+		   $buf = "";
+
+		   socket_recv($socketD, $buf, 65535, 0);
+		   socket_recv($socketD, $buf, 65535, 0);
+
+     		   if ($buf != "") break;
+
+		   usleep(10); // 100ms delay keeps the doctor away
+		}   
+
+		socket_set_block($socketD);
+
+	}
+
+   if($buf === FALSE)  return false;
+    elseif(strlen($buf) === 0) 
+       return false;
+
+
+   if(!socket_connect($socketD, $clientIP, $clientPort)) {
+           socket_close($socketD);
+    //   return false;
+   }
+
+  return true;
+
 }
 
 /************************************ Start here ***************************************/
