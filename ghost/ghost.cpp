@@ -4107,8 +4107,9 @@ void CGHost :: UDPChatSend(string s)
 		{
 			ip = (*i);
 			m_UDPSocket->SendTo(ip,m_GUIPort,b);
+			CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+m_GUIPort);
 		}
-	}
+	} else
 	m_UDPSocket->SendTo("127.0.0.1",m_GUIPort,b);
 }
 
