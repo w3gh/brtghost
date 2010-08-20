@@ -1166,12 +1166,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 						d = (45 * 1000)-m_GHost->m_DropVoteTime*1000 ;
 
 					//(*i)->SetStartedLaggingTicks( GetTicks( )-d );
-					
+
 					if ((*i)->GetGProxy())
 					(*i)->SetStartedLaggingTicks( GetTicks());
 					else
 					(*i)->SetStartedLaggingTicks( GetTicks( )-d );
-					
+
 					m_Lagging = true;
 					m_StartedLaggingTime = GetTime( );
 
@@ -2908,8 +2908,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
 /*			string n=joinPlayer->GetName();
 			string s(16-n.length(),' ');
-			n=s+n;*/
-			if (m_GHost->m_Verbose)
+			n=s+n;*//*
+			if (m_GHost->m_Verbose)         // FIX THIS -> FLOOD IN CHAT
 			if ( m_AnnouncedPlayer != joinPlayer->GetName() )
 			{
 				m_AnnouncedPlayer = joinPlayer->GetName();
@@ -2950,7 +2950,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 						SendAllChat("Ban reason: "+sReason);
 					}
 				}
-			}
+			}*/
 			// let banned players "join" the game with an arbitrary PID then immediately close the connection
 			// this causes them to be kicked back to the chat channel on battle.net
 
@@ -2988,7 +2988,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 					/*
 					string n=Player->GetName();
 					string s(16-n.length(),' ');
-					n=s+n;*/
+					n=s+n;*//*   // FIX THIS -> FLOOD IN CHAT
 					if (m_GHost->m_IPBanning==1)
 						if (m_GHost->m_Verbose)
 						{
@@ -3000,7 +3000,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 //							else
 //								SendAllChat ( sName +"("+potential->GetExternalIPString()+")");
 
-						}
+						}*/
 					if (m_GHost->m_IPBanning==1 && m_Bans)
 					{
 						// let banned players "join" the game with an arbitrary PID then immediately close the connection
