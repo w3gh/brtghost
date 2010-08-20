@@ -2655,7 +2655,7 @@ void CGHost :: UDPCommands( string Message )
 	string Payload;
 	string :: size_type CommandStart = Message.find( " " );
 
-//	CONSOLE_Print( Message );
+	CONSOLE_Print( Message );
 
 	if( CommandStart != string :: npos )
 	{
@@ -2679,7 +2679,7 @@ void CGHost :: UDPCommands( string Message )
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-//	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
+	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
 
 	if (Command == "connect" && !Payload.empty())
 	{
