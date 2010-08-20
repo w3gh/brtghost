@@ -2655,7 +2655,7 @@ void CGHost :: UDPCommands( string Message )
 	string Payload;
 	string :: size_type CommandStart = Message.find( " " );
 
-	CONSOLE_Print( Message );
+//	CONSOLE_Print( Message );
 
 	if( CommandStart != string :: npos )
 	{
