@@ -2679,9 +2679,9 @@ void CGHost :: UDPCommands( string Message )
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
+//	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
 
-	if (Command == "connect" && !Payload.empty())
+	if (Command == "connect")
 	{
 		if (m_UDPPassword!="")
 		if (Payload!=m_UDPPassword)
@@ -4107,9 +4107,9 @@ void CGHost :: UDPChatSend(string s)
 		{
 			ip = (*i);
 			m_UDPSocket->SendTo(ip,m_GUIPort,b);
-			CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+m_GUIPort);
+		//	CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
 		}
-	} else
+	}
 	m_UDPSocket->SendTo("127.0.0.1",m_GUIPort,b);
 }
 
@@ -4125,6 +4125,8 @@ void CGHost :: UDPChatSendBack(string s)
 	c[s.length()]=0;
 	b=UTIL_CreateByteArray(c,s.length());
 	m_UDPSocket->SendTo(m_LastIp,m_GUIPort,b);
+
+	//CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
 }
 
 string CGHost :: UDPChatWhoIs(string c, string s)
