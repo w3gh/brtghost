@@ -253,10 +253,13 @@ public:
 	unsigned char m_GetMapGameType;
 	uint32_t m_GetMapOnlyAutoWarnIfMoreThanXPlayers;
 	string m_KilledTowers;
+	uint32_t m_CreepSpawnTime;
 
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
 
+	virtual uint32_t GetCreepSpawnTime( )           { return m_CreepSpawnTime; }
+	virtual void SetCreepSpawnTime( uint32_t nTime) { m_CreepSpawnTime = nTime; }
 	virtual vector<CGameSlot> GetEnforceSlots( )	{ return m_EnforceSlots; }
 	virtual vector<PIDPlayer> GetEnforcePlayers( )	{ return m_EnforcePlayers; }
 	virtual CSaveGame *GetSaveGame( )				{ return m_SaveGame; }

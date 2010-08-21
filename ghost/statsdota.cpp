@@ -298,11 +298,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// Zero time in the game, creeps spawn.
 								if (ValueInt == 1)
 								{
+									m_Game->SetCreepSpawnTime(GetTime( ));
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] creeps spawned." );
-								}
-								else
-								{
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] i dont know what happens here, it's must be creeps spawn." );
 								}
 							}
 						}
