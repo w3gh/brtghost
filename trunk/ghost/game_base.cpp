@@ -233,6 +233,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_DoAutoWarns = false;
 	m_MatchMaking = false;
 	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
+	m_CreepSpawnTime = 0;
 
 	if( m_SaveGame )
 	{
