@@ -1,60 +1,54 @@
 <?php
 
-
 require_once("config.php");
 
 function get_info($bot)
 {
 
-   $socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP); 
+   global $socketD;
 
-   if($socketD === FALSE) { 
-       return "err";
-   }
+   if($socketD === FALSE) return "";
   
-   if(!socket_bind($socketD,$bot['ip_in'], $bot['port_in'])) {
+   if(!socket_bind($socketD,$bot['ip_in'], $bot['port_in']))
+   {
        socket_close($socketD);
-       return "err";
-   }
-  
-	$fp = fsockopen('udp://'.$bot['ip_out'], $bot['port_out']);  // todo ВЫНЕСТИ В КОНФИГ настройки командного адреса
-
-	if($fp)
-	{
-	//	fputs($fp,"||".$bot['ip_in']." connect ".$bot['password']);
-	//	socket_recvfrom($socketD, $buf, $bot['port_in'], 0, $clientIP, $clientPort);
-	//	echo $buf;
-		//if($buf && !strstr($buf, "connected"))
-		//{
-		//	fclose($fp);
-		//	return "err";
-		//}
-  		fputs($fp, "||".$bot['ip_in']." sendgamesstatus");
-   		fclose($fp);
-	//}
-
-
-
-	}
-
-   socket_recv($socketD, $buf, 65535, 0);
-  // socket_recv($socketD, $buf, 65535, 0);
-
-   if($buf === FALSE) { 
-    
-       return "err";
-   } elseif(strlen($buf) === 0) { 
-
-       return "err";
+       return "";
    }
 
-   if(!socket_connect($socketD, $clientIP, $clientPort)) {
-           socket_close($socketD);
-   //    return "err";
-   }
+        	$fp = fsockopen('udp://'.$bot['ip_out'], $bot['port_out']);
+
+	        if($fp)
+		{
+	                fputs($fp, "||".$bot['ip_in']." connect ".$bot['password']);
+	  		fputs($fp, "||".$bot['ip_in']." sendgamesstatus");
+
+			socket_set_nonblock($socketD);
+			$timeout = time() + (1);  // wait for 1 sec
+
+			while (time() <= $timeout)
+			{
+			   $buf = "";
+
+			   socket_recv($socketD, $buf, 65535, 0);
+			   socket_recv($socketD, $buf, 65535, 0);
+
+	     		   if ($buf != "") break;
+
+			   usleep(1000);
+			}
+
+			socket_set_block($socketD);
+
+		}
+
+       		fclose($fp);
+
+
+   if($buf === FALSE) return "";
+    elseif(strlen($buf) === 0)
+       return "";
 
   return $buf;
-
 }
 
 
@@ -81,13 +75,14 @@ function get_stats($bot)
 
 /* Формируем результат в HTML. */
 function print_stats($stats, $bot_name){
-	$i = 0;
+	global $stats_counter;
 	$out = "<tr>";
 	foreach($stats as $g=>$v)
 	{
-		$i++;
+		
+		$stats_counter++;
 
-		if ($i%2 != 0) $out .= "</tr>"; 
+		if ($stats_counter%2 != 0) $out .= "</tr><tr>"; 
 		
 		$out .= "<th><font color=white>";
 		$out .= "Game name: ".trim($v[0])." <br />";
@@ -104,69 +99,15 @@ function print_stats($stats, $bot_name){
 }
 
 
-/* Проверяем работает ли бот. */
-function isBotAlive($bot)
-{
-
-   $socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP); 
-
-   if($socketD === FALSE)  return false;
-
-   if(!socket_bind($socketD,$bot['ip_in'], $bot['port_in'])) {
-       socket_close($socketD);
-       return false;
-   }
-  
-	$fp = fsockopen('udp://'.$bot['ip_out'], $bot['port_out']);  
-
-
-	if($fp)
-	{
-		fputs($fp,"||".$bot['ip_in']." connect ".$bot['password']);
-		fputs($fp,"||".$bot['ip_in']." ping");
-		
-   		fclose($fp);
-
-		socket_set_nonblock($socketD);
-		$timeout = time() + (1);  // wait for 0.5 sec
-
-		while (time() <= $timeout)
-		{
-		   $buf = "";
-
-		   socket_recv($socketD, $buf, 65535, 0);
-		   socket_recv($socketD, $buf, 65535, 0);
-
-     		   if ($buf != "") break;
-
-		   usleep(10); // 100ms delay keeps the doctor away
-		}   
-
-		socket_set_block($socketD);
-
-	}
-
-   if($buf === FALSE)  return false;
-    elseif(strlen($buf) === 0) 
-       return false;
-
-
-   if(!socket_connect($socketD, $clientIP, $clientPort)) {
-           socket_close($socketD);
-    //   return false;
-   }
-
-  return true;
-
-}
-
 /************************************ Start here ***************************************/
-//require_once('conf.php');
 
 $create_cache = 1;
 $read_cache = 0;
 $cache_time = 60; //seconds
 $out = "";
+$stats_counter = 0;
+
+$socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
 
 /*
 $db = mysql_connect('localhost', 'mysql_user', 'mysql_password'); //менять тут!
@@ -194,21 +135,39 @@ if(!$read_cache)
 {
 	foreach($bots as $b=>$bot)
 	{
-		if(isBotAlive($bot))
-		{
-			$stats = get_stats($bot);
+
+        		$stats = get_stats($bot);
+                        $count = 0;
+
+                        while (!$stats)
+                        {
+                        	if ($count++>=1) break;
+
+                       		socket_close($socketD);
+                                $socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+                                $stats = get_stats($bot);
+                        }
+
+
 			if($stats)
-				$out .= print_stats($stats, $bot['name']);
-		}
+			{
+				echo print_stats($stats, $bot['name']);
+				flush();
+
+			}
 	}
+	
 	/*
 	if(create_cache)
 	{
-		mysql_query("UPDATE cache SET cache=".$out.", time=".(time())." WHERE name='mainstat'"); 
+		mysql_query("UPDATE cache SET cache=".$out.", time=".(time())." WHERE name='mainstat'");
 		mysql_close($db);
 	}
 	*/
 }
+
+
+socket_close($socketD);
 
 echo $out;
 ?>
