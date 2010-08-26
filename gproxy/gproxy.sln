@@ -1,12 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gproxy", "gproxy\gproxy.vcproj", "{74F93580-237B-443F-AD6E-A4412EDB5BF7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8} = {CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gproxy", "gproxy\gproxy.vcxproj", "{74F93580-237B-443F-AD6E-A4412EDB5BF7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNCSutil", "bncsutil\vc8_build\BNCSutil.vcproj", "{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNCSutil", "bncsutil\vc8_build\BNCSutil.vcxproj", "{CFB9AEE6-C0BB-49B0-B0F5-F564975202B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -346,7 +346,9 @@ int main( int argc, char **argv )
 						team_ratings[1] /= team_numplayers[1];
 						elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );
 
-                        string QSelectPlayerPoint = "SELECT id FROM dotaplayers WHERE gameid="+UTIL_ToString( GameID );
+                     //   string QSelectPlayerPoint = "SELECT id FROM dotaplayers WHERE gameid="+UTIL_ToString( GameID );
+                          string QSelectPlayerPoint = "SELECT dp.id FROM dotaplayers as dp LEFT JOIN gameplayers as gp ON gp.gameid=dp.gameid AND gp.colour=dp.colour LEFT JOIN dotagames as dg ON dg.gameid=dp.gameid LEFT JOIN games ON games.id=dp.gameid WHERE (gp.left > games.duration - 60 OR (gp.left < games.duration - 60 AND ((dg.winner=1 AND dp.newcolour>5) OR (dg.winner=2 AND dp.newcolour<6)))) AND dp.gameid="+UTIL_ToString( GameID );
+
                      //   cout << QSelectPlayerPoint << endl;
 
                         if( mysql_real_query( Connection, QSelectPlayerPoint.c_str( ), QSelectPlayerPoint.size( ) ) != 0 )
