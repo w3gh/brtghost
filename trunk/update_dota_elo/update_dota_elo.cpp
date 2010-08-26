@@ -346,6 +346,52 @@ int main( int argc, char **argv )
 						team_ratings[1] /= team_numplayers[1];
 						elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );
 
+                        string QSelectPlayerPoint = "SELECT id FROM dotaplayers WHERE gameid="+UTIL_ToString( GameID );
+                     //   cout << QSelectPlayerPoint << endl;
+
+                        if( mysql_real_query( Connection, QSelectPlayerPoint.c_str( ), QSelectPlayerPoint.size( ) ) != 0 )
+                        {
+                            cout << "error: " << mysql_error( Connection ) << endl;
+                            return 1;
+                        } else
+                        {
+
+                            MYSQL_RES *Result = mysql_store_result( Connection );
+
+                            if( Result )
+                            {
+                                vector<string> Row = MySQLFetchRow( Result );
+                                int player_id = 0;
+
+                                while( !Row.empty( ) )
+                                {
+                                        string elopoint = "";
+
+                                        if (old_player_ratings[player_id] <= player_ratings[player_id])
+                                            elopoint = UTIL_ToString((uint32_t)player_ratings[player_id] - (uint32_t)old_player_ratings[player_id]); else
+                                            elopoint = "-"+UTIL_ToString((uint32_t)old_player_ratings[player_id] - (uint32_t)player_ratings[player_id]);
+
+                                        string QUpdatePlayerPoint = "UPDATE dotaplayers SET elopoint="+elopoint+" WHERE gameid="+UTIL_ToString( GameID ) + " AND id="+UTIL_ToString(UTIL_ToUInt32( Row[0]));
+                                        cout << QUpdatePlayerPoint << endl;
+                                        cout << UTIL_ToString(UTIL_ToUInt32( Row[0]));
+
+                                        if( mysql_real_query( Connection, QUpdatePlayerPoint.c_str( ), QUpdatePlayerPoint.size( ) ) != 0 )
+                                        {
+                                            cout << "error: " << mysql_error( Connection ) << endl;
+                                            return 1;
+                                        }
+
+
+                                    player_id++;
+                                    Row = MySQLFetchRow( Result );
+                                }
+
+
+                            }
+
+                            mysql_free_result( Result );
+                        }
+
 						for( int i = 0; i < num_players; i++ )
 						{
 							cout << "player [" << names[i] << "] rating " << UTIL_ToString( (uint32_t)old_player_ratings[i] ) << " -> " << UTIL_ToString( (uint32_t)player_ratings[i] ) << endl;
@@ -374,7 +420,7 @@ int main( int argc, char **argv )
 							}
 						}
 					}
-				}				
+				}
 			}
 			else
 			{
