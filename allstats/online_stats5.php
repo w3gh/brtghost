@@ -24,7 +24,7 @@ function get_info($bot)
 	  		fputs($fp, "||".$bot['ip_in']." sendgamesstatus");
 
 			socket_set_nonblock($socketD);
-			$timeout = time() + (1);  // wait for 1 sec
+			$timeout = time() + (2);  // wait for 2 sec
 
 			while (time() <= $timeout)
 			{
@@ -101,6 +101,9 @@ function print_stats($stats, $bot_name){
 
 
 /************************************ Start here ***************************************/
+//require_once('conf.php');
+
+start:
 
 $create_cache = 1;
 $read_cache = 0;
@@ -142,11 +145,12 @@ if(!$read_cache)
 
                         while (!$stats)
                         {
-                        	if ($count++>=1) break;
+                        	if ($count++>=2) break;
 
                        		socket_close($socketD);
                                 $socketD = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
                                 $stats = get_stats($bot);
+                                echo "While work";
                         }
 
 
@@ -155,7 +159,15 @@ if(!$read_cache)
 				echo print_stats($stats, $bot['name']);
 				flush();
 
-			}
+			} //else
+                        //{
+                          //      socket_close($socketD);
+                            //	goto start;
+                  //      }
+
+
+
+
 	}
 	
 	/*
