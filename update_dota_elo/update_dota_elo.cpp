@@ -346,10 +346,19 @@ int main( int argc, char **argv )
 						team_ratings[1] /= team_numplayers[1];
 						elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );
 
-                     //   string QSelectPlayerPoint = "SELECT id FROM dotaplayers WHERE gameid="+UTIL_ToString( GameID );
-                          string QSelectPlayerPoint = "SELECT dp.id FROM dotaplayers as dp LEFT JOIN gameplayers as gp ON gp.gameid=dp.gameid AND gp.colour=dp.colour LEFT JOIN dotagames as dg ON dg.gameid=dp.gameid LEFT JOIN games ON games.id=dp.gameid WHERE (gp.left > games.duration - 60 OR (gp.left < games.duration - 60 AND ((dg.winner=1 AND dp.newcolour>5) OR (dg.winner=2 AND dp.newcolour<6)))) AND dp.gameid="+UTIL_ToString( GameID );
+						string QNullEloPoint = "UPDATE dotaplayers SET elopoint=0 WHERE gameid=" + UTIL_ToString( GameID );
 
-                     //   cout << QSelectPlayerPoint << endl;
+						if( mysql_real_query( Connection, QNullEloPoint.c_str( ), QNullEloPoint.size( ) ) != 0 )
+                        {
+                            cout << "error: " << mysql_error( Connection ) << endl;
+                            return 1;
+                        }
+
+
+						vector<string> player_who_scored;
+						player_who_scored.clear();
+
+                        string QSelectPlayerPoint = "SELECT dp.id,gp.name FROM dotaplayers as dp LEFT JOIN gameplayers as gp ON gp.gameid=dp.gameid AND gp.colour=dp.colour LEFT JOIN dotagames as dg ON dg.gameid=dp.gameid LEFT JOIN games ON games.id=dp.gameid WHERE (gp.left > games.duration - 60 OR (gp.left < games.duration - 60 AND ((dg.winner=1 AND dp.newcolour>5) OR (dg.winner=2 AND dp.newcolour<6)))) AND dp.gameid="+UTIL_ToString( GameID );
 
                         if( mysql_real_query( Connection, QSelectPlayerPoint.c_str( ), QSelectPlayerPoint.size( ) ) != 0 )
                         {
@@ -363,19 +372,20 @@ int main( int argc, char **argv )
                             if( Result )
                             {
                                 vector<string> Row = MySQLFetchRow( Result );
-                                int player_id = 0;
 
                                 while( !Row.empty( ) )
                                 {
                                         string elopoint = "";
+                                        int player_id;
+
+                                        for (player_id = 0;player_id < 10; player_id++)
+                                        if (names[player_id] == Row[1]) break;
 
                                         if (old_player_ratings[player_id] <= player_ratings[player_id])
                                             elopoint = UTIL_ToString((uint32_t)player_ratings[player_id] - (uint32_t)old_player_ratings[player_id]); else
                                             elopoint = "-"+UTIL_ToString((uint32_t)old_player_ratings[player_id] - (uint32_t)player_ratings[player_id]);
 
-                                        string QUpdatePlayerPoint = "UPDATE dotaplayers SET elopoint="+elopoint+" WHERE gameid="+UTIL_ToString( GameID ) + " AND id="+UTIL_ToString(UTIL_ToUInt32( Row[0]));
-                                        cout << QUpdatePlayerPoint << endl;
-                                        cout << UTIL_ToString(UTIL_ToUInt32( Row[0]));
+                                        string QUpdatePlayerPoint = "UPDATE dotaplayers SET elopoint="+elopoint+" WHERE gameid="+UTIL_ToString( GameID ) + " AND id=" + Row[0];
 
                                         if( mysql_real_query( Connection, QUpdatePlayerPoint.c_str( ), QUpdatePlayerPoint.size( ) ) != 0 )
                                         {
@@ -384,7 +394,8 @@ int main( int argc, char **argv )
                                         }
 
 
-                                    player_id++;
+
+                                    player_who_scored.push_back(Row[1]);
                                     Row = MySQLFetchRow( Result );
                                 }
 
@@ -396,6 +407,19 @@ int main( int argc, char **argv )
 
 						for( int i = 0; i < num_players; i++ )
 						{
+						    bool id_rating;
+						    id_rating = false;
+
+						    for (int cid=0;cid < player_who_scored.size(); cid++)
+                                if (player_who_scored[cid] == names[i])
+                                {
+                                    id_rating = true;
+                                    break;
+                                }
+
+                            if (!id_rating)
+                                old_player_ratings[i] = player_ratings[i];
+
 							cout << "player [" << names[i] << "] rating " << UTIL_ToString( (uint32_t)old_player_ratings[i] ) << " -> " << UTIL_ToString( (uint32_t)player_ratings[i] ) << endl;
 
 							if( exists[i] )
