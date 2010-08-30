@@ -292,6 +292,22 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
 								// a player disconnected
+								
+								string CreepKillsString = KeyString.substr( 2, 1 );
+								string CreepDeniesString = KeyString.substr( 4, 1 );
+								string NeutralKillsString = KeyString.substr( 6, 1 );
+								uint32_t CreepKills = UTIL_ToUInt32( CreepKillsString );
+								uint32_t CreepDenies = UTIL_ToUInt32( CreepDeniesString );
+								uint32_t NeutralKills = UTIL_ToUInt32( NeutralKillsString );
+								
+								CGamePlayer *Player = m_Game->GetPlayerFromColour( ValueInt );
+								
+								Player->SetCreepKills( CreepKills );
+								Player->SetCreepDenies( CreepDenies );
+								Player->SetNeutralKills( NeutralKills );
+								
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Player->GetName( ) + "] disconnected." );
+								
 							}
 							else if( KeyString.size( ) >= 9 && KeyString == "GameStart" )
 							{
@@ -302,6 +318,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] creeps spawned." );
 								}
 							}
+							
 						}
 						else if( DataString == "Global" )
 						{

@@ -3128,7 +3128,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			if( Command == "end" && m_GameLoaded )
 			{
 				bool access = CMDCheck(CMD_end, AdminAccess);
-
+				
 				if (!m_GameEndCountDownStarted)
 					if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
 						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
@@ -3138,12 +3138,29 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_GameEndCountDownStarted = true;
 							m_GameEndCountDownCounter = 5;
 							m_GameEndLastCountDownTicks = GetTicks();
+							if (m_RequestedWinner) m_Stats.SetWinner(m_RequestedWinner);
 						}
 
 				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
 				{
 					bool secondTeamPresent = false;
-
+					string winnerString = "";
+					
+					if (!Payload.empty())
+					{
+						switch ( Payload )
+						{
+							case "1":
+								winnerString = " with winner [SENTINEL]";
+								m_RequestedWinner = 1;
+								break;
+							case "2":
+								winnerString = " with winner [SCOURGE]";
+								m_RequestedWinner = 2;
+								break;	
+						}
+					}
+					
 					unsigned char PID = player->GetPID();
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 					{
@@ -3161,9 +3178,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 							{
 								if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-									SendChat((*i)->GetPID(), User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept");
+									SendChat((*i)->GetPID(), User + " wants to end the game"+winnerString+", type "+m_GHost->m_CommandTrigger+"end to accept");
 								else
-									SendChat((*i)->GetPID(), User + " wants to end the game, waiting for the other team to accept...");
+									SendChat((*i)->GetPID(), User + " wants to end the game"+winnerString+", waiting for the other team to accept...");
 							}
 						}
 						return HideCommand;
@@ -5573,6 +5590,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_GameEndCountDownStarted = true;
 			m_GameEndCountDownCounter = 5;
 			m_GameEndLastCountDownTicks = GetTicks();
+			if (m_RequestedWinner) m_Stats.SetWinner(m_RequestedWinner);
 		}
 	}
 

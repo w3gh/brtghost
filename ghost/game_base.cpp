@@ -234,7 +234,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_MatchMaking = false;
 	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 	m_CreepSpawnTime = 0;
-
+	m_RequestedWinner = 0;
+	
 	if( m_SaveGame )
 	{
 		m_EnforceSlots = m_SaveGame->GetSlots( );
@@ -1342,6 +1343,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		SendAllChat("End request expired." );
 		m_EndRequested = false;
+		m_RequestedWinner = 0;
 		m_EndRequestedTicks = 0;
 	}
 

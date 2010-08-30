@@ -253,7 +253,8 @@ public:
 	unsigned char m_GetMapGameType;
 	uint32_t m_GetMapOnlyAutoWarnIfMoreThanXPlayers;
 	string m_KilledTowers;
-	uint32_t m_CreepSpawnTime;
+	uint32_t m_CreepSpawnTime;					// Time when creeps was spawned.
+	uint32_t m_RequestedWinner;					// Winner teame that requested by typing .end X
 
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CBaseGame( );
