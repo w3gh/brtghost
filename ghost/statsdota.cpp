@@ -292,19 +292,26 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
 								// a player disconnected
+								uint32_t i = KeyString.find("D");
+								uint32_t y = KeyString.find("N");
 								
-								string CreepKillsString = KeyString.substr( 2, 1 );
-								string CreepDeniesString = KeyString.substr( 4, 1 );
-								string NeutralKillsString = KeyString.substr( 6, 1 );
+								string CreepKillsString = KeyString.substr( 2, i-2 );
+								string CreepDeniesString = KeyString.substr( i+1, y-i-1 );
+								string NeutralKillsString = KeyString.substr( y+1 );
 								uint32_t CreepKills = UTIL_ToUInt32( CreepKillsString );
 								uint32_t CreepDenies = UTIL_ToUInt32( CreepDeniesString );
 								uint32_t NeutralKills = UTIL_ToUInt32( NeutralKillsString );
 								
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( ValueInt );
 								
-								Player->SetCreepKills( CreepKills );
-								Player->SetCreepDenies( CreepDenies );
-								Player->SetNeutralKills( NeutralKills );
+								if (!m_Players[ValueInt])
+								{
+									m_Players[ValueInt] = new CDBDotAPlayer( );
+									m_Players[ValueInt]->SetColour( ValueInt );
+								}
+								m_Players[ValueInt]->SetCreepKills( CreepKills );
+								m_Players[ValueInt]->SetCreepDenies( CreepDenies );
+								m_Players[ValueInt]->SetNeutralKills( NeutralKills );
 								
 								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Player->GetName( ) + "] disconnected." );
 								
