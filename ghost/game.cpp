@@ -3138,7 +3138,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_GameEndCountDownStarted = true;
 							m_GameEndCountDownCounter = 5;
 							m_GameEndLastCountDownTicks = GetTicks();
-							if (m_RequestedWinner) m_Stats.SetWinner(m_RequestedWinner);
+							if (m_RequestedWinner) m_Stats->SetWinner(m_RequestedWinner);
 						}
 
 				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
@@ -3148,16 +3148,15 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					
 					if (!Payload.empty())
 					{
-						switch ( Payload )
+						if(Payload == "1")
 						{
-							case "1":
-								winnerString = " with winner [SENTINEL]";
-								m_RequestedWinner = 1;
-								break;
-							case "2":
-								winnerString = " with winner [SCOURGE]";
-								m_RequestedWinner = 2;
-								break;	
+							winnerString = " with winner [SENTINEL]";
+							m_RequestedWinner = 1;
+						}
+						else if (Payload == "2")
+						{
+							winnerString = " with winner [SCOURGE]";
+							m_RequestedWinner = 2;
 						}
 					}
 					
@@ -5590,7 +5589,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_GameEndCountDownStarted = true;
 			m_GameEndCountDownCounter = 5;
 			m_GameEndLastCountDownTicks = GetTicks();
-			if (m_RequestedWinner) m_Stats.SetWinner(m_RequestedWinner);
+			if (m_RequestedWinner) m_Stats->SetWinner(m_RequestedWinner);
 		}
 	}
 
