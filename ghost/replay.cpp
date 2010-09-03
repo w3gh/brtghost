@@ -36,6 +36,7 @@ CReplay :: CReplay( ) : CPacked( )
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
+	m_CompiledBlocks.reserve( 262144 );
 }
 
 CReplay :: ~CReplay( )
@@ -52,6 +53,7 @@ void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t resul
 	UTIL_AppendByteArray( Block, result, false );
 	UTIL_AppendByteArray( Block, (uint32_t)1, false );
 	m_Blocks.push( Block );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result )
@@ -86,7 +88,8 @@ void CReplay :: AddTimeSlot2( queue<CIncomingAction *> actions )
 		BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 		Block[1] = LengthBytes[0];
 		Block[2] = LengthBytes[1];
-		m_Blocks.push( Block );
+
+		m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 	}
 
 void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions )
@@ -111,6 +114,9 @@ void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> ac
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
 	m_Blocks.push( Block );
+
+    m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
+    m_ReplayLength += timeIncrement;
 }
 
 void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message )
@@ -128,12 +134,7 @@ void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 4 ), false );
 	Block[2] = LengthBytes[0];
 	Block[3] = LengthBytes[1];
-	m_Blocks.push( Block );
-}
-
-void CReplay :: AddCheckSum( uint32_t checkSum )
-{
-	m_CheckSums.push( checkSum );
+	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
 void CReplay :: AddBlock( BYTEARRAY &block )
@@ -146,143 +147,87 @@ void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 	m_LoadingBlocks.push( loadingBlock );
 }
 
+
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
 {
-	m_War3Version = war3Version;
-	m_BuildNumber = buildNumber;
-	m_Flags = 32768;
+        m_War3Version = war3Version;
+        m_BuildNumber = buildNumber;
+        m_Flags = 32768;
 
-	CONSOLE_Print( "[REPLAY] building replay" );
+        CONSOLE_Print( "[REPLAY] building replay" );
 
-	uint32_t LanguageID = 0x0012F8B0;
+        uint32_t LanguageID = 0x0012F8B0;
 
-	BYTEARRAY Replay;
-	Replay.push_back( 16 );															// Unknown (4.0)
-	Replay.push_back( 1 );															// Unknown (4.0)
-	Replay.push_back( 0 );															// Unknown (4.0)
-	Replay.push_back( 0 );															// Unknown (4.0)
-	Replay.push_back( 0 );															// Host RecordID (4.1)
-	Replay.push_back( m_HostPID );													// Host PlayerID (4.1)
-	UTIL_AppendByteArrayFast( Replay, m_HostName );									// Host PlayerName (4.1)
-	Replay.push_back( 1 );															// Host AdditionalSize (4.1)
-	Replay.push_back( 0 );															// Host AdditionalData (4.1)
-	UTIL_AppendByteArrayFast( Replay, gameName );									// GameName (4.2)
-	Replay.push_back( 0 );															// Null (4.0)
-	UTIL_AppendByteArrayFast( Replay, statString );									// StatString (4.3)
-	UTIL_AppendByteArray( Replay, (uint32_t)m_Slots.size( ), false );				// PlayerCount (4.6)
-	Replay.push_back( m_MapGameType );												// GameType (4.7)
-	Replay.push_back( 32 );															// GameType (4.7)
-	Replay.push_back( 73 );															// GameType (4.7)
-	Replay.push_back( 0 );															// GameType (4.7)
-	UTIL_AppendByteArray( Replay, LanguageID, false );								// LanguageID (4.8)
+        BYTEARRAY Replay;
+        Replay.push_back( 16 );                                                                                                                 // Unknown (4.0)
+        Replay.push_back( 1 );                                                                                                                  // Unknown (4.0)
+        Replay.push_back( 0 );                                                                                                                  // Unknown (4.0)
+        Replay.push_back( 0 );                                                                                                                  // Unknown (4.0)
+        Replay.push_back( 0 );                                                                                                                  // Host RecordID (4.1)
+        Replay.push_back( m_HostPID );                                                                                                  // Host PlayerID (4.1)
+        UTIL_AppendByteArrayFast( Replay, m_HostName );                                                                 // Host PlayerName (4.1)
+        Replay.push_back( 1 );                                                                                                                  // Host AdditionalSize (4.1)
+        Replay.push_back( 0 );                                                                                                                  // Host AdditionalData (4.1)
+        UTIL_AppendByteArrayFast( Replay, gameName );                                                                   // GameName (4.2)
+        Replay.push_back( 0 );                                                                                                                  // Null (4.0)
+        UTIL_AppendByteArrayFast( Replay, statString );                                                                 // StatString (4.3)
+        UTIL_AppendByteArray( Replay, (uint32_t)m_Slots.size( ), false );                               // PlayerCount (4.6)
+        Replay.push_back( m_MapGameType );                                                                                              // GameType (4.7)
+        Replay.push_back( 32 );                                                                                                                 // GameType (4.7)
+        Replay.push_back( 73 );                                                                                                                 // GameType (4.7)
+        Replay.push_back( 0 );                                                                                                                  // GameType (4.7)
+        UTIL_AppendByteArray( Replay, LanguageID, false );                                                              // LanguageID (4.8)
 
-	// PlayerList (4.9)
+        // PlayerList (4.9)
 
-	for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-	{
-		if( (*i).first != m_HostPID )
-		{
-			Replay.push_back( 22 );													// Player RecordID (4.1)
-			Replay.push_back( (*i).first );											// Player PlayerID (4.1)
-			UTIL_AppendByteArrayFast( Replay, (*i).second );						// Player PlayerName (4.1)
-			Replay.push_back( 1 );													// Player AdditionalSize (4.1)
-			Replay.push_back( 0 );													// Player AdditionalData (4.1)
-			UTIL_AppendByteArray( Replay, (uint32_t)0, false );						// Unknown
-		}
-	}
+        for( vector<PIDPlayer> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+        {
+                if( (*i).first != m_HostPID )
+                {
+                        Replay.push_back( 22 );                                                                                                 // Player RecordID (4.1)
+                        Replay.push_back( (*i).first );                                                                                 // Player PlayerID (4.1)
+                        UTIL_AppendByteArrayFast( Replay, (*i).second );                                                // Player PlayerName (4.1)
+                        Replay.push_back( 1 );                                                                                                  // Player AdditionalSize (4.1)
+                        Replay.push_back( 0 );                                                                                                  // Player AdditionalData (4.1)
+                        UTIL_AppendByteArray( Replay, (uint32_t)0, false );                                             // Unknown
+                }
+        }
 
-	// GameStartRecord (4.10)
+        // GameStartRecord (4.10)
 
-	Replay.push_back( 25 );															// RecordID (4.10)
-	UTIL_AppendByteArray( Replay, (uint16_t)( 7 + m_Slots.size( ) * 9 ), false );	// Size (4.10)
-	Replay.push_back( m_Slots.size( ) );											// NumSlots (4.10)
+        Replay.push_back( 25 );                                                                                                                 // RecordID (4.10)
+        UTIL_AppendByteArray( Replay, (uint16_t)( 7 + m_Slots.size( ) * 9 ), false );   // Size (4.10)
+        Replay.push_back( m_Slots.size( ) );                                                                                    // NumSlots (4.10)
 
-	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
-		UTIL_AppendByteArray( Replay, m_Slots[i].GetByteArray( ) );
+        for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+                UTIL_AppendByteArray( Replay, m_Slots[i].GetByteArray( ) );
 
-	UTIL_AppendByteArray( Replay, m_RandomSeed, false );							// RandomSeed (4.10)
-	Replay.push_back( m_SelectMode );												// SelectMode (4.10)
-	Replay.push_back( m_StartSpotCount );											// StartSpotCount (4.10)
+        UTIL_AppendByteArray( Replay, m_RandomSeed, false );                                                    // RandomSeed (4.10)
+        Replay.push_back( m_SelectMode );                                                                                               // SelectMode (4.10)
+        Replay.push_back( m_StartSpotCount );                                                                                   // StartSpotCount (4.10)
 
-	// ReplayData (5.0)
+        // ReplayData (5.0)
 
-	Replay.push_back( REPLAY_FIRSTSTARTBLOCK );
-	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
-	Replay.push_back( REPLAY_SECONDSTARTBLOCK );
-	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
+        Replay.push_back( REPLAY_FIRSTSTARTBLOCK );
+        UTIL_AppendByteArray( Replay, (uint32_t)1, false );
+        Replay.push_back( REPLAY_SECONDSTARTBLOCK );
+        UTIL_AppendByteArray( Replay, (uint32_t)1, false );
 
-	// leavers during loading need to be stored between the second and third start blocks
+        // leavers during loading need to be stored between the second and third start blocks
 
-	while( !m_LoadingBlocks.empty( ) )
-	{
-		UTIL_AppendByteArray( Replay, m_LoadingBlocks.front( ) );
-		m_LoadingBlocks.pop( );
-	}
+        while( !m_LoadingBlocks.empty( ) )
+        {
+                UTIL_AppendByteArray( Replay, m_LoadingBlocks.front( ) );
+                m_LoadingBlocks.pop( );
+        }
 
-	Replay.push_back( REPLAY_THIRDSTARTBLOCK );
-	UTIL_AppendByteArray( Replay, (uint32_t)1, false );
+        Replay.push_back( REPLAY_THIRDSTARTBLOCK );
+        UTIL_AppendByteArray( Replay, (uint32_t)1, false );
 
-	// initialize replay length to zero
-	// we'll accumulate the replay length as we iterate through the timeslots
-	// this is necessary because we might be discarding some timeslots due to not enough checksums and the replay length needs to be accurate
+        // done
 
-	m_ReplayLength = 0;
-	uint32_t TimeSlotsDiscarded = 0;
-	bool EndOfTimeSlots = false;
-
-	while( !m_Blocks.empty( ) )
-	{
-		BYTEARRAY Block = m_Blocks.front( );
-		m_Blocks.pop( );
-
-		if( Block.size( ) >= 5 && Block[0] == REPLAY_TIMESLOT )
-		{
-			uint16_t TimeIncrement = UTIL_ByteArrayToUInt16( Block, false, 3 );
-
-			if( TimeIncrement != 0 && m_CheckSums.empty( ) )
-				EndOfTimeSlots = true;
-
-			if( EndOfTimeSlots )
-			{
-				TimeSlotsDiscarded++;
-				continue;
-			}
-
-			// append timeslot
-
-			UTIL_AppendByteArrayFast( Replay, Block );
-
-			// append checksum
-			// todotodo: after experimenting, Strilanc discovered that checksums are NOT required in replays
-			// we could optimize saving of replays by building a complete stream without waiting for checksums as the game progresses
-			// alternatively, we could build that stream as the checksums were added if we wanted to keep them
-			// rather than building it in one go right now, which might take a few hundred ms and cause a spike in other games
-
-			if( TimeIncrement != 0 )
-			{
-				BYTEARRAY CheckSum;
-				CheckSum.reserve( 6 );
-				CheckSum.push_back( REPLAY_CHECKSUM );
-				CheckSum.push_back( 4 );
-				UTIL_AppendByteArray( CheckSum, m_CheckSums.front( ), false );
-				m_CheckSums.pop( );
-				UTIL_AppendByteArrayFast( Replay, CheckSum );
-			}
-
-			// accumulate replay length
-
-			m_ReplayLength += TimeIncrement;
-		}
-		else
-			UTIL_AppendByteArrayFast( Replay, Block );
-	}
-
-	if( TimeSlotsDiscarded > 0 )
-		CONSOLE_Print( "[REPLAY] ran out of checksums, discarded " + UTIL_ToString( TimeSlotsDiscarded ) + " timeslots" );
-
-	// done
-
-	m_Decompressed = string( Replay.begin( ), Replay.end( ) );
+        m_Decompressed = string( Replay.begin( ), Replay.end( ) );
+        m_Decompressed += m_CompiledBlocks;
 }
 
 #define READB( x, y, z )	(x).read( (char *)(y), (z) )
@@ -303,7 +248,6 @@ void CReplay :: ParseReplay( bool parseBlocks )
 	m_StartSpotCount = 0;
 	m_LoadingBlocks = queue<BYTEARRAY>( );
 	m_Blocks = queue<BYTEARRAY>( );
-	m_CheckSums = queue<uint32_t>( );
 
 	if( m_Flags != 32768 )
 	{
@@ -631,7 +575,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		}
 		else if( Garbage1 == CReplay :: REPLAY_CHECKSUM )
 		{
-			READB( ISS, &Garbage1, 1 );
+		/*	READB( ISS, &Garbage1, 1 );
 
 			if( Garbage1 != 4 )
 			{
@@ -642,7 +586,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 
 			uint32_t CheckSum;
 			READB( ISS, &CheckSum, 4 );
-			m_CheckSums.push( CheckSum );
+			m_CheckSums.push( CheckSum );*/
 		}
 		else
 		{

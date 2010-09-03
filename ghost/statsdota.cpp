@@ -291,7 +291,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
-							    CONSOLE_Print( "[STATSDOTA: 1" );
 								// a player disconnected
 								uint32_t i = KeyString.find("D");
 								uint32_t y = KeyString.find("N");
@@ -303,11 +302,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t CreepDenies = UTIL_ToUInt32( CreepDeniesString );
 								uint32_t NeutralKills = UTIL_ToUInt32( NeutralKillsString );
 
-								CGamePlayer *Player = m_Game->GetPlayerFromSID(ValueInt-1);
-
 								if (!m_Players[ValueInt])
 								{
-
 									m_Players[ValueInt] = new CDBDotAPlayer( );
 									m_Players[ValueInt]->SetColour( ValueInt );
 								}
@@ -315,20 +311,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								m_Players[ValueInt]->SetCreepKills( CreepKills );
 								m_Players[ValueInt]->SetCreepDenies( CreepDenies );
 								m_Players[ValueInt]->SetNeutralKills( NeutralKills );
-
-                                CONSOLE_Print( "[STATSDOTA: ValueInt = " + UTIL_ToString(ValueInt));
-
-                                for (int ii=0; ii<12; ii++)
-                                {
-                                    CGamePlayer *temp = m_Game->GetPlayerFromSID(ii);
-
-                                    if (temp)
-                                        CONSOLE_Print( "[STATSDOTA: SID " + UTIL_ToString(ii) + " player " + temp->GetName);
-
-                                }
-
-                                if (Player)
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Player->GetName( ) + " disconnected." );
 
 							}
 							else if( KeyString.size( ) >= 9 && KeyString == "GameStart" )

@@ -4798,10 +4798,6 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 				(*i)->GetCheckSums( )->pop( );
 		}
 
-		// add checksum to replay
-
-		if( m_Replay && AddToReplay )
-			m_Replay->AddCheckSum( FirstCheckSum );
 	}
 	else
 	{
@@ -4907,8 +4903,8 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 
 		// add checksum to replay but only if we're not desynced
 
-		if( m_Replay && !m_Desynced )
-			m_Replay->AddCheckSum( FirstCheckSum );
+	//	if( m_Replay && !m_Desynced )
+	//		m_Replay->AddCheckSum( FirstCheckSum );
 	}
 }
 
