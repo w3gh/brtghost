@@ -32,15 +32,17 @@ class CIncomingAction;
 class CReplay : public CPacked
 {
 public:
-	enum BlockID {
-		REPLAY_LEAVEGAME		= 0x17,
-		REPLAY_FIRSTSTARTBLOCK	= 0x1A,
-		REPLAY_SECONDSTARTBLOCK	= 0x1B,
-		REPLAY_THIRDSTARTBLOCK	= 0x1C,
-		REPLAY_TIMESLOT			= 0x1F,
-		REPLAY_CHATMESSAGE		= 0x20,
-		REPLAY_CHECKSUM			= 0x22
-	};
+        enum BlockID {
+                REPLAY_LEAVEGAME                = 0x17,
+                REPLAY_FIRSTSTARTBLOCK          = 0x1A,
+                REPLAY_SECONDSTARTBLOCK         = 0x1B,
+                REPLAY_THIRDSTARTBLOCK          = 0x1C,
+                REPLAY_TIMESLOT2                = 0x1E,         // corresponds to W3GS_INCOMING_ACTION2
+                REPLAY_TIMESLOT                 = 0x1F,         // corresponds to W3GS_INCOMING_ACTION
+                REPLAY_CHATMESSAGE              = 0x20,
+                REPLAY_CHECKSUM                 = 0x22,         // corresponds to W3GS_OUTGOING_KEEPALIVE
+                REPLAY_DESYNC                   = 0x23
+        };
 
 private:
 	unsigned char m_HostPID;
@@ -88,6 +90,7 @@ public:
 
 	void AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t result );
 	void AddLeaveGameDuringLoading( uint32_t reason, unsigned char PID, uint32_t result );
+	void AddTimeSlot2( queue<CIncomingAction *> actions );
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddCheckSum( uint32_t checkSum );

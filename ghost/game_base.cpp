@@ -235,7 +235,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 	m_CreepSpawnTime = 0;
 	m_RequestedWinner = 0;
-	
+
 	if( m_SaveGame )
 	{
 		m_EnforceSlots = m_SaveGame->GetSlots( );
@@ -1280,6 +1280,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				m_SyncCounter++; */
 				m_LastLagScreenResetTime = GetTime( );
 			}
+
 
 			// check if anyone has stopped lagging normally
 			// we consider a player to have stopped lagging if they're less than half m_SyncLimit keepalives behind
@@ -2396,7 +2397,7 @@ void CBaseGame :: SendAllActions( )
 		}
 
 		//m_Replay->AddTimeSlot( m_Latency, m_Actions );
-		m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) ); //r251
+		//m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) ); //r251
 	}
 
 	// Warcraft III doesn't seem to respond to empty actions
@@ -2434,6 +2435,10 @@ void CBaseGame :: SendAllActions( )
 
 				SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) );
 
+				if( m_Replay )
+					m_Replay->AddTimeSlot2( SubActions );
+
+
 				while( !SubActions.empty( ) )
 				{
 					delete SubActions.front( );
@@ -2449,6 +2454,9 @@ void CBaseGame :: SendAllActions( )
 
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, Latency ) );
 
+		if( m_Replay )
+			m_Replay->AddTimeSlot( m_Latency, SubActions );
+
 		while( !SubActions.empty( ) )
 		{
 			delete SubActions.front( );
@@ -2456,7 +2464,12 @@ void CBaseGame :: SendAllActions( )
 		}
 	}
 	else
+	{
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, Latency ) );
+
+		if( m_Replay )
+			m_Replay->AddTimeSlot( m_Latency, m_Actions );
+	}
 
 	uint32_t ActualSendInterval = GetTicks( ) - m_LastActionSentTicks;
 	uint32_t ExpectedSendInterval = m_DynamicLatency - m_LastActionLateBy;
