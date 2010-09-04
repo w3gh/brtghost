@@ -52,7 +52,6 @@ void CReplay :: AddLeaveGame( uint32_t reason, unsigned char PID, uint32_t resul
 	Block.push_back( PID );
 	UTIL_AppendByteArray( Block, result, false );
 	UTIL_AppendByteArray( Block, (uint32_t)1, false );
-	m_Blocks.push( Block );
 	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
@@ -113,7 +112,6 @@ void CReplay :: AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> ac
 	BYTEARRAY LengthBytes = UTIL_CreateByteArray( (uint16_t)( Block.size( ) - 3 ), false );
 	Block[1] = LengthBytes[0];
 	Block[2] = LengthBytes[1];
-	m_Blocks.push( Block );
 
     m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
     m_ReplayLength += timeIncrement;
@@ -137,16 +135,10 @@ void CReplay :: AddChatMessage( unsigned char PID, unsigned char flags, uint32_t
 	m_CompiledBlocks += string( Block.begin( ), Block.end( ) );
 }
 
-void CReplay :: AddBlock( BYTEARRAY &block )
-{
-	m_Blocks.push( block );
-}
-
 void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 {
 	m_LoadingBlocks.push( loadingBlock );
 }
-
 
 void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
 {

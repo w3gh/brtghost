@@ -2455,7 +2455,7 @@ void CBaseGame :: SendAllActions( )
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, Latency ) );
 
 		if( m_Replay )
-			m_Replay->AddTimeSlot( m_Latency, SubActions );
+			m_Replay->AddTimeSlot( Latency, SubActions );
 
 		while( !SubActions.empty( ) )
 		{
@@ -2468,7 +2468,7 @@ void CBaseGame :: SendAllActions( )
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, Latency ) );
 
 		if( m_Replay )
-			m_Replay->AddTimeSlot( m_Latency, m_Actions );
+			m_Replay->AddTimeSlot( Latency, m_Actions );
 	}
 
 	uint32_t ActualSendInterval = GetTicks( ) - m_LastActionSentTicks;
@@ -4172,9 +4172,9 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 			if (m_GHost->m_IPBanning==1)
 			if (m_GHost->m_Verbose)
 			{
-				SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBanned( Player->GetName()+"("+Player->GetExternalIPString()+")", IPBan->GetAdmin()) );
-				if (sReason!="")
-					SendAllChat ( sName +"("+Player->GetExternalIPString()+") ban reason: "+sReason);
+//				SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBanned( Player->GetName()+"("+Player->GetExternalIPString()+")", IPBan->GetAdmin()) );
+//				if (sReason!="")
+//					SendAllChat ( sName +"("+Player->GetExternalIPString()+") ban reason: "+sReason);
 			}
 			if (m_GHost->m_IPBanning==1)
 			{
