@@ -23,6 +23,9 @@
 #include "config.h"
 #include "language.h"
 
+#include <cstdarg>
+#include <stdio.h>
+
 //
 // CLanguage
 //
@@ -36,6 +39,30 @@ CLanguage :: CLanguage( string nCFGFile )
 CLanguage :: ~CLanguage( )
 {
 	delete m_CFG;
+}
+
+string CLanguage :: ReplaceOldtoNew(string buf)
+{
+    if (!buf.size()) return "<null>";
+
+    string out = m_CFG -> GetString(buf,buf);
+
+    int pos_start = 0, pos_end = 0, pos_next = 0, cur_id = 0;
+
+    for (;;)
+    {
+        pos_start = out.find("$",pos_next);
+        if (pos_start == string :: npos) return out;
+
+        pos_end = out.find("$",pos_start+1);
+        if (pos_end == string :: npos) return out;
+
+        out.replace ( pos_start, pos_end - pos_start + 1, "%s");
+
+        pos_next = pos_end+1;
+    }
+
+    return out;
 }
 
 void CLanguage :: Replace( string &Text, string Key, string Value )
@@ -142,7 +169,7 @@ string CLanguage :: UserWasBannedOnByBecause( string server, string victim, stri
 		Replace( Out, "$ADMIN$", admin );
 		Replace( Out, "$REASON$", reason );
 		return Out;
-	} 
+	}
 	else
 	{
 		string Out = m_CFG->GetString( "lang_0500", "lang_0500" );
@@ -672,7 +699,7 @@ string CLanguage :: HasPlayedDotAGamesWithThisBot2( string user, string totalgam
 
 	if ((a>=k && a<=d) ||(a>=d && a<=k))
 		title2 = "Helper";
-	if ((k>=d && k<=a) ||(k>=a && k<=d)) 
+	if ((k>=d && k<=a) ||(k>=a && k<=d))
 		title2 = "Attacker";
 	if ((d>=k && d<=a) ||(d>=a && d<=k))
 		title2 = "Suicider";
@@ -1817,7 +1844,7 @@ string CLanguage :: ErrorUnwarningUser( string victim )
 
 string CLanguage :: UserReachedWarnQuota( string victim, string bantime )
 {
-	
+
 	string Out;
 	if( bantime.compare("0") != 0 )
 	{
