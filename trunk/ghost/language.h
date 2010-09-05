@@ -25,16 +25,46 @@
 // CLanguage
 //
 
+  #define GetLang(id, ... ) char* buf = new char[512]; string lang, out = m_GHost -> m_Language -> ReplaceOldtoNew(m_GHost -> m_Language -> GetLangN(id)); sprintf(buf, out.c_str(), __VA_ARGS__); lang = buf; delete [] buf
+  #define GetLangS(id) string lang = m_GHost -> m_Language -> GetLangN(id)
+
+// Now in code, you must use this define, example
+//
+//  GetLang("lang_1000",var1,var2);
+//  or
+//  GetLangS("lang_1000");
+//
+//  and after you might work with string lang
+//
+//  SendAllChat( lang );
+//
+//  ------------------------------------
+// Old language string support like this
+// Test string $VAR$ or $$
+// text between $ does not need, and not important
+//
+// New language string is equivalent sprintf function
+// Test string %s or %i
+//
+// where %s - string value, %i - int value
+//
+// brtGhost team, freed, avon.dn.ua@gmail.com
+
 class CLanguage
 {
 private:
 	CConfig *m_CFG;
+
+
 
 public:
 	CLanguage( string nCFGFile );
 	~CLanguage( );
 
 	void Replace( string &Text, string Key, string Value );
+	string ReplaceOldtoNew(string buf); // Replace old language string to new
+
+	string GetLangN(string lang_id) { return m_CFG -> GetString(lang_id,lang_id); }; // Get Lang string from config
 
 	string UnableToCreateGameTryAnotherName( string server, string gamename );
 	string UserIsAlreadyAnAdmin( string server, string user );
