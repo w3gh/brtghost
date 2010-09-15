@@ -437,12 +437,12 @@ void elo_recalculate_ratings(int num_players, float *player_ratings,
 
 		/* FIXME: this is the chess distribution; games should be
 		   able to set their own. */
-		if (player_ratings[i] < 2000)
+		if (player_ratings[i] < 1600)
 			K = 30.0;
 		else if (player_ratings[i] > 2400)
 			K = 10.0;
 		else
-			K = 130.0 - player_ratings[i] / 20.0;
+			K = 70.0 - player_ratings[i] / 40.0;
 
 		diff = K * (team_winners[team] - team_probs[team]);
 		player_ratings[i] += diff;

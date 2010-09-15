@@ -364,7 +364,8 @@ int main( int argc, char **argv )
                         {
                             cout << "error: " << mysql_error( Connection ) << endl;
                             return 1;
-                        } else
+                        } 
+						else
                         {
 
                             MYSQL_RES *Result = mysql_store_result( Connection );
@@ -393,12 +394,32 @@ int main( int argc, char **argv )
                                             return 1;
                                         }
 
+										if( exists[player_id] )
+										{
+											string QUpdateScore = "UPDATE dota_elo_scores SET score=" + UTIL_ToString( player_ratings[player_id], 2 ) + " WHERE id=" + UTIL_ToString( rowids[player_id] );
 
+											if( mysql_real_query( Connection, QUpdateScore.c_str( ), QUpdateScore.size( ) ) != 0 )
+											{
+												cout << "error: " << mysql_error( Connection ) << endl;
+												return 1;
+											}
+										}
+										else
+										{
+											string EscName = MySQLEscapeString( Connection, names[player_id] );
+											string EscServer = MySQLEscapeString( Connection, servers[player_id] );
+											string QInsertScore = "INSERT INTO dota_elo_scores ( name, server, score ) VALUES ( '" + EscName + "', '" + EscServer + "', " + UTIL_ToString( player_ratings[player_id], 2 ) + " )";
+
+											if( mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
+											{
+												cout << "error: " << mysql_error( Connection ) << endl;
+												return 1;
+											}
+										}
 
                                     player_who_scored.push_back(Row[1]);
                                     Row = MySQLFetchRow( Result );
                                 }
-
 
                             }
 
@@ -422,28 +443,6 @@ int main( int argc, char **argv )
 
 							cout << "player [" << names[i] << "] rating " << UTIL_ToString( (uint32_t)old_player_ratings[i] ) << " -> " << UTIL_ToString( (uint32_t)player_ratings[i] ) << endl;
 
-							if( exists[i] )
-							{
-								string QUpdateScore = "UPDATE dota_elo_scores SET score=" + UTIL_ToString( player_ratings[i], 2 ) + " WHERE id=" + UTIL_ToString( rowids[i] );
-
-								if( mysql_real_query( Connection, QUpdateScore.c_str( ), QUpdateScore.size( ) ) != 0 )
-								{
-									cout << "error: " << mysql_error( Connection ) << endl;
-									return 1;
-								}
-							}
-							else
-							{
-								string EscName = MySQLEscapeString( Connection, names[i] );
-								string EscServer = MySQLEscapeString( Connection, servers[i] );
-								string QInsertScore = "INSERT INTO dota_elo_scores ( name, server, score ) VALUES ( '" + EscName + "', '" + EscServer + "', " + UTIL_ToString( player_ratings[i], 2 ) + " )";
-
-								if( mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
-								{
-									cout << "error: " << mysql_error( Connection ) << endl;
-									return 1;
-								}
-							}
 						}
 					}
 				}
