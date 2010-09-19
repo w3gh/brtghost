@@ -474,7 +474,7 @@ bool CGamePlayer :: Update( void *fd )
 						(*i)->QueueChatCommand( "/whois " + m_Name );
 				}
 				else if( m_Game->GetGameState( ) == GAME_PRIVATE )
-					(*i)->QueueChatCommand( m_Game->m_GHost->m_Language->SpoofCheckByReplying( ), m_Name, true );
+					(*i)->QueueChatCommand( m_Game->m_GHost->m_Language->GetLang("lang_0041"), m_Name, true ); // SpoofCheckByReplying
 			}
 		}
 
@@ -796,5 +796,5 @@ void CGamePlayer :: EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPa
 
 	m_GProxyBuffer = TempBuffer;
 	m_GProxyDisconnectNoticeSent = false;
-	m_Game->SendAllChat( m_Game->m_GHost->m_Language->PlayerReconnectedWithGProxy( m_Name ) );
+	m_Game->SendAllChat( m_Game->m_GHost->m_Language->GetLang("lang_0220", m_Name ) ); // PlayerReconnectedWithGProxy
 }

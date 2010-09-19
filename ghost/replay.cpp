@@ -567,7 +567,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		}
 		else if( Garbage1 == CReplay :: REPLAY_CHECKSUM )
 		{
-		/*	READB( ISS, &Garbage1, 1 );
+			READB( ISS, &Garbage1, 1 );
 
 			if( Garbage1 != 4 )
 			{
@@ -578,7 +578,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 
 			uint32_t CheckSum;
 			READB( ISS, &CheckSum, 4 );
-			m_CheckSums.push( CheckSum );*/
+//			m_CheckSums.push( CheckSum );
 		}
 		else
 		{

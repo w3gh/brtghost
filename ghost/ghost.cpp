@@ -1895,38 +1895,44 @@ bool CGHost :: Update( unsigned long usecBlock )
 
 void CGHost :: EventBNETConnecting( CBNET *bnet )
 {
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->ConnectingToBNET( bnet->GetServer( ) ) );
+	if( m_AdminGame)
+		m_AdminGame->SendAllChat( m_Language->GetLang( "lang_0105", bnet->GetServer( ) ) ); // ConnectingToBNET
 
-	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectingToBNET( bnet->GetServer( ) ) );
+	if( m_CurrentGame ) 
+		m_CurrentGame->SendAllChat( m_Language->GetLang( "lang_0105", bnet->GetServer( ) ) ); // ConnectingToBNET
+	
 }
 
 void CGHost :: EventBNETConnected( CBNET *bnet )
 {
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->ConnectedToBNET( bnet->GetServer( ) ) );
+	if( m_AdminGame)
+		m_AdminGame->SendAllChat( m_Language->GetLang( "lang_0105", bnet->GetServer( ) ) ); // ConnectedToBNET
 
 	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectedToBNET( bnet->GetServer( ) ) );
+		m_CurrentGame->SendAllChat( m_Language->GetLang( "lang_0105", bnet->GetServer( ) ) ); // ConnectedToBNET
+	
 }
 
 void CGHost :: EventBNETDisconnected( CBNET *bnet )
 {
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->DisconnectedFromBNET( bnet->GetServer( ) ) );
+	if( m_AdminGame)
+		m_AdminGame->SendAllChat( m_Language->GetLang("lang_0107", bnet->GetServer( ) ) ); // DisconnectedFromBNET
+
 
 	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->DisconnectedFromBNET( bnet->GetServer( ) ) );
+		m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0107", bnet->GetServer( ) ) ); // DisconnectedFromBNET
+		
 }
 
 void CGHost :: EventBNETLoggedIn( CBNET *bnet )
 {
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->LoggedInToBNET( bnet->GetServer( ) ) );
+	if( m_AdminGame)
+		m_AdminGame->SendAllChat( m_Language->GetLang("lang_0108", bnet->GetServer( ) ) ); // LoggedInToBNET
 
+	
 	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->LoggedInToBNET( bnet->GetServer( ) ) );
+		m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0108", bnet->GetServer( ) ) ); // LoggedInToBNET
+		
 }
 
 void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
@@ -1963,18 +1969,18 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 		if (!m_QuietRehost)
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
-			(*i)->QueueChatCommand( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );
+			(*i)->QueueChatCommand( m_Language->GetLang("lang_0001", "$SERVER$", bnet->GetServer( ), "$GAMENAME$", m_CurrentGame->GetGameName( ) ) ); // UnableToCreateGameTryAnotherName
 
 			if( (*i)->GetServer( ) == m_CurrentGame->GetCreatorServer( ) )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ), m_CurrentGame->GetCreatorName( ), true );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0001", "$SERVER$", bnet->GetServer( ), "$GAMENAME$", m_CurrentGame->GetGameName( ) ), m_CurrentGame->GetCreatorName( ), true ); // UnableToCreateGameTryAnotherName
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->BNETGameHostingFailed( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0110", "$SERVER$", bnet->GetServer( ), "$GAMENAME$", m_CurrentGame->GetGameName( ) ) ); // BNETGameHostingFailed
 
 		if (!m_RehostIfNameTaken)
 		{
-			m_CurrentGame->SendAllChat( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );
+			m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0001", "$SERVER$", bnet->GetServer( ), "$GAMENAME$", m_CurrentGame->GetGameName( ) ) ); // UnableToCreateGameTryAnotherName
 
 			// we take the easy route and simply close the lobby if a refresh fails
 			// it's possible at least one refresh succeeded and therefore the game is still joinable on at least one battle.net (plus on the local network) but we don't keep track of that
@@ -2017,11 +2023,11 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 
 void CGHost :: EventBNETConnectTimedOut( CBNET *bnet )
 {
-	if( m_AdminGame )
-		m_AdminGame->SendAllChat( m_Language->ConnectingToBNETTimedOut( bnet->GetServer( ) ) );
+	if( m_AdminGame)
+		m_AdminGame->SendAllChat( m_Language->GetLang("lang_0111", bnet->GetServer( ) ) ); // ConnectingToBNETTimedOut
 
 	if( m_CurrentGame )
-		m_CurrentGame->SendAllChat( m_Language->ConnectingToBNETTimedOut( bnet->GetServer( ) ) );
+		m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0111", bnet->GetServer( ) ) ); // ConnectingToBNETTimedOut
 }
 
 void CGHost :: EventBNETWhisper( CBNET *bnet, string user, string message )
@@ -2070,10 +2076,10 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 {
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 	{
-		(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ) );
+		(*i)->QueueChatCommand( m_Language->GetLang("lang_0040", game->GetDescription( ) ) ); // GameIsOver
 
 		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
-			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
+			(*i)->QueueChatCommand( m_Language->GetLang("lang_0040", game->GetDescription( ) ), game->GetCreatorName( ), true ); // GameIsOver
 	}
 }
 
@@ -2342,11 +2348,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameDisabled( gameName.substr(0,10)+"...", m_DisableReason ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0125", "$GAMENAME$", gameName.substr(0,10)+"...", "$REASON$", m_DisableReason ), creatorName, whisper ); // UnableToCreateGameDisabled
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameDisabled( gameName.substr(0,10)+"...", m_DisableReason ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0125", "$GAMENAME$", gameName.substr(0,10)+"...", "$REASON$", m_DisableReason ) ); // UnableToCreateGameDisabled
 
 		return;
 	}
@@ -2356,11 +2362,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameNameTooLong( gameName ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0113", gameName ), creatorName, whisper ); // UnableToCreateGameNameTooLong
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameNameTooLong( gameName ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0113", gameName ) ); // UnableToCreateGameNameTooLong
 
 		return;
 	}
@@ -2370,11 +2376,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0128", gameName ), creatorName, whisper ); // UnableToCreateGameInvalidMap
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidMap( gameName ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0128", gameName ) ); // UnableToCreateGameInvalidMap
 
 		return;
 	}
@@ -2386,11 +2392,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
-					(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidSaveGame( gameName ), creatorName, whisper );
+					(*i)->QueueChatCommand( m_Language->GetLang("lang_0140", gameName ), creatorName, whisper ); // UnableToCreateGameInvalidSaveGame
 			}
 
 			if( m_AdminGame )
-				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidSaveGame( gameName ) );
+				m_AdminGame->SendAllChat( m_Language->GetLang("lang_0140", gameName ) ); // UnableToCreateGameInvalidSaveGame
 
 			return;
 		}
@@ -2407,11 +2413,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
-					(*i)->QueueChatCommand( m_Language->UnableToCreateGameSaveGameMapMismatch( gameName ), creatorName, whisper );
+					(*i)->QueueChatCommand( m_Language->GetLang("lang_0141", gameName ), creatorName, whisper ); // UnableToCreateGameSaveGameMapMismatch
 			}
 
 			if( m_AdminGame )
-				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameSaveGameMapMismatch( gameName ) );
+				m_AdminGame->SendAllChat( m_Language->GetLang("lang_0141", gameName ) ); // UnableToCreateGameSaveGameMapMismatch
 
 			return;
 		}
@@ -2421,11 +2427,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
-					(*i)->QueueChatCommand( m_Language->UnableToCreateGameMustEnforceFirst( gameName ), creatorName, whisper );
+					(*i)->QueueChatCommand( m_Language->GetLang("lang_0207", gameName ), creatorName, whisper ); // UnableToCreateGameMustEnforceFirst
 			}
 
 			if( m_AdminGame )
-				m_AdminGame->SendAllChat( m_Language->UnableToCreateGameMustEnforceFirst( gameName ) );
+				m_AdminGame->SendAllChat( m_Language->GetLang("lang_0207", gameName ) ); // UnableToCreateGameMustEnforceFirst
 
 			return;
 		}
@@ -2436,11 +2442,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameAnotherGameInLobby( gameName, m_CurrentGame->GetDescription( ) ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0038", "$GAMENAME$", gameName, "$DESCRIPTION$", m_CurrentGame->GetDescription( ) ), creatorName, whisper ); // UnableToCreateGameAnotherGameInLobby
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameAnotherGameInLobby( gameName, m_CurrentGame->GetDescription( ) ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0038", "$GAMENAME$", gameName, "$DESCRIPTION$", m_CurrentGame->GetDescription( ) ) ); // UnableToCreateGameAnotherGameInLobby
 
 		return;
 	}
@@ -2450,11 +2456,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameMaxGamesReached( gameName, UTIL_ToString( m_MaxGames ) ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0039", "$GAMENAME$", gameName, "$MAX$", UTIL_ToString( m_MaxGames ) ), creatorName, whisper ); // UnableToCreateGameMaxGamesReached
 		}
 
 		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameMaxGamesReached( gameName, UTIL_ToString( m_MaxGames ) ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0039", "$GAMENAME$", gameName, "$MAX$", UTIL_ToString( m_MaxGames ) ) ); // UnableToCreateGameMaxGamesReached
 
 		return;
 	}
@@ -2552,18 +2558,18 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			// note that we send this whisper only on the creator server
 
 			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0031", "$GAMENAME$", gameName, "$USER$", ownerName ), creatorName, whisper ); // CreatingPrivateGame
 			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ), creatorName, whisper );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0032", "$GAMENAME$", gameName, "$USER$", ownerName ), creatorName, whisper ); // CreatingPublicGame
 		}
 		else
 		{
 			// note that we send this chat message on all other bnet servers
 
 			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0031", "$GAMENAME$", gameName, "$USER$", ownerName ) ); // CreatingPrivateGame
 			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
+				(*i)->QueueChatCommand( m_Language->GetLang("lang_0032", "$GAMENAME$", gameName, "$USER$", ownerName ) ); // CreatingPublicGame
 		}
 
 		if( saveGame )
@@ -2575,9 +2581,9 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	if( m_AdminGame )
 	{
 		if( gameState == GAME_PRIVATE )
-			m_AdminGame->SendAllChat( m_Language->CreatingPrivateGame( gameName, ownerName ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0031", "$GAMENAME$", gameName, "$USER$", ownerName ) ); // CreatingPrivateGame
 		else if( gameState == GAME_PUBLIC )
-			m_AdminGame->SendAllChat( m_Language->CreatingPublicGame( gameName, ownerName ) );
+			m_AdminGame->SendAllChat( m_Language->GetLang("lang_0032", "$GAMENAME$", gameName, "$USER$", ownerName ) ); // CreatingPublicGame
 	}
 
 	// if we're creating a private game we don't need to send any game refresh messages so we can rejoin the chat immediately
@@ -2717,10 +2723,10 @@ void CGHost :: UDPCommands( string Message )
 		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
 		{
             int iTime; // time in seconds since game loaded
-			
-			if (GetTime() < (*g)->GetGameLoadedTime()) 
-				iTime = 0; 
-			else if ((*g)->GetCreepSpawnTime() == 0) 
+
+			if (GetTime() < (*g)->GetGameLoadedTime())
+				iTime = 0;
+			else if ((*g)->GetCreepSpawnTime() == 0)
 				iTime = (int)(GetTime() - (*g)->GetGameLoadedTime());
 			else
 				iTime = (int)(GetTime() - (*g)->GetCreepSpawnTime());
@@ -2732,7 +2738,7 @@ void CGHost :: UDPCommands( string Message )
 
             game_name = (*g)->GetGameName();
 
-            for (int i=0; i < 32 - (*g)->GetGameName().size(); i++)
+            for (int i=0; i < 32 - (int)(*g)->GetGameName().size(); i++)
                 game_name += " ";
 
 			games = games + game_name + "," + (*g)->GetKilledTowers() + "," + UTIL_ToString(iTime) + "," + (*g)->GetCreatorName() + "," + reserv2+"|--|";
@@ -3158,7 +3164,7 @@ void CGHost :: UDPCommands( string Message )
 				}
 			}
 			if( Matches == 0 )
-				Game->SendAllChat( m_Language->UnableToBanNoMatchesFound( name ) );
+				Game->SendAllChat( m_Language->GetLang("lang_0051", name ) ); // UnableToBanNoMatchesFound
 			else if( Matches == 1 )
 			{
 				bool isAdmin = Game->IsOwner(LastMatch->GetName());
@@ -3210,12 +3216,22 @@ void CGHost :: UDPCommands( string Message )
 				UDPChatSend("|ban "+UTIL_ToString(GameNr)+" "+LastMatch->GetName( ));
 				CONSOLE_Print( "[GAME: " + Game->GetGameName() + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + m_RootAdmin + "]" );
 
-				string sBan = m_Language->PlayerWasBannedByPlayer(
-					LastMatch->GetServer(),
-					LastMatch->GetName( )+" ("+LastMatch->GetIP()+")", m_RootAdmin, UTIL_ToString(m_BanTime));
+				string sBan;
+
+				if (m_BanTime)
+					sBan = m_Language->GetLang("lang_0519", "$SERVER$", LastMatch->GetServer(),
+															"$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
+															"$USER$", m_RootAdmin,
+															"$BANDAYTIME$", UTIL_ToString(m_BanTime)); 
+				else
+					sBan = m_Language->GetLang("lang_0052", "$SERVER$", LastMatch->GetServer(),
+															"$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
+															"$USER$", m_RootAdmin); 
+
+
 				string sBReason = sBan + ", "+Reason;
 
-				if (Reason=="")
+				if (Reason.empty())
 				{
 					Game->SendAllChat( sBan );
 				} else
@@ -3225,12 +3241,12 @@ void CGHost :: UDPCommands( string Message )
 					else
 					{
 						Game->SendAllChat( sBan);
-						Game->SendAllChat( "Ban reason: " + Reason);
+						Game->SendAllChat( m_Language->GetLang("lang_1027", Reason)); 
 					}
 				}
 				if (m_NotifyBannedPlayers && !m_DetourAllMessagesToAdmins)
 				{
-					sBReason = "You have been banned";
+					sBReason = m_Language->GetLang("lang_1142"); //"You have been banned";
 					if (Reason!="")
 						sBReason = sBReason+", "+Reason;
 					for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
@@ -3241,7 +3257,7 @@ void CGHost :: UDPCommands( string Message )
 				}
 			}
 			else
-				Game->SendAllChat( m_Language->UnableToBanFoundMoreThanOneMatch( name ) );
+				Game->SendAllChat( m_Language->GetLang("lang_0053", name ) ); // UnableToBanFoundMoreThanOneMatch
 		}
 	}
 
@@ -3262,18 +3278,18 @@ void CGHost :: UDPCommands( string Message )
 			uint32_t Matches = Game->GetPlayerFromNamePartial( name, &LastMatch );
 
 			if( Matches == 0 )
-				Game->SendAllChat( m_Language->UnableToKickNoMatchesFound( name ) );
+				Game->SendAllChat( m_Language->GetLang("lang_0055", name ) ); // UnableToKickNoMatchesFound
 			else if( Matches == 1 )
 			{
 				LastMatch->SetDeleteMe( true );
-				LastMatch->SetLeftReason( m_Language->WasKickedByPlayer( Game->GetOwnerName() ) );
+				LastMatch->SetLeftReason( m_Language->GetLang("lang_0078", Game->GetOwnerName() ) ); // WasKickedByPlayer
 
 				LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
 
 				Game->OpenSlot( Game->GetSIDFromPID( LastMatch->GetPID( ) ), false );
 			}
 			else
-				Game->SendAllChat( m_Language->UnableToKickFoundMoreThanOneMatch( name ) );
+				Game->SendAllChat( m_Language->GetLang("lang_0056", name ) ); // UnableToKickFoundMoreThanOneMatch
 		}
 	}
 
@@ -3285,24 +3301,24 @@ void CGHost :: UDPCommands( string Message )
 			uint32_t Matches = m_CurrentGame->GetPlayerFromNamePartial( Payload, &LastMatch );
 
 			if( Matches == 0 )
-				m_CurrentGame->SendAllChat( m_Language->UnableToKickNoMatchesFound( Payload ) );
+				m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0055", Payload ) ); // UnableToKickNoMatchesFound
 			else if( Matches == 1 )
 			{
 				LastMatch->SetDeleteMe( true );
-				LastMatch->SetLeftReason( m_Language->WasKickedByPlayer( m_CurrentGame->GetOwnerName() ) );
+				LastMatch->SetLeftReason( m_Language->GetLang("lang_0078", m_CurrentGame->GetOwnerName() ) ); // WasKickedByPlayer
 
 				LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
 
 				m_CurrentGame->OpenSlot( m_CurrentGame->GetSIDFromPID( LastMatch->GetPID( ) ), false );
 			}
 			else
-				m_CurrentGame->SendAllChat( m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
+				m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0056", Payload ) ); // UnableToKickFoundMoreThanOneMatch
 		}
 	}
 
 	if (Command == "ip")
 	{
-		if (m_ExternalIP=="")
+		if (m_ExternalIP.empty())
 		{
 			m_ExternalIP = Payload;
 			m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
@@ -3433,7 +3449,7 @@ void CGHost :: UDPCommands( string Message )
 // 						if ((*i)->GetName( )!=RootAdmin)
 							if (isAdmin==false)
 							{
-								m_CurrentGame->SendAllChat( m_Language->AutokickingPlayerForDeniedProvider( (*i)->GetName( ), From ) );
+								m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0998", "$VICTIM$", (*i)->GetName( ), "$PROVIDER$", From ) ); // AutokickingPlayerForDeniedProvider
 								(*i)->SetDeleteMe( true );
 								(*i)->SetLeftReason( "was autokicked," + From + " provider "+From+" not allowed");
 								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
@@ -3868,7 +3884,7 @@ void CGHost :: ReloadConfig ()
 	m_PlayersfromRMK = string();
 	m_dropifdesync = CFG->GetInt( "bot_dropifdesync", 1 ) == 0 ? false : true; //Metal_Koola
 	m_UDPPassword = CFG->GetString( "bot_udppassword", string () );
-	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF483D8BOne" );
+	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF483D8BBrt" );
 	if (m_VirtualHostName.length()>15)
 		m_VirtualHostName=m_VirtualHostName.substr(0,15);
 	m_DropVoteTime = CFG->GetInt( "bot_dropvotetime", 30 );
