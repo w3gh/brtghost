@@ -6828,6 +6828,6 @@ void CBNET :: WarnPlayer (string Victim, string Reason, string User, bool Whispe
 				m_GHost->m_DB->WarnUpdate( Victim, 1, 3);
 			}
 		} else
-			QueueChatCommand( m_GHost->m_Language->GetLang( "lang_0502", m_Server, Victim, UTIL_ToString( WarnCount ) ), User, Whisper ); // WarnedUser( m_Server, Victim, UTIL_ToString( WarnCount ) )
+			QueueChatCommand( m_GHost->m_Language->GetLang( "lang_0502", "$SERVER$", m_Server, "$VICTIM$", Victim, "$WARNNUM$", UTIL_ToString( WarnCount ) ), User, Whisper ); // WarnedUser( m_Server, Victim, UTIL_ToString( WarnCount ) )
 	}
 }
