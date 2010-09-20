@@ -3228,8 +3228,86 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( Command == "end" && m_GameLoaded )
 			{
 				bool access = CMDCheck(CMD_end, AdminAccess);
+					
+				if (!Payload.empty())
+				{
+					if ( !m_Stats )
+					{
+						SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
+						return HideCommand;
+					}			
+
+					string winnerString = "";
+					uint32_t RequestedWinner = 0;
+
+					if ( m_Map->GetMapType( ) == "dota" )
+					{
+						if ( Payload == "1" )
+						{
+							winnerString = "[SENTINEL]";
+							RequestedWinner = 1;
+						}
+						else if ( Payload == "2" )
+						{
+							winnerString = "[SCOURGE]";
+							RequestedWinner = 2;
+						}
+					}
+
+					if ( !RequestedWinner )
+					{
+						SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1209"));
+						return HideCommand;
+					}		
+					
+					if (!m_GameEndCountDownStarted)
+					{
+						if (m_GHost->m_EndReq2ndTeamAccept && m_RequestedWinner && UTIL_ToUInt32(Payload) == m_RequestedWinner)
+						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
+						{
+							CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
+							SendAllChat(m_GHost->m_Language->GetLang("lang_1168")); // Game will end in 5 seconds"
+							m_GameEndCountDownStarted = true;
+							m_GameEndCountDownCounter = 5;
+							m_GameEndLastCountDownTicks = GetTicks();
+							m_Stats->SetWinner(m_RequestedWinner);
+							return HideCommand;
+						}			
+					}
+
+					if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
+					{
+						bool secondTeamPresent = false;
+						unsigned char PID = player->GetPID();
+						for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+						{
+							if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_Slots[GetSIDFromPID(PID)].GetTeam())
+								secondTeamPresent = true;
+						}
+
+						if (m_GetMapNumTeams==2 && secondTeamPresent)
+						{
+							m_EndRequestedTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+							if (!m_RequestedWinner)
+							{
+								m_EndRequestedTicks = GetTicks();
+								m_RequestedWinner = RequestedWinner;
+								for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+								{
+									if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
+										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173_1", "$USER$", User, "$WINNER$", winnerString, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // wants to end the game with winner "+winnerString+", type "+m_GHost->m_CommandTrigger+"end "+UTIL_ToString(m_RequestedWinner)+" to accept");
+									else
+										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174_1", "$USER$", User, "$WINNER$", winnerString) ); 
+								}
+
+							}
+							return HideCommand;
+						}
+					}				
+				}
 
 				if (!m_GameEndCountDownStarted)
+				{
 					if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
 						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
 						{
@@ -3238,28 +3316,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_GameEndCountDownStarted = true;
 							m_GameEndCountDownCounter = 5;
 							m_GameEndLastCountDownTicks = GetTicks();
-							if (m_RequestedWinner) m_Stats->SetWinner(m_RequestedWinner);
-						}
+							return HideCommand;	
+						}			
+				}
 
 				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
 				{
 					bool secondTeamPresent = false;
-					string winnerString = "";
-
-					if (!Payload.empty())
-					{
-						if(Payload == "1")
-						{
-							winnerString = "[SENTINEL]"; // with winner
-							m_RequestedWinner = 1;
-						}
-						else if (Payload == "2")
-						{
-							winnerString = "[SCOURGE]" ; // with winner
-							m_RequestedWinner = 2;
-						}
-					}
-
+					
 					unsigned char PID = player->GetPID();
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 					{
@@ -3276,19 +3340,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_EndRequested = true;
 							for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 							{
-							    if (winnerString.empty())
-							    {
-                                    if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-                                        SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger) )); // " User + wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
-                                    else
-                                        SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1170", User)); // User + " wants to end the game, waiting for the other team to accept...
-
-							    } else
-
 								if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$WINNER", winnerString, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // User + " wants to end the game"+winnerString+", type "+m_GHost->m_CommandTrigger+"end to accept"
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
 								else
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User, "WINNER", winnerString)); // User + " wants to end the game"+winnerString+", waiting for the other team to accept..."
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User)); // User + " wants to end the game, waiting for the other team to accept..."
 							}
 						}
 						return HideCommand;
@@ -3307,6 +3362,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				m_GameEndCountDownCounter = 5;
 				m_GameEndLastCountDownTicks = GetTicks();
 //				StopPlayers( "was disconnected (admin ended game)" );
+				return HideCommand;
 			}
 
 			//
@@ -5696,17 +5752,34 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	else if( Command == "end" )
 	{
-		if (!m_GameEndCountDownStarted)
-		if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
-		if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
+		if (!m_GameEndCountDownStarted && m_GHost->m_EndReq2ndTeamAccept)
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
-			SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
-			m_GameEndCountDownStarted = true;
-			m_GameEndCountDownCounter = 5;
-			m_GameEndLastCountDownTicks = GetTicks();
-			if (m_RequestedWinner) m_Stats->SetWinner(m_RequestedWinner);
+			bool do_end_command = false;
+			if(Payload.empty( ))
+			{
+				if (m_EndRequested)
+				if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
+					do_end_command = true;
+			}
+			else if( Payload.find_first_not_of( "12" ) == string :: npos )
+			{
+				if (m_RequestedWinner && UTIL_ToUInt32(Payload) == m_RequestedWinner)
+				if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
+				{
+					do_end_command = true;
+					m_Stats->SetWinner(m_RequestedWinner);
+				}
+			}
+			if (do_end_command)
+			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
+				SendAllChat(m_GHost->m_Language->GetLang("lang_1168")); // Game will end in 5 seconds"
+				m_GameEndCountDownStarted = true;
+				m_GameEndCountDownCounter = 5;
+				m_GameEndLastCountDownTicks = GetTicks();
+			}
 		}
+		return HideCommand;
 	}
 
 	//
