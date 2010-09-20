@@ -3295,9 +3295,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 								{
 									if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173_1", "$USER$", User, "$WINNER$", winnerString, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // wants to end the game with winner "+winnerString+", type "+m_GHost->m_CommandTrigger+"end "+UTIL_ToString(m_RequestedWinner)+" to accept");
+										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$WINNER$", winnerString, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // wants to end the game with winner "+winnerString+", type "+m_GHost->m_CommandTrigger+"end "+UTIL_ToString(m_RequestedWinner)+" to accept");
 									else
-										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174_1", "$USER$", User, "$WINNER$", winnerString) ); 
+										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User, "$WINNER$", winnerString) ); 
 								}
 
 							}
@@ -3341,9 +3341,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 							{
 								if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
 								else
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User)); // User + " wants to end the game, waiting for the other team to accept..."
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1170", "$USER$", User)); // User + " wants to end the game, waiting for the other team to accept..."
 							}
 						}
 						return HideCommand;
