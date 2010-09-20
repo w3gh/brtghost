@@ -45,6 +45,8 @@ class CAdminGame : public CBaseGame
 {
 protected:
 	string m_Password;
+	vector<CGamePlayer*> cache_admin_players;
+
 	vector<TempBan> m_TempBans;
 	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
 	vector<PairedAdminAdd> m_PairedAdminAdds;		// vector of paired threaded database admin adds in progress
