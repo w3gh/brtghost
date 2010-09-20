@@ -63,6 +63,7 @@ CREATE TABLE gameplayers (
 	team INT NOT NULL,
 	colour INT NOT NULL,
 	spoofedrealm VARCHAR(100) NOT NULL,
+	elopoint FLOAT NOT NULL DEFAULT 0.0,
 	INDEX( gameid )
 );
 
