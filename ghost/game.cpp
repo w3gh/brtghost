@@ -3224,7 +3224,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			//
 			// !END
 			//
-
+			// Out of index error somewhere here. Can't understand where. Fix-me.
 			else if( Command == "end" && m_GameLoaded )
 			{
 				bool access = CMDCheck(CMD_end, AdminAccess);
@@ -3235,8 +3235,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
 						return HideCommand;
-					}			
-
+					}
 					string winnerString = "";
 					uint32_t RequestedWinner = 0;
 
@@ -3258,7 +3257,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1209"));
 						return HideCommand;
-					}		
+					}
 					
 					if (!m_GameEndCountDownStarted)
 					{
@@ -3272,7 +3271,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_GameEndLastCountDownTicks = GetTicks();
 							m_Stats->SetWinner(m_RequestedWinner);
 							return HideCommand;
-						}			
+						}
 					}
 
 					if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
@@ -3303,21 +3302,21 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							}
 							return HideCommand;
 						}
-					}				
+					}
 				}
 
 				if (!m_GameEndCountDownStarted)
 				{
 					if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
-						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
-						{
-							CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
-							SendAllChat(m_GHost->m_Language->GetLang("lang_1168")); // Game will end in 5 seconds"
-							m_GameEndCountDownStarted = true;
-							m_GameEndCountDownCounter = 5;
-							m_GameEndLastCountDownTicks = GetTicks();
-							return HideCommand;	
-						}			
+					if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
+					{
+						CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
+						SendAllChat(m_GHost->m_Language->GetLang("lang_1168")); // Game will end in 5 seconds"
+						m_GameEndCountDownStarted = true;
+						m_GameEndCountDownCounter = 5;
+						m_GameEndLastCountDownTicks = GetTicks();
+						return HideCommand;	
+					}
 				}
 
 				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
@@ -5633,6 +5632,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "rmk" && !player->GetRmkVote( ) && m_GameLoaded)
 			{
+				if ( m_Map->GetMapType( ) != "dota"  )
+				{
+					SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
+					return HideCommand;
+				}
+			
 				if (m_RmkVotePlayer.empty())
 				{
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
@@ -5641,19 +5646,35 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_StartedRmkVoteTime = GetTime();
 				}
 				player->SetRmkVote( true );
-				uint32_t VotesNeeded = (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)100 );
-				if (VotesNeeded>GetNumHumanPlayers()-1)
-					VotesNeeded = GetNumHumanPlayers()-1;
-				uint32_t Votes = 0;
-
+				
+				unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+				uint32_t team1players = 0, team2players = 0;
+				uint32_t votes1 = 0, votes2 = 0;
+				string winnerString;
+				
 				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 				{
-					if( (*i)->GetRmkVote( ) )
-						Votes++;
+					if( !(*i)->GetLeftMessageSent( ) )
+					if(m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam() == (unsigned char)0)
+					{
+						team1players++;
+						if( (*i)->GetRmkVote( ) )
+							votes1++;
+					}else{
+						team2players++;
+						if( (*i)->GetRmkVote( ) )
+							votes2++;
+					}
 				}
-
-				if( Votes >= VotesNeeded )
+				
+				bool end1 = (votes1 == team1players), end2 = (votes2 == team2players)
+				if( end1 || end2 )
 				{
+					if( end1 )
+						m_Stats->SetWinner(1);
+					else
+						m_Stats->SetWinner(2);
+						
 					SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
 					m_GameEndCountDownStarted = true;
 					m_GameEndCountDownCounter = 5;
@@ -5662,7 +5683,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_StartedRmkVoteTime = 0;
 				}
 				else
-					SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTE$", UTIL_ToString( Votes ), "$MAXVOTE$", UTIL_ToString(VotesNeeded), "$TRIGGER$", string( 1, m_GHost->m_CommandTrigger ) )); // SendAllChat( User+" voted for rmk [" + UTIL_ToString( Votes )+"/"+ UTIL_ToString(VotesNeeded)+"] "+string( 1, m_GHost->m_CommandTrigger )+"rmk to accept");
+					SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", playerTeam == 0 ? votes1 : votes2, "$PLAYERS$", playerTeam == 0 ? team1players : team2players);
 			}
 
 			//
@@ -5951,8 +5972,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !RMK
 	//
 
-	if( Command == "rmk" && !player->GetRmkVote( ) && m_GameLoaded)
+	else if( Command == "rmk" && !player->GetRmkVote( ) && m_GameLoaded)
 	{
+		if ( m_Map->GetMapType( ) != "dota"  )
+		{
+			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
+			return HideCommand;
+		}
+		
 		if (m_RmkVotePlayer.empty())
 		{
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
@@ -5961,21 +5988,36 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_StartedRmkVoteTime = GetTime();
 		}
 		player->SetRmkVote( true );
-		uint32_t VotesNeeded = (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)100 );
-		if (VotesNeeded>GetNumHumanPlayers()-1)
-			VotesNeeded = GetNumHumanPlayers()-1;
-
-		uint32_t Votes = 0;
-
+		
+		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+		uint32_t team1players = 0, team2players = 0;
+		uint32_t votes1 = 0, votes2 = 0;
+		string winnerString;
+		
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
-			if( (*i)->GetRmkVote( ) )
-				Votes++;
+			if( !(*i)->GetLeftMessageSent( ) )
+			if(m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam() == (unsigned char)0)
+			{
+				team1players++;
+				if( (*i)->GetRmkVote( ) )
+					votes1++;
+			}else{
+				team2players++;
+				if( (*i)->GetRmkVote( ) )
+					votes2++;
+			}
 		}
-
-		if( Votes >= VotesNeeded )
+		
+		bool end1 = (votes1 == team1players), end2 = (votes2 == team2players);
+		if( end1 || end2 )
 		{
-			SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // Game will end in 5 seconds
+			if( end1 )
+				m_Stats->SetWinner(1);
+			else
+				m_Stats->SetWinner(2);
+				
+			SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
 			m_GameEndCountDownStarted = true;
 			m_GameEndCountDownCounter = 5;
 			m_GameEndLastCountDownTicks = GetTicks();
@@ -5983,7 +6025,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_StartedRmkVoteTime = 0;
 		}
 		else
-			SendAllChat( User+" voted for rmk [" + UTIL_ToString( Votes )+"/"+ UTIL_ToString(VotesNeeded)+"] "+string( 1, m_GHost->m_CommandTrigger )+"rmk to accept");
+			SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", playerTeam == 0 ? votes1 : votes2, "$PLAYERS$", playerTeam == 0 ? team1players : team2players);
 	}
 
 	//
