@@ -49,6 +49,8 @@ CAdminGame :: CAdminGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint
 	m_VirtualHostName = "|cFFC04040Admin";
 	m_MuteLobby = true;
 	m_Password = nPassword;
+
+	cache_admin_players.clear();
 }
 
 CAdminGame :: ~CAdminGame( )
@@ -74,6 +76,8 @@ CAdminGame :: ~CAdminGame( )
 
 	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); i++ )
 		m_GHost->m_Callables.push_back( i->second );
+
+	cache_admin_players.clear();
 }
 
 bool CAdminGame :: Update( void *fd, void *send_fd )
@@ -317,7 +321,24 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 		}
 	}
 
+
 	CBaseGame :: EventPlayerJoined( potential, joinPlayer );
+
+	CGamePlayer* player = CBaseGame :: GetPlayerFromName(joinPlayer->GetName(), true);
+
+	for (uint32_t i=0; i < cache_admin_players.size(); i++)
+		if (cache_admin_players[i]->GetName() == player->GetName() &&
+			cache_admin_players[i]->GetExternalIPString() == player->GetExternalIPString())
+		{	
+			// We are find a cached admin in this session
+			CONSOLE_Print( "[ADMINGAME] user [" + joinPlayer->GetName() + "] logged in" );
+			SendChat(player, m_GHost->m_Language->GetLang("lang_0103") ); // AdminLoggedIn
+
+			player->SetLoggedIn( true );
+
+			break;
+		}
+
 }
 
 bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string payload )
@@ -1599,6 +1620,15 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		{
 			CONSOLE_Print( "[ADMINGAME] user [" + User + "] logged in" );
 			SendChat( player, m_GHost->m_Language->GetLang("lang_0103") ); // AdminLoggedIn
+
+			bool admin_find = false;
+			for (uint32_t i=0; i < cache_admin_players.size(); i++)
+				if (cache_admin_players[i]->GetName() == player->GetName() &&
+					cache_admin_players[i]->GetInternalIP() == player->GetInternalIP()) { admin_find = true; break; };
+
+			if (!admin_find)
+				cache_admin_players.push_back(player);
+
 			player->SetLoggedIn( true );
 		}
 		else

@@ -3906,7 +3906,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						Froms += ", ";
 				}
 
-				SendAllChat( Froms );
+				SendAdminChat( Froms );
 			}
 
 			//
