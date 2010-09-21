@@ -5667,7 +5667,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					}
 				}
 				
-				bool end1 = (votes1 == team1players), end2 = (votes2 == team2players)
+				bool end1 = (votes1 == team1players), end2 = (votes2 == team2players);
 				if( end1 || end2 )
 				{
 					if( end1 )
@@ -5683,7 +5683,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_StartedRmkVoteTime = 0;
 				}
 				else
-					SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", playerTeam == 0 ? votes1 : votes2, "$PLAYERS$", playerTeam == 0 ? team1players : team2players);
+					SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$PLAYERS$", UTIL_ToString(playerTeam == 0 ? team1players : team2players)));
 			}
 
 			//
@@ -5992,7 +5992,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
 		uint32_t team1players = 0, team2players = 0;
 		uint32_t votes1 = 0, votes2 = 0;
-		string winnerString;
 		
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -6025,7 +6024,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_StartedRmkVoteTime = 0;
 		}
 		else
-			SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", playerTeam == 0 ? votes1 : votes2, "$PLAYERS$", playerTeam == 0 ? team1players : team2players);
+			SendAllChat( m_GHost->m_Language->GetLang("lang_1054", "$USER$", User, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$PLAYERS$", UTIL_ToString(playerTeam == 0 ? team1players : team2players)));
 	}
 
 	//
