@@ -567,6 +567,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				Player->SetScoreS(UTIL_ToString(Score,2));
 				Player->SetRankS(UTIL_ToString((*i)->GetRank( )));
 				Player->SetScore(Score);
+				Player->SetLeaveCount((*i)->GetLeaveCount( ));
 			}
 
 			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); j++ )
@@ -2831,7 +2832,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 //											string s(16-n.length(),' ');
 											//n=s+n;
 											if (m_GHost->m_Verbose && m_GHost->m_ShowCountryNotAllowed)
-												SendAllChat( m_GHost->m_Language->GetLang("lang_0999", n, From) );  // AutokickingPlayerForDeniedCountry( n, From )
+												SendAllChat( m_GHost->m_Language->GetLang("lang_0999", "$VICTIM$", n, "$COUNTRY$", From) );  // AutokickingPlayerForDeniedCountry( n, From )
 											//			potential->SetSocket( NULL );
 											//			potential->SetDeleteMe( true );
 

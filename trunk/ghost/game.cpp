@@ -588,9 +588,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
                 string Summary;
-				string leave_games_count = "N/A";
+				string leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
 				string player_class = m_GHost->m_Language->GetLang("lang_1061");
-
 
                 player_class = "";
 
@@ -616,6 +615,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 					  "$TOTALGAMES$", UTIL_ToString(DotAPlayerSummary->GetTotalGames( )),
 					  "$COUNT$", leave_games_count,
 					  "$RANK$", RankS,
+					  "$LEAVE$", UTIL_ToString(DotAPlayerSummary->GetLeaveCount()),
+					  "$LEAVEPCNT$", leave_games_count,
 					  "$SCORE$", UTIL_ToString(DotAPlayerSummary->GetScore()),
 					  "$WINS$", UTIL_ToString( DotAPlayerSummary->GetWinsPerGame( )),
 					  "$CLASS$", player_class,
@@ -3241,7 +3242,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					string winnerString = "";
 					uint32_t RequestedWinner = 0;
 					
-				//	if ( m_Map->GetMapType( ) == "dota" ) FIXME, m_Map is a null point, why???
+				//	if ( m_Map->GetMapType( ) == "dota" ) FIXME, m_Map is a null pointer, why???
 				//	{
 						if ( Payload == "1" )
 						{
