@@ -830,6 +830,7 @@ protected:
 	string m_Name;
 	string m_Server;
 	uint32_t m_Rank;
+	uint32_t m_LeaveCount;
 	double m_Result;
 
 public:
@@ -839,6 +840,7 @@ public:
 	virtual string GetName( )					{ return m_Name; }
 	virtual double GetResult( )					{ return m_Result; }
 	virtual uint32_t GetRank( )					{ return m_Rank; }
+	virtual uint32_t GetLeaveCount( )           { return m_LeaveCount; }
 	virtual void SetRank( uint32_t nRank )		{ m_Rank = nRank; }
 	virtual void SetResult( double nResult )	{ m_Result = nResult; }
 };
@@ -1036,6 +1038,7 @@ private:
 	string m_Name;
 	double m_Score;
 	uint32_t m_Rank;
+	uint32_t m_LeaveCount;
 
 public:
 	CDBScoreSummary( string nName, double nScore, uint32_t nRank);
@@ -1043,6 +1046,8 @@ public:
 
 	string GetName( )					{ return m_Name; }
 	uint32_t GetRank( )					{ return m_Rank; }
+	uint32_t GetLeaveCount( )			{ return m_LeaveCount; }
+	void SetLeaveCount(uint32_t count)  { m_LeaveCount = count; }
 	double GetScore( )					{ if (m_Score!=-10000) return m_Score; else return 0; }
 };
 
@@ -1209,12 +1214,13 @@ private:
 	double m_CourierKillsPerGame;
 	double m_Score;					// calculated score
 	uint32_t m_Rank;
+	uint32_t m_LeaveCount;
 
 public:
 	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills,
 		double nWinsPerGame, double nLossesPerGame,
 		double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame, 
-		double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, double nTowerKillsPerGame, double nRaxKillsPerGame, double nCourierKillsPerGame, uint32_t nRank  );
+		double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, double nTowerKillsPerGame, double nRaxKillsPerGame, double nCourierKillsPerGame, uint32_t nRank, uint32_t nLeaveCount  );
 //	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, double nWinsPerGame, double nLossesPerGame, double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame, double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills );
 	~CDBDotAPlayerSummary( );
 
@@ -1245,6 +1251,7 @@ public:
 	double GetCourierKillsPerGame( )    { return m_CourierKillsPerGame; }
 	double GetScore ( )					{ return m_Score;}
 	uint32_t GetRank ( )				{ return m_Rank;}
+	uint32_t GetLeaveCount ( )			{ return m_LeaveCount;}
 	float GetAvgKills( )				{ return m_TotalGames > 0 ? (float)m_TotalKills / m_TotalGames : 0; }
 	float GetAvgDeaths( )				{ return m_TotalGames > 0 ? (float)m_TotalDeaths / m_TotalGames : 0; }
 	float GetAvgCreepKills( )			{ return m_TotalGames > 0 ? (float)m_TotalCreepKills / m_TotalGames : 0; }

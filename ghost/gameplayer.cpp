@@ -340,6 +340,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_StatsDotASentTime = 0;
 	m_LastGProxyWaitNoticeSentTime = 0;
 	m_Score = -100000.0;
+	m_LeaveCount = 0;
 	m_LoggedIn = false;
 	m_Spoofed = false;
 	m_Reserved = nReserved;

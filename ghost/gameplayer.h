@@ -119,6 +119,7 @@ private:
 	bool m_Silence;
 	string m_DownloadInfo;                      // Download info
 	double m_Score;								// the player's generic "score" for the matchmaking algorithm
+	uint32_t m_LeaveCount;
 	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
 	bool m_Spoofed;								// if the player has spoof checked or not
 	bool m_Reserved;							// if the player is reserved (VIP) or not
@@ -180,6 +181,7 @@ public:
 	bool GetWarnChecked( )						{ return m_WarnChecked; }
 	string GetDownloadInfo ( )					{ return m_DownloadInfo; }
 	double GetScore( )							{ return m_Score; }
+	uint32_t GetLeaveCount ( )					{ return m_LeaveCount; }
 	bool GetLoggedIn( )							{ return m_LoggedIn; }
 	bool GetSpoofed( )							{ return m_Spoofed; }
 	bool GetReserved( )							{ return m_Reserved; }
@@ -222,6 +224,7 @@ public:
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetLastGProxyWaitNoticeSentTime( uint32_t nLastGProxyWaitNoticeSentTime )	{ m_LastGProxyWaitNoticeSentTime = nLastGProxyWaitNoticeSentTime; }
 	void SetScore( double nScore )													{ m_Score = nScore; }
+	void SetLeaveCount (uint32_t nLeaveCount)										{ m_LeaveCount = nLeaveCount; }
 	void SetLoggedIn( bool nLoggedIn )												{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )												{ m_Spoofed = nSpoofed; }
 	void SetReserved( bool nReserved )												{ m_Reserved = nReserved; }

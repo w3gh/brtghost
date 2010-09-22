@@ -1692,6 +1692,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 					lpg = (double)TotalLosses/TotalGames;
 					wpg = wpg * 100;
 					lpg = lpg * 100;
+					uint32_t leavecount = 0;
 /*
 					if (TotalGames>=UTIL_ToUInt32(mingames))
 					{
@@ -1720,9 +1721,10 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 						if (TotalGames>=UTIL_ToUInt32(mingames))
 							Rank = DotAScoreSummary->GetRank();
 						Score = DotAScoreSummary->GetScore();
+						leavecount = DotAScoreSummary->GetLeaveCount();
 					}
 					delete DotAScoreSummary;
-					DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, wpg,lpg, kpg, dpg, ckpg, cdpg, apg, nkpg, Score, tkpg, rkpg, coukpg, Rank );
+					DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, wpg,lpg, kpg, dpg, ckpg, cdpg, apg, nkpg, Score, tkpg, rkpg, coukpg, Rank, leavecount );
 				}
 			}
 			else;
@@ -2495,11 +2497,13 @@ void CMySQLCallableScoreCheck :: operator( )( )
 		CDBScoreSummary *DotAScoreSummary = ScoreCheck(m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server);
 
 		m_Rank = 0;
+		m_LeaveCount = 0;
 		m_Result = 0;
 		if (DotAScoreSummary)
 		{
 			m_Rank = DotAScoreSummary->GetRank();
 			m_Result = DotAScoreSummary->GetScore();
+			m_LeaveCount = DotAScoreSummary->GetLeaveCount();
 		}
 		delete DotAScoreSummary;
 //		m_Result = MySQLScoreCheck( m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server );
@@ -3022,6 +3026,8 @@ CDBScoreSummary *ScoreCheck( void *conn, string *error, uint32_t botid, string u
 	bool ok = false;
 	double sc = -10000.00;
 	uint32_t rank = 0;
+	uint32_t leave_count = 0;
+
 	string Query = "SELECT score FROM scores WHERE name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
@@ -3079,6 +3085,29 @@ CDBScoreSummary *ScoreCheck( void *conn, string *error, uint32_t botid, string u
 			}
 
 			Score = new CDBScoreSummary( user, sc, rank);
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	
+	 Query = "SELECT count(*) FROM gameplayers as gp LEFT JOIN games ON games.id=gp.gameid WHERE gp.left < games.duration - 180 AND gp.name='"+ EscUser+"';";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 1 && Score)
+				Score->SetLeaveCount(UTIL_ToUInt32( Row[0] ));
+			/* else
+				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+			mysql_free_result( Result );
 		}
 		else
 			*error = mysql_error( (MYSQL *)conn );

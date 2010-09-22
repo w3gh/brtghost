@@ -575,13 +575,15 @@ bool CBNET :: Update( void *fd, void *send_fd )
                     DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ))
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
 
-                leave_games_count = "N/A";
+                leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
 
                 QueueChatCommand( m_GHost->m_Language->GetLang("lang_0995",
                                   "$USER$", i->second->GetName( ),
                                   "$TOTALGAMES$", UTIL_ToString(DotAPlayerSummary->GetTotalGames( )),
                                   "$COUNT$", leave_games_count,
                                   "$RANK$", RankS,
+								  "$LEAVE$", UTIL_ToString(DotAPlayerSummary->GetLeaveCount()),
+								  "$LEAVEPCNT$", leave_games_count,
                                   "$SCORE$", UTIL_ToString(DotAPlayerSummary->GetScore()),
                                   "$WINS$", UTIL_ToString( DotAPlayerSummary->GetWinsPerGame( )),
                                   "$CLASS$", player_class,

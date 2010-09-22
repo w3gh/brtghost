@@ -887,7 +887,7 @@ void CDBDotAPlayer :: SetItem( unsigned int i, string item )
 CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills,
 											 double nWinsPerGame, double nLossesPerGame,
 											 double nKillsPerGame, double nDeathsPerGame, double nCreepKillsPerGame, double nCreepDeniesPerGame, 
-											 double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, double nTowerKillsPerGame, double nRaxKillsPerGame, double nCourierKillsPerGame, uint32_t nRank )
+											 double nAssistsPerGame, double nNeutralKillsPerGame, double nScore, double nTowerKillsPerGame, double nRaxKillsPerGame, double nCourierKillsPerGame, uint32_t nRank, uint32_t nLeaveCount )
 {
 	m_Server = nServer;
 	m_Name = nName;
@@ -916,6 +916,7 @@ CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint
 	m_RaxKillsPerGame = nRaxKillsPerGame;
 	m_CourierKillsPerGame = nCourierKillsPerGame;
 	m_Rank = nRank;
+	m_LeaveCount = nLeaveCount;
 }
 
 CDBDotAPlayerSummary :: ~CDBDotAPlayerSummary( )
