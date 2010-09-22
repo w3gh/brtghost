@@ -45,6 +45,12 @@ using namespace std;
 
 #include <mysql/mysql.h>
 
+string UTIL_FloatToString (float number){
+     ostringstream buff;
+     buff<<number;
+     return buff.str();
+}
+
 void CONSOLE_Print( string message )
 {
 	cout << message << endl;
@@ -376,16 +382,19 @@ int main( int argc, char **argv )
 
                                 while( !Row.empty( ) )
                                 {
-                                        string elopoint = "";
+                                        string elopoint;
+										elopoint = "0.0";
                                         int player_id;
 
                                         for (player_id = 0;player_id < 10; player_id++)
                                         if (names[player_id] == Row[1]) break;
 
+										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
+/*
                                         if (old_player_ratings[player_id] <= player_ratings[player_id])
                                             elopoint = UTIL_ToString((uint32_t)player_ratings[player_id] - (uint32_t)old_player_ratings[player_id]); else
                                             elopoint = "-"+UTIL_ToString((uint32_t)old_player_ratings[player_id] - (uint32_t)player_ratings[player_id]);
-
+*/
                                         string QUpdatePlayerPoint = "UPDATE dotaplayers SET elopoint="+elopoint+" WHERE gameid="+UTIL_ToString( GameID ) + " AND id=" + Row[0];
 
                                         if( mysql_real_query( Connection, QUpdatePlayerPoint.c_str( ), QUpdatePlayerPoint.size( ) ) != 0 )

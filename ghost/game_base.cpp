@@ -5401,7 +5401,7 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 	{
 		// send a chat message because we don't normally do so when a player leaves the lobby
 
-		SendAllChat( m_GHost->m_Language->GetLang("lang_0063", player->GetName( ), UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )); //  AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )
+		SendAllChat( m_GHost->m_Language->GetLang("lang_0063", "$VICTIM$", player->GetName( ), "$PING$", UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )); //  AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )
 		player->SetDeleteMe( true );
 		player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0063", UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) ) ); // "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) )
 		player->SetLeftCode( PLAYERLEAVE_LOBBY );

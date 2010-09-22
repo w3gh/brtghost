@@ -95,7 +95,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 						string DataString = string( Data.begin( ), Data.end( ) );
 						string KeyString = string( Key.begin( ), Key.end( ) );
 						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
-						// CONSOLE_Print( "[STATS] " + DataString + ", " + KeyString + ", " + UTIL_ToString( ValueInt ) );
+						CONSOLE_Print( "[STATS] " + DataString + ", " + KeyString + ", " + UTIL_ToString( ValueInt ) );
+						// Temp uncomment!
 
 						if( DataString == "Data" )
 						{
