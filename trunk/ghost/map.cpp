@@ -735,7 +735,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		tmpcfg << endl;
 		s = "map_type = ";
 		bool dota = false;
-		if (m_MapLocalPath.find("Allstars")!=string::npos)
+		if (m_MapLocalPath.find("dota")!=string::npos)
 			dota = true;
 		if (dota)
 			s = s + "dota";
@@ -928,7 +928,7 @@ void CMap :: CheckValid( )
 {
 	// todotodo: should this code fix any errors it sees rather than just warning the user?
 
-	if( m_MapPath.empty( ) )
+	if( m_MapPath.empty( ) || m_MapPath.length( ) >= 50 )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_path detected" );

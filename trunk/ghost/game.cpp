@@ -583,6 +583,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				}
 
 				string RankS = UTIL_ToString( DotAPlayerSummary->GetRank());
+
 				if (DotAPlayerSummary->GetRank()>0)
 					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
@@ -590,19 +591,19 @@ bool CGame :: Update( void *fd, void *send_fd )
 				string leave_games_count = "N/A";
 				string player_class = m_GHost->m_Language->GetLang("lang_1061");
 
-				if (DotAPlayerSummary->GetRank()>0)
-					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
-                player_class = m_GHost->m_Language->GetLang("lang_1061");
+                player_class = "";
 
                 if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
+				if (DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) + DotAPlayerSummary->GetAssistsPerGame( ))
+					player_class = m_GHost->m_Language->GetLang("lang_1061"); else // Newbie
 
                 if (DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ) &&
                     DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetAssistsPerGame( ))
-                    player_class = m_GHost->m_Language->GetLang("lang_1059"); else
+                    player_class = m_GHost->m_Language->GetLang("lang_1059"); else 
                 if (DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetAssistsPerGame( ) &&
                     DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ))
-                    player_class = m_GHost->m_Language->GetLang("lang_1060"); else
+                    player_class = m_GHost->m_Language->GetLang("lang_1060"); else 
                 if (DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) &&
                     DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ))
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
@@ -3224,10 +3225,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			//
 			// !END
 			//
-			// Out of index error somewhere here. Can't understand where. Fix-me.
+
 			else if( Command == "end" && m_GameLoaded )
 			{
 				bool access = CMDCheck(CMD_end, AdminAccess);
+
 					
 				if (!Payload.empty())
 				{
@@ -3238,9 +3240,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					}
 					string winnerString = "";
 					uint32_t RequestedWinner = 0;
-
-					if ( m_Map->GetMapType( ) == "dota" )
-					{
+					
+				//	if ( m_Map->GetMapType( ) == "dota" ) FIXME, m_Map is a null point, why???
+				//	{
 						if ( Payload == "1" )
 						{
 							winnerString = "[SENTINEL]";
@@ -3251,7 +3253,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							winnerString = "[SCOURGE]";
 							RequestedWinner = 2;
 						}
-					}
+				//	}
 
 					if ( !RequestedWinner )
 					{
@@ -3278,15 +3280,18 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						bool secondTeamPresent = false;
 						unsigned char PID = player->GetPID();
+
 						for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 						{
 							if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_Slots[GetSIDFromPID(PID)].GetTeam())
 								secondTeamPresent = true;
 						}
+	
 
 						if (m_GetMapNumTeams==2 && secondTeamPresent)
 						{
 							m_EndRequestedTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+
 							if (!m_RequestedWinner)
 							{
 								m_EndRequestedTicks = GetTicks();
@@ -3298,6 +3303,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 									else
 										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User, "$WINNER$", winnerString) ); 
 								}
+
 
 							}
 							return HideCommand;
@@ -3368,8 +3374,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !FW
 			//
 
-			else if (!m_GHost->m_BNETs.empty( ))
-			if( Command == "fw")
+			else if(Command == "fw" && !m_GHost->m_BNETs.empty( ))
 			{
 				string sMsg = Payload;
 				if (sMsg.empty())
@@ -4755,6 +4760,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						return HideCommand;
 					}
 
+			if( Payload.length() < 31 )
+			{
 				if (Payload.size()>29)
 					Payload = Payload.substr(0,29);
 
@@ -4851,6 +4858,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				m_CreationTime = GetTime( );
 				m_LastRefreshTime = GetTime( );
+			} else
+				SendAllChat( m_GHost->m_Language->GetLang("lang_0113", Payload ) );
 			}
 
 			// !REHOST
@@ -4863,75 +4872,80 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					return HideCommand;
 				}
 
-				string GameName = Payload;
-				string GameNr = string();
-				uint32_t idx = 0;
-				uint32_t Nr = 0;
-				if (!GameName.empty() && GameName==m_GameName)
-				{
-					SendAllChat(m_GHost->m_Language -> GetLang("lang_1047")); // "You can't rehost with the same name"
-						return HideCommand;
-				}
-				if (GameName.empty())
-				{
-					GameName = m_GameName;
-
-					idx = GameName.length()-1;
-					if (idx>=2)
-					if (GameName.at(idx-2)=='#')
-						idx = idx-1;
-					else
-					if (GameName.at(idx-1)=='#')
-						idx = idx;
-					else
-						idx = 0;
-
-	// idx = 0, no Game Nr found in gamename
-					if (idx == 0)
+			if( Payload.length() < 31 )
+			{
+					string GameName = Payload;
+					string GameNr = string();
+					uint32_t idx = 0;
+					uint32_t Nr = 0;
+					if (!GameName.empty() && GameName==m_GameName)
 					{
-						GameNr = "0";
-						GameName = m_GameName + " #";
+						SendAllChat(m_GHost->m_Language -> GetLang("lang_1047")); // "You can't rehost with the same name"
+							return HideCommand;
 					}
-					else
+					if (GameName.empty())
 					{
-						GameNr = GameName.substr(idx,GameName.length()-idx);
-						GameName = GameName.substr(0,idx);
+						GameName = m_GameName;
+
+						idx = GameName.length()-1;
+						if (idx>=2)
+						if (GameName.at(idx-2)=='#')
+							idx = idx-1;
+						else
+						if (GameName.at(idx-1)=='#')
+							idx = idx;
+						else
+							idx = 0;
+
+		// idx = 0, no Game Nr found in gamename
+						if (idx == 0)
+						{
+							GameNr = "0";
+							GameName = m_GameName + " #";
+						}
+						else
+						{
+							GameNr = GameName.substr(idx,GameName.length()-idx);
+							GameName = GameName.substr(0,idx);
+						}
+						stringstream SS;
+						SS << GameNr;
+						SS >> Nr;
+						Nr ++;
+						if (Nr>20)
+							Nr = 1;
+						GameNr = UTIL_ToString(Nr);
+						GameName = GameName + GameNr;
 					}
-					stringstream SS;
-					SS << GameNr;
-					SS >> Nr;
-					Nr ++;
-					if (Nr>20)
-						Nr = 1;
-					GameNr = UTIL_ToString(Nr);
-					GameName = GameName + GameNr;
-				}
-				string s;
-				if (m_GameState == GAME_PRIVATE)
-					s = m_GHost->m_Language -> GetLang("lang_1051"); // "private";
-				else
-					s = m_GHost->m_Language -> GetLang("lang_1052"); // "public";
-				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as "+s+" game [" + GameName + "]" );
+					string s;
+					if (m_GameState == GAME_PRIVATE)
+						s = m_GHost->m_Language -> GetLang("lang_1051"); // "private";
+					else
+						s = m_GHost->m_Language -> GetLang("lang_1052"); // "public";
+					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as "+s+" game [" + GameName + "]" );
 
-				SendAllChat( m_GHost->m_Language -> GetLang("lang_1049")); //  "Rehosting in 3 seconds ... "
-				SendAllChat( m_GHost->m_Language -> GetLang("lang_1050", "$TYPE$", s, "$NAME$", GameName)); // "Please join the new "+s+" game \""+GameName+"\""
+					SendAllChat( m_GHost->m_Language -> GetLang("lang_1049")); //  "Rehosting in 3 seconds ... "
+					SendAllChat( m_GHost->m_Language -> GetLang("lang_1050", "$TYPE$", s, "$NAME$", GameName)); // "Please join the new "+s+" game \""+GameName+"\""
 
-				m_EndGameTime = GetTime();
-//				m_Exiting = true;
-//				m_GHost->newGame = true;
-				m_GHost->newGameCountry2Check = m_CountryCheck2;
-				m_GHost->newGameCountryCheck = m_CountryCheck;
-				m_GHost->newGameProvidersCheck = m_ProviderCheck;
-				m_GHost->newGameProviders2Check = m_ProviderCheck2;
-				m_GHost->newGameCountries = m_Countries;
-				m_GHost->newGameCountries2 = m_Countries2;
-				m_GHost->newGameProviders = m_Providers;
-				m_GHost->newGameProviders2 = m_Providers2;
-				m_GHost->newGameGameState = m_GameState;
-				m_GHost->newGameServer = m_Server;
-				m_GHost->newGameUser = User;
-				m_GHost->newGameName = GameName;
-				m_GHost->newGameGArena = m_GarenaOnly;
+					m_EndGameTime = GetTime();
+	//				m_Exiting = true;
+	//				m_GHost->newGame = true;
+					m_GHost->newGameCountry2Check = m_CountryCheck2;
+					m_GHost->newGameCountryCheck = m_CountryCheck;
+					m_GHost->newGameProvidersCheck = m_ProviderCheck;
+					m_GHost->newGameProviders2Check = m_ProviderCheck2;
+					m_GHost->newGameCountries = m_Countries;
+					m_GHost->newGameCountries2 = m_Countries2;
+					m_GHost->newGameProviders = m_Providers;
+					m_GHost->newGameProviders2 = m_Providers2;
+					m_GHost->newGameGameState = m_GameState;
+					m_GHost->newGameServer = m_Server;
+					m_GHost->newGameUser = User;
+					m_GHost->newGameName = GameName;
+					m_GHost->newGameGArena = m_GarenaOnly;
+
+				} else
+					SendAllChat( m_GHost->m_Language->GetLang("lang_0113", Payload ) );
 			}
 
 			//
@@ -4953,90 +4967,95 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						return HideCommand;
 					}
 
-				if (Payload.size()>29)
-					Payload = Payload.substr(0,29);
-
-				string GameName = Payload;
-				string GameNr = string();
-				uint32_t idx = 0;
-				uint32_t Nr = 0;
-				if (!GameName.empty() && GameName==m_GameName)
+				if( Payload.length() < 31 )
 				{
-					SendAllChat(m_GHost->m_Language->GetLang("lang_1047")); // You can't rehost with the same name
-					return HideCommand;
-				}
-				if (GameName.empty())
-				{
-					GameName = m_GameName;
+					if (Payload.size()>29)
+						Payload = Payload.substr(0,29);
 
-					idx = GameName.length()-1;
-					if (idx>=2)
-					if (GameName.at(idx-2)=='#')
-						idx = idx-1;
-					else
-						if (GameName.at(idx-1)=='#')
-							idx = idx;
+					string GameName = Payload;
+					string GameNr = string();
+					uint32_t idx = 0;
+					uint32_t Nr = 0;
+					if (!GameName.empty() && GameName==m_GameName)
+					{
+						SendAllChat(m_GHost->m_Language->GetLang("lang_1047")); // You can't rehost with the same name
+						return HideCommand;
+					}
+					if (GameName.empty())
+					{
+						GameName = m_GameName;
+
+						idx = GameName.length()-1;
+						if (idx>=2)
+						if (GameName.at(idx-2)=='#')
+							idx = idx-1;
 						else
-							idx = 0;
+							if (GameName.at(idx-1)=='#')
+								idx = idx;
+							else
+								idx = 0;
 
-					// idx = 0, no Game Nr found in gamename
-					if (idx == 0)
-					{
-						GameNr = "0";
-						GameName = m_GameName + " #";
+						// idx = 0, no Game Nr found in gamename
+						if (idx == 0)
+						{
+							GameNr = "0";
+							GameName = m_GameName + " #";
+						}
+						else
+						{
+							GameNr = GameName.substr(idx,GameName.length()-idx);
+							GameName = GameName.substr(0,idx);
+						}
+						stringstream SS;
+						SS << GameNr;
+						SS >> Nr;
+						Nr ++;
+						if (Nr>20)
+							Nr = 1;
+						GameNr = UTIL_ToString(Nr);
+						GameName = GameName + GameNr;
 					}
+					string s;
+					if (m_GameState == GAME_PRIVATE)
+						s = m_GHost->m_Language -> GetLang("lang_1051"); // "private";
 					else
+						s = m_GHost->m_Language -> GetLang("lang_1052"); // "public";
+
+					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + GameName + "]" );
+					m_GameState = GAME_PUBLIC;
+					m_GameName = GameName;
+					m_GHost->m_HostCounter++;
+					m_GHost->SaveHostCounter();
+					if (m_GHost->m_MaxHostCounter>0)
+					if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
+						m_GHost->m_HostCounter = 1;
+					m_HostCounter = m_GHost->m_HostCounter;
+					m_GHost->m_QuietRehost = true;
+					m_RefreshError = false;
+					m_Rehost = true;
+					AutoSetHCL();
+					AddGameName(GameName);
+	//				m_GHost->UDPChatSend("|rehost "+GameName);
+
+					//SendAllChat("Rehosting ...");
+					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 					{
-						GameNr = GameName.substr(idx,GameName.length()-idx);
-						GameName = GameName.substr(0,idx);
+						// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+						// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+						// we assume this won't happen very often since the only downside is a potential false positive
+
+						(*i)->UnqueueGameRefreshes( );
+						(*i)->QueueGameUncreate( );
+						(*i)->QueueEnterChat( );
+
+						// the game creation message will be sent on the next refresh
 					}
-					stringstream SS;
-					SS << GameNr;
-					SS >> Nr;
-					Nr ++;
-					if (Nr>20)
-						Nr = 1;
-					GameNr = UTIL_ToString(Nr);
-					GameName = GameName + GameNr;
-				}
-				string s;
-				if (m_GameState == GAME_PRIVATE)
-					s = m_GHost->m_Language -> GetLang("lang_1051"); // "private";
-				else
-					s = m_GHost->m_Language -> GetLang("lang_1052"); // "public";
 
-				CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + GameName + "]" );
-				m_GameState = GAME_PUBLIC;
-				m_GameName = GameName;
-				m_GHost->m_HostCounter++;
-				m_GHost->SaveHostCounter();
-				if (m_GHost->m_MaxHostCounter>0)
-				if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
-					m_GHost->m_HostCounter = 1;
-				m_HostCounter = m_GHost->m_HostCounter;
-				m_GHost->m_QuietRehost = true;
-				m_RefreshError = false;
-				m_Rehost = true;
-				AutoSetHCL();
-				AddGameName(GameName);
-//				m_GHost->UDPChatSend("|rehost "+GameName);
+					m_CreationTime = GetTime( );
+					m_LastRefreshTime = GetTime( );
+				} else
+					SendAllChat( m_GHost->m_Language->GetLang("lang_0113", Payload ) );
 
-				//SendAllChat("Rehosting ...");
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-				{
-					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-					// we assume this won't happen very often since the only downside is a potential false positive
-
-					(*i)->UnqueueGameRefreshes( );
-					(*i)->QueueGameUncreate( );
-					(*i)->QueueEnterChat( );
-
-					// the game creation message will be sent on the next refresh
-				}
-
-				m_CreationTime = GetTime( );
-				m_LastRefreshTime = GetTime( );
 			}
 
 			//
