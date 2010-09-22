@@ -28,12 +28,11 @@ function get_info($bot)
 
 			while (time() <= $timeout)
 			{
-			   $buf = "";
-
-			   socket_recv($socketD, $buf, 65535, 0);
 			   socket_recv($socketD, $buf, 65535, 0);
 
-	     		   if ($buf != "") break;
+    		 	   if (strpos($buf, "|gamesinfo") !== false)
+				break;
+
 
 			   usleep(1000);
 			}
