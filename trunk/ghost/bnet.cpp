@@ -558,10 +558,13 @@ bool CBNET :: Update( void *fd, void *send_fd )
 				if (DotAPlayerSummary->GetRank()>0)
 					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
-                player_class = m_GHost->m_Language->GetLang("lang_1061");
+                 player_class = "";
 
                 if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
 
+                if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
+				if (DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) + DotAPlayerSummary->GetAssistsPerGame( ))
+					player_class = m_GHost->m_Language->GetLang("lang_1061"); else // Newbie
                 if (DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ) &&
                     DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetAssistsPerGame( ))
                     player_class = m_GHost->m_Language->GetLang("lang_1059"); else
