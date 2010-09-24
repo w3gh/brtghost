@@ -133,6 +133,7 @@ private:
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_RmkVote;								// if the player voted to rmk or not
+	bool m_FFVote;								// if the player voted to ff or not
 	bool m_Muted;								// if the player is muted or not
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 	bool m_GProxy;								// if the player is using GProxy++
@@ -195,6 +196,7 @@ public:
 	bool GetDropVote( )							{ return m_DropVote; }
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetRmkVote( )							{ return m_RmkVote; }
+	bool GetFFVote( )							{ return m_FFVote; }
 	bool GetMuted( )							{ return m_Muted; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetScoreSet( )						{ return m_ScoreSet; }
@@ -237,6 +239,7 @@ public:
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetRmkVote( bool nRmkVote )										{ m_RmkVote = nRmkVote; }
+	void SetFFVote( bool nFFVote )										{ m_FFVote = nFFVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
