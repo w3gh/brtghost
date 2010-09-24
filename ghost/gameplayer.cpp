@@ -284,6 +284,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_DropVote = false;
 	m_KickVote = false;
 	m_RmkVote = false;
+	m_FFVote = false;
 	m_Muted = false;
 	m_LeftMessageSent = false;
 	m_GProxy = false;
