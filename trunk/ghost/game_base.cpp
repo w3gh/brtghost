@@ -1465,7 +1465,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (less than "+UTIL_ToString(m_GHost->m_gameoverminpercent)+"% )"+" "+string(1,m_GHost->m_CommandTrigger)+"override to cancel" );
 			SendAllChat(m_GHost->m_Language->GetLang("lang_1010", "$TIME$", UTIL_ToString(remainingpercent), 
 																	"$PERCENT$", UTIL_ToString(m_GHost->m_gameoverminpercent), 
-																	"TRIGGER", string(1,m_GHost->m_CommandTrigger)  )  );  // "Game over in 60 seconds, "+ UTIL_ToString(remainingpercent)+"% remaining ( < "+UTIL_ToString(m_GHost->m_gameoverminpercent)+"% ) "+string(1,m_GHost->m_CommandTrigger)+"override to cancel"
+																	"TRIGGER", string(1, m_GHost->m_CommandTrigger) ) );  // "Game over in 60 seconds, "+ UTIL_ToString(remainingpercent)+"% remaining ( < "+UTIL_ToString(m_GHost->m_gameoverminpercent)+"% ) "+string(1,m_GHost->m_CommandTrigger)+"override to cancel"
 
 			m_GameOverTime = GetTime( );
 		}

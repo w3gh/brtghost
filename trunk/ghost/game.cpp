@@ -3237,7 +3237,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 							{
 								if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger) )); // " User + wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", string(1, m_GHost->m_CommandTrigger) )); // " User + wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
 								else
 									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1170", User)); // User + " wants to end the game, waiting for the other team to accept...
 							}
@@ -3350,7 +3350,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 								{
 									if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$WINNER$", winnerString, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // wants to end the game with winner "+winnerString+", type "+m_GHost->m_CommandTrigger+"end "+UTIL_ToString(m_RequestedWinner)+" to accept");
+										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1173", "$USER$", User, "$WINNER$", winnerString, "$TRIGGER$", string(1, m_GHost->m_CommandTrigger)) ); // wants to end the game with winner "+winnerString+", type "+m_GHost->m_CommandTrigger+"end "+UTIL_ToString(m_RequestedWinner)+" to accept");
 									else
 										SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1174", "$USER$", User, "$WINNER$", winnerString) ); 
 								}
@@ -3397,7 +3397,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 							{
 								if (m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam()!=m_EndRequestedTeam)
-									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)) ); // User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
+									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1169", "$USER$", User, "$TRIGGER$", string(1, m_GHost->m_CommandTrigger)) ); // User + " wants to end the game, type "+m_GHost->m_CommandTrigger+"end to accept"
 								else
 									SendChat((*i)->GetPID(), m_GHost->m_Language->GetLang("lang_1170", "$USER$", User)); // User + " wants to end the game, waiting for the other team to accept..."
 							}
@@ -6031,8 +6031,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		player->SetFFVote( true );
 		
 		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
-		uint32_t count1 = 0, count2 = 0; //count of players in the team.
-		uint32_t votes1 = 0, votes2 = 0; //count of votes in the team.
+
+		uint32_t count1 = 0;
+		uint32_t count2 = 0; //count of players in the team.
+		uint32_t votes1 = 0;
+		uint32_t votes2 = 0; //count of votes in the team.
 		string teamname = (playerTeam == 0 ? "SENTINEL" : "SCOURGE");
 		
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
@@ -6043,20 +6046,24 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				count1++;
 				if( (*i)->GetFFVote( ) )
 					votes1++;
-			}else{
+			}
+			else
+			{
 				count2++;
 				if( (*i)->GetFFVote( ) )
 					votes2++;
 			}
 		}
 		
-		bool end1 = (votes1 == count1), end2 = (votes2 == count2);
+		bool end1 = (votes1 == count1); 
+		bool end2 = (votes2 == count2);
+
 		if( end1 || end2 )
 		{
 			if( end1 )
-				m_Stats->SetWinner(1);
-			else
 				m_Stats->SetWinner(2);
+			else
+				m_Stats->SetWinner(1);
 				
 			SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
 			m_GameEndCountDownStarted = true;
@@ -6064,9 +6071,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_GameEndLastCountDownTicks = GetTicks();
 		}
 		else
+		{
 			SendAllChat( m_GHost->m_Language->GetLang("lang_1211", "$USER$", User, "$TEAMNAME$", teamname, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$COUNT$", UTIL_ToString(playerTeam == 0 ? count1 : count2)));
+		}
 	
-		SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1210", "$TRIGGER$", UTIL_ToString(m_GHost->m_CommandTrigger)));
+		SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1210", "$TRIGGER$", string(1, m_GHost->m_CommandTrigger)));
 		return HideCommand;
 	}
 	
@@ -6076,14 +6085,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	else if( Command == "noff" && player->GetFFVote( ) && m_GameLoaded)
 	{
-		
 		player->SetFFVote( false );
 		
 		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
 		uint32_t count1 = 0, count2 = 0; //count of players in the team.
 		uint32_t votes1 = 0, votes2 = 0; //count of votes in the team.
 		string teamname = (playerTeam == 0 ? "SENTINEL" : "SCOURGE");
-		
+
+
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
 			if( !(*i)->GetLeftMessageSent( ) )
@@ -6098,8 +6107,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					votes2++;
 			}
 		}
-		
+	
 		SendAllChat( m_GHost->m_Language->GetLang("lang_1212", "$USER$", User, "$TEAMNAME$", teamname, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$COUNT$", UTIL_ToString(playerTeam == 0 ? count1 : count2)));
+
 		return HideCommand;
 	}
 	
@@ -6108,7 +6118,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !RMK
 	//
 
-	if( Command == "rmk" && !player->GetRmkVote( ) && m_GameLoaded)
+	else if( Command == "rmk" && !player->GetRmkVote( ) && m_GameLoaded)
 	{
 		if (m_RmkVotePlayer.empty())
 		{
@@ -6150,7 +6160,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !SDPUB
 	//
 
-	if( (Command == "sd" || Command == "sdi" || Command == "sdpub" || Command == "sdpriv") && GetTime( ) >= player->GetStatsDotASentTime( ) + 5 )
+	else if( (Command == "sd" || Command == "sdi" || Command == "sdpub" || Command == "sdpriv") && GetTime( ) >= player->GetStatsDotASentTime( ) + 5 )
 	{
 		string StatsUser = User;
 		string GameState = string();
@@ -6193,7 +6203,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !CBS
 	//
 
-	if( (Command == "countbans" || Command == "cbs") && Payload.empty() )
+	else if( (Command == "countbans" || Command == "cbs") && Payload.empty() )
 	{
 		uint32_t Count = m_GHost->m_DB->BanCount( m_Server );
 
@@ -6209,7 +6219,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !START
 	//
 
-	if( (Command == "start") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
+	else if( (Command == "start") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
 	{
 		// if the player sent "!start force" skip the checks and start the countdown
 		// otherwise check that the game is ready to start
@@ -6231,7 +6241,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STARTN
 	//
 
-	if( (Command == "startn") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
+	else if( (Command == "startn") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
 	{
 		// skip checks and start the game right now
 

@@ -355,6 +355,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	m_DropVote = false;
 	m_KickVote = false;
 	m_Muted = false;
+	m_FFVote = false;
 	m_LeftMessageSent = false;
 	m_GProxy = false;
 	m_GProxyDisconnectNoticeSent = false;
