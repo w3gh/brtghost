@@ -943,7 +943,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "2.0+";
+	m_GHostVersion = "1.7.0.6";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
@@ -2891,13 +2891,13 @@ void CGHost :: UDPCommands( string Message )
 	{
 //		m_dbopen = false;
 	}
-
+/*
 	if (Command == "oneversion")
 	{
 		m_OneVersion = Payload;
 		m_Version = m_OneVersion+" ("+m_GHostVersion+")";
 	}
-
+*/
 	if (Command == "gamechat" && !Payload.empty())
 	{
 		string :: size_type msgStart;
