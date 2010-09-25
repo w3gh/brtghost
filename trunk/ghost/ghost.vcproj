@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="ghost"
 	ProjectGUID="{B57A04BC-13D4-4CAD-B835-C046B9D66269}"
 	RootNamespace="ghost"
@@ -194,7 +194,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include;..\mysql\include"
+				AdditionalIncludeDirectories="..\bncsutil\src;..\StormLib;..\zlib\include;..\mysql\include;D:\code\boost_1_43_0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;GHOST_MYSQL;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -216,7 +216,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib winmm.lib zdll.lib StormLibRAS.lib libmysql.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\zlib\lib;..\mysql\lib\opt;..\boost\lib"
+				AdditionalLibraryDirectories="..\zlib\lib;..\mysql\lib\opt;..\boost\lib;D:\code\boost_1_43_0\stage\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"

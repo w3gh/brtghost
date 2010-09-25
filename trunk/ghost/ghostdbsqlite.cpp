@@ -2589,11 +2589,34 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name, str
 	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
 	bool Success = true;
 	string server = string();
+	uint32_t leavecount = 0;
 	sqlite3_stmt *Statement;
+	string Query = "select totgames,wins,losses,killstotal,deathstotal,creepkillstotal,creepdeniestotal,assiststotal,neutralkillstotal,towerkillstotal,raxkillstotal,courierkillstotal,kills,deaths,creepkills,creepdenies,assists,neutralkills,towerkills,raxkills,courierkills, server from(select *, (kills/deaths) as killdeathratio, (totgames-wins) as losses from (select gp.name as name,ga.server as server,gp.gameid as gameid, gp.colour as colour, avg(dp.courierkills) as courierkills, sum(dp.raxkills) as raxkillstotal, sum(dp.towerkills) as towerkillstotal, sum(dp.assists) as assiststotal,sum(dp.courierkills) as courierkillstotal, sum(dp.creepdenies) as creepdeniestotal, sum(dp.creepkills) as creepkillstotal,sum(dp.neutralkills) as neutralkillstotal, sum(dp.deaths) as deathstotal, sum(dp.kills) as killstotal,avg(dp.raxkills) as raxkills,avg(dp.towerkills) as towerkills, avg(dp.assists) as assists, avg(dp.creepdenies) as creepdenies, avg(dp.creepkills) as creepkills,avg(dp.neutralkills) as neutralkills, avg(dp.deaths) as deaths, avg(dp.kills) as kills,count(*) as totgames, SUM(case when((dg.winner = 1 and dp.newcolour < 6) or (dg.winner = 2 and dp.newcolour > 6)) then 1 else 0 end) as wins from gameplayers as gp, dotagames as dg, games as ga,dotaplayers as dp where dg.winner <> 0 and dp.gameid = gp.gameid and dg.gameid = dp.gameid and dp.gameid = ga.id and gp.gameid = dg.gameid and gp.colour = dp.colour and gp.name='"+ name +"' group by gp.name) as h) as i";
+	if (!gamestate.empty())
+		Query = "select totgames,wins,losses,killstotal,deathstotal,creepkillstotal,creepdeniestotal,assiststotal,neutralkillstotal,towerkillstotal,raxkillstotal,courierkillstotal,kills,deaths,creepkills,creepdenies,assists,neutralkills,towerkills,raxkills,courierkills, server from(select *, (kills/deaths) as killdeathratio, (totgames-wins) as losses from (select gp.name as name,ga.server as server,gp.gameid as gameid, gp.colour as colour, avg(dp.courierkills) as courierkills, sum(dp.raxkills) as raxkillstotal, sum(dp.towerkills) as towerkillstotal, sum(dp.assists) as assiststotal,sum(dp.courierkills) as courierkillstotal, sum(dp.creepdenies) as creepdeniestotal, sum(dp.creepkills) as creepkillstotal,sum(dp.neutralkills) as neutralkillstotal, sum(dp.deaths) as deathstotal, sum(dp.kills) as killstotal,avg(dp.raxkills) as raxkills,avg(dp.towerkills) as towerkills, avg(dp.assists) as assists, avg(dp.creepdenies) as creepdenies, avg(dp.creepkills) as creepkills,avg(dp.neutralkills) as neutralkills, avg(dp.deaths) as deaths, avg(dp.kills) as kills,count(*) as totgames, SUM(case when((dg.winner = 1 and dp.newcolour < 6) or (dg.winner = 2 and dp.newcolour > 6)) then 1 else 0 end) as wins from gameplayers as gp, dotagames as dg, games as ga,dotaplayers as dp where dg.winner <> 0 and dp.gameid = gp.gameid and dg.gameid = dp.gameid and dp.gameid = ga.id and gp.gameid = dg.gameid and gp.colour = dp.colour and gp.name='"+ name +"' and ga.gamestate='"+ gamestate +"' group by gp.name) as h) as i";
+
+
+	m_DB->Prepare("SELECT count(*) FROM gameplayers as gp LEFT JOIN games ON games.id=gp.gameid WHERE gp.left < games.duration - 180 AND gp.name='"+ name +"';", (void **)&Statement);
+
+	if( Statement )
+	{
+			sqlite3_bind_text( Statement, 1, name.c_str( ), -1, SQLITE_TRANSIENT );
+			int RC = m_DB->Step( Statement );
+
+			if( RC == SQLITE_ROW )
+				leavecount = sqlite3_column_int( (sqlite3_stmt *)Statement, 0 );
+			else if( RC == SQLITE_ERROR )
+				CONSOLE_Print( "[SQLITE3] error checking leave count [" + name + "] - " + m_DB->GetError( ) );
+
+			m_DB->Finalize( Statement );
+	}
+		else
+			CONSOLE_Print( "[SQLITE3] prepare error checking dotaplayersummary [" + name + "] - " + m_DB->GetError( ) );
+
+	
+
+
 //	string Query = "select totgames,wins,losses,killstotal,deathstotal,creepkillstotal,creepdeniestotal,assiststotal,neutralkillstotal,towerkillstotal,raxkillstotal,courierkillstotal,kills,deaths,creepkills,creepdenies,assists,neutralkills,towerkills,raxkills,courierkills, ("+GetFormula()+") as totalscore,server from(select *, (kills/deaths) as killdeathratio, (totgames-wins) as losses from (select gp.name as name,ga.server as server,gp.gameid as gameid, gp.colour as colour, avg(dp.courierkills) as courierkills, sum(dp.raxkills) as raxkillstotal, sum(dp.towerkills) as towerkillstotal, sum(dp.assists) as assiststotal,sum(dp.courierkills) as courierkillstotal, sum(dp.creepdenies) as creepdeniestotal, sum(dp.creepkills) as creepkillstotal,sum(dp.neutralkills) as neutralkillstotal, sum(dp.deaths) as deathstotal, sum(dp.kills) as killstotal,avg(dp.raxkills) as raxkills,avg(dp.towerkills) as towerkills, avg(dp.assists) as assists, avg(dp.creepdenies) as creepdenies, avg(dp.creepkills) as creepkills,avg(dp.neutralkills) as neutralkills, avg(dp.deaths) as deaths, avg(dp.kills) as kills,count(*) as totgames, SUM(case when((dg.winner = 1 and dp.newcolour < 6) or (dg.winner = 2 and dp.newcolour > 6)) then 1 else 0 end) as wins from gameplayers as gp, dotagames as dg, games as ga,dotaplayers as dp where dg.winner <> 0 and dp.gameid = gp.gameid and dg.gameid = dp.gameid and dp.gameid = ga.id and gp.gameid = dg.gameid and gp.colour = dp.colour and gp.name='"+name+"' group by gp.name) as h) as i";
-	string Query = "select totgames,wins,losses,killstotal,deathstotal,creepkillstotal,creepdeniestotal,assiststotal,neutralkillstotal,towerkillstotal,raxkillstotal,courierkillstotal,kills,deaths,creepkills,creepdenies,assists,neutralkills,towerkills,raxkills,courierkills, server from(select *, (kills/deaths) as killdeathratio, (totgames-wins) as losses from (select gp.name as name,ga.server as server,gp.gameid as gameid, gp.colour as colour, avg(dp.courierkills) as courierkills, sum(dp.raxkills) as raxkillstotal, sum(dp.towerkills) as towerkillstotal, sum(dp.assists) as assiststotal,sum(dp.courierkills) as courierkillstotal, sum(dp.creepdenies) as creepdeniestotal, sum(dp.creepkills) as creepkillstotal,sum(dp.neutralkills) as neutralkillstotal, sum(dp.deaths) as deathstotal, sum(dp.kills) as killstotal,avg(dp.raxkills) as raxkills,avg(dp.towerkills) as towerkills, avg(dp.assists) as assists, avg(dp.creepdenies) as creepdenies, avg(dp.creepkills) as creepkills,avg(dp.neutralkills) as neutralkills, avg(dp.deaths) as deaths, avg(dp.kills) as kills,count(*) as totgames, SUM(case when((dg.winner = 1 and dp.newcolour < 6) or (dg.winner = 2 and dp.newcolour > 6)) then 1 else 0 end) as wins from gameplayers as gp, dotagames as dg, games as ga,dotaplayers as dp where dg.winner <> 0 and dp.gameid = gp.gameid and dg.gameid = dp.gameid and dp.gameid = ga.id and gp.gameid = dg.gameid and gp.colour = dp.colour and gp.name='"+name+"' group by gp.name) as h) as i";
-	if (gamestate!="")
-		Query = "select totgames,wins,losses,killstotal,deathstotal,creepkillstotal,creepdeniestotal,assiststotal,neutralkillstotal,towerkillstotal,raxkillstotal,courierkillstotal,kills,deaths,creepkills,creepdenies,assists,neutralkills,towerkills,raxkills,courierkills, server from(select *, (kills/deaths) as killdeathratio, (totgames-wins) as losses from (select gp.name as name,ga.server as server,gp.gameid as gameid, gp.colour as colour, avg(dp.courierkills) as courierkills, sum(dp.raxkills) as raxkillstotal, sum(dp.towerkills) as towerkillstotal, sum(dp.assists) as assiststotal,sum(dp.courierkills) as courierkillstotal, sum(dp.creepdenies) as creepdeniestotal, sum(dp.creepkills) as creepkillstotal,sum(dp.neutralkills) as neutralkillstotal, sum(dp.deaths) as deathstotal, sum(dp.kills) as killstotal,avg(dp.raxkills) as raxkills,avg(dp.towerkills) as towerkills, avg(dp.assists) as assists, avg(dp.creepdenies) as creepdenies, avg(dp.creepkills) as creepkills,avg(dp.neutralkills) as neutralkills, avg(dp.deaths) as deaths, avg(dp.kills) as kills,count(*) as totgames, SUM(case when((dg.winner = 1 and dp.newcolour < 6) or (dg.winner = 2 and dp.newcolour > 6)) then 1 else 0 end) as wins from gameplayers as gp, dotagames as dg, games as ga,dotaplayers as dp where dg.winner <> 0 and dp.gameid = gp.gameid and dg.gameid = dp.gameid and dp.gameid = ga.id and gp.gameid = dg.gameid and gp.colour = dp.colour and gp.name='"+name+"' and ga.gamestate='"+ gamestate +"' group by gp.name) as h) as i";
 	
 	m_DB->Prepare( Query, (void **)&Statement );
 	if( Statement )
@@ -2637,7 +2660,7 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name, str
 				lpg = (double)TotalLosses/TotalGames;
 				wpg = wpg * 100;
 				lpg = lpg * 100;
-				uint32_t leavecount = 0;
+				
 /*
 				if (TotalGames>=GetMinGames())
 				{
@@ -2688,11 +2711,12 @@ CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name, str
 				{
 					if (TotalGames>=GetMinGames())
 						Rank = DotAScoreSummary->GetRank();
+
 					Score = DotAScoreSummary->GetScore();
 				}
 				delete DotAScoreSummary;
 
-				DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, wpg,lpg, kpg, dpg, ckpg, cdpg, apg, nkpg, Score, tkpg, rkpg, coukpg, Rank, leavecount  );
+				DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, wpg,lpg, kpg, dpg, ckpg, cdpg, apg, nkpg, Score, tkpg, rkpg, coukpg, Rank, leavecount );
 			}
 			else;
 //				CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - row doesn't have 23 columns" );

@@ -554,16 +554,17 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 				string RankS = UTIL_ToString( DotAPlayerSummary->GetRank());
 				uint32_t scorescount = m_GHost->ScoresCount();
+				float newbie_value = 1.5f;
+
+                player_class = "";
 
 				if (DotAPlayerSummary->GetRank()>0)
 					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
-                 player_class = "";
-
-                if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
-
-                if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
-				if (DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) + DotAPlayerSummary->GetAssistsPerGame( ))
+               if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
+				if (  (DotAPlayerSummary->GetTotalGames( ) > 10) &&
+					 ((DotAPlayerSummary->GetKillsPerGame() * newbie_value + DotAPlayerSummary->GetAssistsPerGame()) / DotAPlayerSummary->GetDeathsPerGame( ) < newbie_value) ||
+					  (DotAPlayerSummary->GetCreepDeniesPerGame() < newbie_value))
 					player_class = m_GHost->m_Language->GetLang("lang_1061"); else // Newbie
                 if (DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ) &&
                     DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetAssistsPerGame( ))
@@ -574,7 +575,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
                 if (DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) &&
                     DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ))
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
-
                 leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
 
                 QueueChatCommand( m_GHost->m_Language->GetLang("lang_0995",

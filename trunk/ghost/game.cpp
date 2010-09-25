@@ -584,17 +584,21 @@ bool CGame :: Update( void *fd, void *send_fd )
 
 				string RankS = UTIL_ToString( DotAPlayerSummary->GetRank());
 
-				if (DotAPlayerSummary->GetRank()>0)
-					RankS = RankS + "/" + UTIL_ToString(scorescount);
-
                 string Summary;
 				string leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
 				string player_class = m_GHost->m_Language->GetLang("lang_1061");
+				float newbie_value = 1.5f;
+
+				if (DotAPlayerSummary->GetRank()>0)
+					RankS = RankS + "/" + UTIL_ToString(scorescount);
 
                 player_class = "";
 
                 if (DotAPlayerSummary->GetKillsPerGame( ) && DotAPlayerSummary->GetDeathsPerGame( ) && DotAPlayerSummary->GetAssistsPerGame( ) )
-				if (DotAPlayerSummary->GetDeathsPerGame( ) >= DotAPlayerSummary->GetKillsPerGame( ) + DotAPlayerSummary->GetAssistsPerGame( ))
+
+				if (  (DotAPlayerSummary->GetTotalGames( ) > 10) &&
+					 ((DotAPlayerSummary->GetKillsPerGame() * newbie_value + DotAPlayerSummary->GetAssistsPerGame()) / DotAPlayerSummary->GetDeathsPerGame( ) < newbie_value) ||
+					  (DotAPlayerSummary->GetCreepDeniesPerGame() < newbie_value))
 					player_class = m_GHost->m_Language->GetLang("lang_1061"); else // Newbie
 
                 if (DotAPlayerSummary->GetKillsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ) &&
@@ -1785,18 +1789,30 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
 
 
-						string sBan;
-						if (Matches == 1)
-                            sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
-                                                                             "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
-                                                                             "$USER$",  User,
-                                                                             "$BANDAYTIME$", UTIL_ToString(BanTime));
-                        else
+						string sBan = "";
 
-                            sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
-                                                                             "$VICTIM$", Victim,
-                                                                             "$USER$",  User,
-                                                                             "$BANDAYTIME$", UTIL_ToString(BanTime));
+						if (Matches == 1)
+						{
+							if (BanTime)
+								sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
+									                                             "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+										                                         "$USER$",  User,
+											                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
+							else
+	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$USER$",  User);
+						}
+                        else
+							if (BanTime)
+								sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim,
+																				 "$USER$",  User,
+																				 "$BANDAYTIME$", UTIL_ToString(BanTime));
+							else
+	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$USER$",  User);
 
 						string sBReason = sBan + ", "+Reason;
 
@@ -1966,10 +1982,17 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
 
 
-                        string sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", LastMatch->GetServer(),
-                                                                         "$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
-                                                                         "$USER$",  User,
-                                                                         "$BANDAYTIME$", UTIL_ToString(BanTime));
+                        string sBan;
+						
+						if (BanTime)
+							sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", LastMatch->GetServer(),
+																			 "$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
+																			 "$USER$",  User,
+																			 "$BANDAYTIME$", UTIL_ToString(BanTime));
+						else
+                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", LastMatch->GetServer(),
+																			 "$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
+																			 "$USER$",  User);
 
 						string sBReason = sBan + ", "+Reason;
 
@@ -2089,18 +2112,31 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
 
 
-						string sBan;
-						if (Matches == 1)
-                            sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
-                                                                             "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
-                                                                             "$USER$",  User,
-                                                                             "$BANDAYTIME$", UTIL_ToString(BanTime));
-                        else
+						string sBan = "";
 
-                            sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
-                                                                             "$VICTIM$", Victim,
-                                                                             "$USER$",  User,
-                                                                             "$BANDAYTIME$", UTIL_ToString(BanTime));
+						if (Matches == 1)
+						{
+							if (BanTime)
+								sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
+									                                             "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+										                                         "$USER$",  User,
+											                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
+							else
+	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$USER$",  User);
+						}
+                        else
+							if (BanTime)
+								sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim,
+																				 "$USER$",  User,
+																				 "$BANDAYTIME$", UTIL_ToString(BanTime));
+							else
+	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
+																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$USER$",  User);
+
 
 						string sBReason = sBan + ", "+Reason;
 
@@ -2448,11 +2484,18 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				m_GHost->UDPChatSend("|ban "+m_DBBanLast->GetName( ));
 				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + m_DBBanLast->GetName( ) + "] was banned by player [" + User + "]" );
 
-                string sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", m_DBBanLast->GetServer(),
-                                                                         "$VICTIM$", m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
-                                                                         "$USER$",  User,
-                                                                         "$BANDAYTIME$", UTIL_ToString(BanTime));
+                string sBan = "";
+				
+				if (BanTime)
+					sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", m_DBBanLast->GetServer(),
+                                                                     "$VICTIM$", m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
+                                                                     "$USER$",  User,
+                                                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
+				else
 
+                    sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", m_DBBanLast->GetServer(),
+																	 "$VICTIM$",  m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
+																	 "$USER$",  User);
 
 				string sBReason = sBan + ", "+Reason;
 
@@ -2541,11 +2584,18 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				m_GHost->UDPChatSend("|ban "+m_DBBanLast->GetName( ));
 				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + m_DBBanLast->GetName( ) + "] was banned by player [" + User + "]" );
 
+				string sBan = "";
+				
+				if (BanTime)
+					sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", m_DBBanLast->GetServer(),
+                                                                     "$VICTIM$", m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
+                                                                     "$USER$",  User,
+                                                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
+				else
 
-                string sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", m_DBBanLast->GetServer(),
-                                                                         "$VICTIM$", m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
-                                                                         "$USER$",  User,
-                                                                         "$BANDAYTIME$", UTIL_ToString(BanTime));
+                    sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", m_DBBanLast->GetServer(),
+																	 "$VICTIM$",  m_DBBanLast->GetName( )+" ("+m_DBBanLast->GetIP()+")",
+																	 "$USER$",  User);
 
                 string sBReason = sBan + ", "+Reason;
 
