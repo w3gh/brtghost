@@ -2892,6 +2892,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		}
 	}
 
+	
 	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 	{
 		// matchmaking is enabled
@@ -4856,6 +4857,12 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 						if( m_MuteAll )
 						if(!isRootAdmin)
 							Relay = false;
+					}
+					else if( ExtraFlags[0] == 2 )
+					{
+						// this is an ingame [Obs/Ref] message, print it to the console
+	
+						CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Obs/Ref] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
 					}
 
 					if (m_Listen)
