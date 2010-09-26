@@ -944,7 +944,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.0.6";
+	m_GHostVersion = "1.7.0.7";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
@@ -1845,8 +1845,8 @@ bool CGHost :: Update( unsigned long usecBlock )
 						{
 							if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
 							{
-								if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with custom maps, matchmaking disabled" );
+								if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) )
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with fixed player settings, matchmaking disabled" );
 								else
 								{
 									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
