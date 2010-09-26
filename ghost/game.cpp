@@ -1725,13 +1725,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								SendAllChat( sBReason );
 							else
 							{
-								SendAllChat( sBan);
-								SendAllChat( m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_0052", Reason)));
+								SendAllChat( sBan );
+								SendAllChat( m_GHost->m_Language->GetLang("lang_1027", Reason));
 							}
 						}
 						if (m_GHost->m_NotifyBannedPlayers)
 						{
-							sBReason = m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_1142")); // You have been banned
+							sBReason = m_GHost->m_Language->GetLang("lang_1142"); // You have been banned
 							if (!Reason.empty())
 								sBReason = sBReason+", "+Reason;
 							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
@@ -1826,12 +1826,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							else
 							{
 								SendAllChat( sBan);
-								SendAllChat( m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_0052", Reason)) );
+								SendAllChat( m_GHost->m_Language->GetLang("lang_1027", Reason) );
 							}
 						}
 						if (m_GHost->m_NotifyBannedPlayers)
 						{
-							sBReason = m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_1142")); // You have been banned
+							sBReason = m_GHost->m_Language->GetLang("lang_1142"); // You have been banned
 							if (!Reason.empty())
 								sBReason = sBReason+", "+Reason;
 							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
@@ -2006,7 +2006,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							else
 							{
 								SendAllChat( sBan);
-								SendAllChat( m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_0052", Reason)));
+								SendAllChat( m_GHost->m_Language->GetLang("lang_1027", Reason));
 							}
 						}
 						if (m_GHost->m_NotifyBannedPlayers)
@@ -2149,8 +2149,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								SendAllChat( sBReason );
 							else
 							{
-								SendAllChat( sBan);
-								SendAllChat( m_GHost->m_Language->GetLang(m_GHost->m_Language->GetLang("lang_0052", Reason)));
+								SendAllChat( sBan );
+								SendAllChat( m_GHost->m_Language->GetLang("lang_1027", Reason));
 							}
 						}
 						if (m_GHost->m_NotifyBannedPlayers)
