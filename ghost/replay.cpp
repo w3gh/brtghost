@@ -32,7 +32,7 @@ CReplay :: CReplay( ) : CPacked( )
 {
 	m_HostPID = 0;
 	m_PlayerCount = 0;
-	m_MapGameType = 1;
+	m_MapGameType = 0;
 	m_RandomSeed = 0;
 	m_SelectMode = 0;
 	m_StartSpotCount = 0;
@@ -164,10 +164,7 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
         Replay.push_back( 0 );                                                                                                                  // Null (4.0)
         UTIL_AppendByteArrayFast( Replay, statString );                                                                 // StatString (4.3)
         UTIL_AppendByteArray( Replay, (uint32_t)m_Slots.size( ), false );                               // PlayerCount (4.6)
-        Replay.push_back( m_MapGameType );                                                                                              // GameType (4.7)
-        Replay.push_back( 32 );                                                                                                                 // GameType (4.7)
-        Replay.push_back( 73 );                                                                                                                 // GameType (4.7)
-        Replay.push_back( 0 );                                                                                                                  // GameType (4.7)
+		UTIL_AppendByteArray( Replay, m_MapGameType, false );                                                                                                              // GameType (4.7)
         UTIL_AppendByteArray( Replay, LanguageID, false );                                                              // LanguageID (4.8)
 
         // PlayerList (4.9)
@@ -232,7 +229,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 	m_GameName.clear( );
 	m_StatString.clear( );
 	m_PlayerCount = 0;
-	m_MapGameType = 1;
+	m_MapGameType = 0;
 	m_Players.clear( );
 	m_Slots.clear( );
 	m_RandomSeed = 0;
@@ -314,14 +311,7 @@ void CReplay :: ParseReplay( bool parseBlocks )
 		return;
 	}
 
-	READB( ISS, &Garbage4, 4 );				// GameType (4.7)
-
-	/* if( (Garbage4 & 0xFFFFFF00) != 4792320 )
-	{
-		CONSOLE_Print( "[REPLAY] invalid replay (4.7 GameType mismatch)" );
-		m_Valid = false;
-		return;
-	} */
+	READB( ISS, &m_MapGameType, 4 );		// GameType (4.7)
 
 	m_MapGameType = Garbage4 & 0x000000FF;
 	READB( ISS, &Garbage4, 4 );				// LanguageID (4.8)

@@ -30,7 +30,7 @@
 #define SLOTRACE_NIGHTELF	4
 #define SLOTRACE_UNDEAD		8
 #define SLOTRACE_RANDOM		32
-#define SLOTRACE_FIXED		64
+#define SLOTRACE_SELECTABLE	64
 
 #define SLOTCOMP_EASY		0
 #define SLOTCOMP_NORMAL		1
@@ -64,7 +64,7 @@ public:
 	unsigned char GetComputer( )		{ return m_Computer; }
 	unsigned char GetTeam( )			{ return m_Team; }
 	unsigned char GetColour( )			{ return m_Colour; }
-	unsigned char GetRace( )			{ return m_Race; }
+	unsigned char GetRace( )			{ return m_Race; } // race (1 = human, 2 = orc, 4 = night elf, 8 = undead, 32 = random, 64 = selectable)
 	unsigned char GetComputerType( )	{ return m_ComputerType; }
 	unsigned char GetHandicap( )		{ return m_Handicap; }
 
