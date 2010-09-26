@@ -4563,7 +4563,7 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 						}
 					}
 
-					SendAllChat( m_GHost->m_Language->GetLang("lang_0195", UTIL_ToString( StateNumber ), Players) ); // PlayersInGameState( UTIL_ToString( StateNumber ), Players )
+					SendAllChat( m_GHost->m_Language->GetLang("lang_0195", "$NUMBER$", UTIL_ToString( StateNumber ), "$PLAYERS$", Players) ); // PlayersInGameState( UTIL_ToString( StateNumber ), Players )
 					StateNumber++;
 				}
 
@@ -4685,7 +4685,7 @@ void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 						}
 					}
 
-					SendAllChat( m_GHost->m_Language->GetLang("lang_0195", UTIL_ToString( StateNumber ), Players ) ); //  PlayersInGameState( UTIL_ToString( StateNumber ), Players )
+					SendAllChat( m_GHost->m_Language->GetLang("lang_0195", "$NUMBER$", UTIL_ToString( StateNumber ), "$PLAYERS$", Players ) ); //  PlayersInGameState( UTIL_ToString( StateNumber ), Players )
 					StateNumber++;
 				}
 
@@ -6408,20 +6408,20 @@ void CBaseGame :: SwapSlotsS( unsigned char SID1, unsigned char SID2 )
 
 		m_GHost->UDPChatSend("|swap "+UTIL_ToString(SID1)+" "+UTIL_ToString(SID2));
 
-		if( m_GetMapGameType != GAMETYPE_CUSTOM )
-		{
-			// regular game - swap everything
-
-			m_Slots[SID1] = Slot2;
-			m_Slots[SID2] = Slot1;
-		}
-		else
+		if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		{
 			// custom game - don't swap the team, colour, or race
 
 			m_Slots[SID1] = CGameSlot( Slot2.GetPID( ), Slot2.GetDownloadStatus( ), Slot2.GetSlotStatus( ), Slot2.GetComputer( ), Slot1.GetTeam( ), Slot1.GetColour( ), Slot1.GetRace( ), Slot2.GetComputerType( ), Slot2.GetHandicap( ) );
 			m_Slots[SID2] = CGameSlot( Slot1.GetPID( ), Slot1.GetDownloadStatus( ), Slot1.GetSlotStatus( ), Slot1.GetComputer( ), Slot2.GetTeam( ), Slot2.GetColour( ), Slot2.GetRace( ), Slot1.GetComputerType( ), Slot1.GetHandicap( ) );
 		}
+		else
+		{
+			// regular game - swap everything
+			m_Slots[SID1] = Slot2;
+			m_Slots[SID2] = Slot1;
+		}
+
 
 //		SendAllSlotInfo( );
 	}
