@@ -2852,7 +2852,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 // check if we're only allowing certain scores
 	if (!m_ScoreCheckChecked)
-	if(m_ScoreCheck && !Reserved && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
+	if (m_ScoreCheck && !Reserved && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
 	{
 		// scorechecking is enabled
 		// start a database query to determine the player's score
@@ -3227,19 +3227,22 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 						{
 							CGameSlot Slot1 = m_Slots[k];
 							CGameSlot Slot2 = m_Slots[l];
-							if( m_Map->GetMapGameType( ) != GAMETYPE_CUSTOM )
-							{
-								// regular game - swap everything
-								m_Slots[k] = Slot2;
-								m_Slots[l] = Slot1;
-							}
-							else
+
+							if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 							{
 								// custom game - don't swap the team, colour, or race
 
 								m_Slots[k] = CGameSlot( Slot2.GetPID( ), Slot2.GetDownloadStatus( ), Slot2.GetSlotStatus( ), Slot2.GetComputer( ), Slot1.GetTeam( ), Slot1.GetColour( ), Slot1.GetRace( ) );
 								m_Slots[l] = CGameSlot( Slot1.GetPID( ), Slot1.GetDownloadStatus( ), Slot1.GetSlotStatus( ), Slot1.GetComputer( ), Slot2.GetTeam( ), Slot2.GetColour( ), Slot2.GetRace( ) );
 							}
+							else
+							{
+								// regular game - swap everything
+								m_Slots[k] = Slot2;
+								m_Slots[l] = Slot1;
+							}
+							
+
 							m_GHost->UDPChatSend("|swap "+UTIL_ToString(k)+" "+UTIL_ToString(l));
 //							SendAllSlotInfo( );
 
