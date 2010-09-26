@@ -2852,7 +2852,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 // check if we're only allowing certain scores
 	if (!m_ScoreCheckChecked)
-	if (m_ScoreCheck && !Reserved && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM )
+	if ( m_ScoreCheck && !Reserved && !m_Map->GetMapMatchMakingCategory( ).empty( )/* && m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM*/ )
 	{
 		// scorechecking is enabled
 		// start a database query to determine the player's score
@@ -2887,7 +2887,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				SendAllChat( m_GHost->m_Language->GetLang("lang_1001", "$NAME$", n, "$SCORE$", sc, "$REQSCORE$", reqScore) );  // AutokickingPlayerForDeniedScore( n, sc, reqScore )
 
 			vector<CGameSlot> Slots = m_Map->GetSlots( );
-			potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+			potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
 			potential->SetDeleteMe( true );
 			return;
 		}
@@ -3112,7 +3112,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			if (m_Bans)
 			{
 				vector<CGameSlot> Slots = m_Map->GetSlots( );
-				potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+				potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
 				potential->SetDeleteMe( true );
 				return;
 			}
@@ -3162,7 +3162,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 						// this causes them to be kicked back to the chat channel on battle.net
 
 						vector<CGameSlot> Slots = m_Map->GetSlots( );
-						potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+						potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
 						potential->SetDeleteMe( true );
 						return;
 
