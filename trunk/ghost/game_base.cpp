@@ -5557,8 +5557,8 @@ void CBaseGame :: EventGameStarted( )
 
 	// close the listening socket
 
-//	delete m_Socket;
-//	m_Socket = NULL;
+	delete m_Socket;
+	m_Socket = NULL;
 
 	// delete any potential players that are still hanging around
 
