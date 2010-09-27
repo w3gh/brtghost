@@ -4123,6 +4123,9 @@ void CGHost :: UDPChatSend(string s)
 	strncpy(c,s.c_str(), s.length());
 	c[s.length()]=0;
 	b=UTIL_CreateByteArray(c,s.length());
+
+	delete [] c;
+
 	if (m_UDPUsers.size()>0)
 	{
 		for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
@@ -4140,13 +4143,15 @@ void CGHost :: UDPChatSendBack(string s)
 	m_inconsole = true;
 //	CONSOLE_Print("[UDP] "+s);
 	m_inconsole = false;
-	if (m_LastIp=="") return;
+	if (m_LastIp.empty()) return;
 	BYTEARRAY b;
 	char *c = new char[s.length()+2];
 	strncpy(c,s.c_str(), s.length());
 	c[s.length()]=0;
 	b=UTIL_CreateByteArray(c,s.length());
 	m_UDPSocket->SendTo(m_LastIp,m_GUIPort,b);
+
+	delete [] c;
 
 	//CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
 }
@@ -4164,6 +4169,9 @@ string CGHost :: UDPChatWhoIs(string c, string s)
 		cn = new char[c.length()+1];
 		strcpy(cn,c.c_str());
 		descr=myudpwhois(cn, msg);
+
+		delete [] msg;
+		delete [] cn;
 	}
 	catch (...)
 	{

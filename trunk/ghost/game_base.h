@@ -68,7 +68,7 @@ protected:
 	vector<CGameSlot> m_EnforceSlots;				// vector of slots to force players to use (used with saved games)
 	vector<PIDPlayer> m_EnforcePlayers;				// vector of pids to force players to use (used with saved games)
 	vector<string> m_GameNames;
-	CMap *m_Map;									// map data (this is a pointer to global data)
+	auto_ptr<CMap> m_Map;							// map data (this is a pointer to global data)
 	CSaveGame *m_SaveGame;							// savegame data (this is a pointer to global data)
 	CReplay *m_Replay;								// replay
 	bool m_Exiting;									// set to true and this class will be deleted next update

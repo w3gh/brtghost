@@ -70,7 +70,11 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_GHost = nGHost;
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
-	m_Map = new CMap( *nMap );
+	//m_Map = new CMap( *nMap );
+	m_Map.reset(new CMap(*nMap));
+	//auto_ptr<CMap> map( new CMap(*nMap)); 
+	//m_Map = map;
+
 	m_SaveGame = nSaveGame;
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
@@ -356,7 +360,7 @@ CBaseGame :: ~CBaseGame( )
 
 	delete m_Socket;
 	delete m_Protocol;
-	delete m_Map;
+//	delete m_Map;
 	delete m_Replay;
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); i++ )
@@ -750,7 +754,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			if( (*i)->GetOutPacketsQueued( ) <= 1 )
 			{
-				(*i)->QueueGameRefresh( m_GameState, m_GameName, string( ), m_Map, m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
+				(*i)->QueueGameRefresh( m_GameState, m_GameName, string( ), m_Map.get(), m_SaveGame, GetTime( ) - m_CreationTime, m_HostCounter );
 				Refreshed = true;
 			}
 		}
@@ -5418,7 +5422,7 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 
 		SendAllChat( m_GHost->m_Language->GetLang("lang_0063", "$VICTIM$", player->GetName( ), "$PING$", UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )); //  AutokickingPlayerForExcessivePing( player->GetName( ), UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) )
 		player->SetDeleteMe( true );
-		player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0063", UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) ) ); // "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) )
+		player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0063", "$VICTIM$", player->GetName( ), "$PING$", UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) ) ); // "was autokicked for excessive ping of " + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) )
 		player->SetLeftCode( PLAYERLEAVE_LOBBY );
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 	}
@@ -5553,8 +5557,8 @@ void CBaseGame :: EventGameStarted( )
 
 	// close the listening socket
 
-	delete m_Socket;
-	m_Socket = NULL;
+//	delete m_Socket;
+//	m_Socket = NULL;
 
 	// delete any potential players that are still hanging around
 
@@ -5625,8 +5629,8 @@ void CBaseGame :: EventGameStarted( )
 
 	// delete the map data
 
-	delete m_Map;
-	m_Map = NULL;
+//	delete m_Map;
+//	m_Map = NULL;
 
 	if( m_LoadInGame )
 	{

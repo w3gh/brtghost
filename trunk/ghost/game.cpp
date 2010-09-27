@@ -4901,7 +4901,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					// we need to send the game creation message now because private games are not refreshed
 					MILLISLEEP(5);
-					(*i)->QueueGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
+					(*i)->QueueGameCreate( m_GameState, m_GameName, string( ), m_Map.get(), NULL, m_HostCounter );
 
 					if( (*i)->GetPasswordHashType( ) != "pvpgn" )
 						(*i)->QueueEnterChat( );
@@ -5997,10 +5997,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					OpenSlot( GetSIDFromPID( Victim->GetPID( ) ), false );
 
 				CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumHumanPlayers( ) ) + " votes" );
-				SendAllChat( m_GHost->m_Language->GetLang("lang_0159", m_KickVotePlayer ) ); // VoteKickPassed
+				SendAllChat( m_GHost->m_Language->GetLang("lang_0159", Victim->GetName() ) ); // VoteKickPassed
 			}
 			else
-				SendAllChat( m_GHost->m_Language->GetLang("lang_0160", m_KickVotePlayer ) ); // ErrorVoteKickingPlayer
+				SendAllChat( m_GHost->m_Language->GetLang("lang_0160", Victim->GetName() ) ); // ErrorVoteKickingPlayer
 
 			m_KickVotePlayer.clear( );
 			m_StartedKickVoteTime = 0;

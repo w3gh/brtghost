@@ -993,6 +993,8 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 			m_AutoWarnMarks.push_back( mark );
 	}
 
+	delete [] marks;
+
 	if( Slots.empty( ) )
 	{
 		for( uint32_t Slot = 1; Slot <= 12; Slot++ )
