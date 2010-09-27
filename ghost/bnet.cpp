@@ -2457,6 +2457,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 												m_GHost->m_AutoHostMatchMaking = true;
 												m_GHost->m_AutoHostMinimumScore = MinimumScore;
 												m_GHost->m_AutoHostMaximumScore = MaximumScore;
+												m_GHost->m_AutoHostCountryCheck = false;
+												m_GHost->m_AutoHostCountryCheck2 = false;
 											}
 										}
 									}

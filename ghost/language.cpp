@@ -69,119 +69,119 @@ string CLanguage :: GetLang(string lang_id, string v1, string s1,
 
     if (!v1.empty())
     {
-		if ((pos = out.find(v1)) != -1)
+		if ((pos = out.find(v1)) != string :: npos)
             out.replace(pos, v1.size(), s1);
     } else return out;
 
     if (!v2.empty())
     {
-        if ((pos = out.find(v2)) != -1)
+        if ((pos = out.find(v2)) != string :: npos)
             out.replace(pos, v2.size(), s2);
     } else return out;
 
     if (!v3.empty())
     {
-        if ((pos = out.find(v3)) != -1)
+        if ((pos = out.find(v3)) != string :: npos)
             out.replace(pos, v3.size(), s3);
     } else return out;
 
     if (!v4.empty())
     {
-        if ((pos = out.find(v4)) != -1)
+        if ((pos = out.find(v4)) != string :: npos)
             out.replace(pos, v4.size(), s4);
     } else return out;
 
 
     if (!v5.empty())
     {
-        if ((pos = out.find(v5)) != -1)
+        if ((pos = out.find(v5)) != string :: npos)
             out.replace(pos, v5.size(), s5);
     } else return out;
 
     if (!v6.empty())
     {
-        if ((pos = out.find(v6)) != -1)
+        if ((pos = out.find(v6)) != string :: npos)
             out.replace(pos, v6.size(), s6);
     } else return out;
 
     if (!v7.empty())
     {
-        if ((pos = out.find(v7)) != -1)
+        if ((pos = out.find(v7)) != string :: npos)
             out.replace(pos, v7.size(), s7);
     } else return out;
 
     if (!v8.empty())
     {
-        if ((pos = out.find(v8)) != -1)
+        if ((pos = out.find(v8)) != string :: npos)
             out.replace(pos, v8.size(), s8);
     } else return out;
 
     if (!v9.empty())
     {
-        if ((pos = out.find(v9)) != -1)
+        if ((pos = out.find(v9)) != string :: npos)
             out.replace(pos, v9.size(), s9);
     } else return out;
 
     if (!v10.empty())
     {
-        if ((pos = out.find(v10)) != -1)
+        if ((pos = out.find(v10)) != string :: npos)
             out.replace(pos, v10.size(), s10);
     } else return out;
 
     if (!v11.empty())
     {
-        if ((pos = out.find(v11)) != -1)
+        if ((pos = out.find(v11)) != string :: npos)
             out.replace(pos, v11.size(), s11);
     } else return out;
 
     if (!v12.empty())
     {
-        if ((pos = out.find(v12)) != -1)
+        if ((pos = out.find(v12)) != string :: npos)
             out.replace(pos, v12.size(), s12);
     } else return out;
 
     if (!v13.empty())
     {
-        if ((pos = out.find(v13)) != -1)
+        if ((pos = out.find(v13)) != string :: npos)
             out.replace(pos, v13.size(), s13);
     } else return out;
 
 
     if (!v14.empty())
     {
-        if ((pos = out.find(v14)) != -1)
+        if ((pos = out.find(v14)) != string :: npos)
             out.replace(pos, v14.size(), s14);
     } else return out;
 
 
     if (!v15.empty())
     {
-        if ((pos = out.find(v15)) != -1)
+        if ((pos = out.find(v15)) != string :: npos)
             out.replace(pos, v15.size(), s15);
     } else return out;
 
 
     if (!v16.empty())
     {
-        if ((pos = out.find(v16)) != -1)
+        if ((pos = out.find(v16)) != string :: npos)
             out.replace(pos, v16.size(), s16);
     } else return out;
 
     if (!v17.empty())
     {
-        if ((pos = out.find(v17)) != -1)
+        if ((pos = out.find(v17)) != string :: npos)
             out.replace(pos, v17.size(), s17);
     } else return out;
 
     if (!v18.empty())
     {
-        if ((pos = out.find(v18)) != -1)
+        if ((pos = out.find(v18)) != string :: npos)
             out.replace(pos, v18.size(), s18);
     } else return out;
 
     if (!v19.empty())
     {
-        if ((pos = out.find(v19)) != -1)
+        if ((pos = out.find(v19)) != string :: npos)
             out.replace(pos, v19.size(), s19);
     } else return out;
 
