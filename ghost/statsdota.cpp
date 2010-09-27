@@ -42,6 +42,7 @@ CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame )
 	m_Min = 0;
 	m_Sec = 0;
 	m_Swap = false;
+	m_SwitchOff = true;
 }
 
 CStatsDOTA :: ~CStatsDOTA( )
@@ -117,11 +118,22 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								m_Game->m_GHost->UDPChatSend("|gameupdate "+UTIL_ToString(GameNr));
 								if (Victim)
+								{
 									Victim->SetDOTADeaths(Victim->GetDOTADeaths()+1);
+									m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
+								}
+								if (Killer == Victim ) // Just whant to check this ficher. Griffon
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed himself");
 								if( Killer && Victim )
 								{
-									Killer->SetDOTAKills(Killer->GetDOTAKills()+1);
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
+									if ( (ValueInt < 6 && VictimColour < 6) || (ValueInt > 6 && VictimColour > 6) )
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] denied player [" + Victim->GetName( ) + "]" );
+									else
+									{
+										Killer->SetDOTAKills(Killer->GetDOTAKills()+1);
+										m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
+									}
 								}
 								else if( Victim )
 								{
@@ -131,16 +143,31 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed player [" + Victim->GetName( ) + "]" );
 								}
 							}
+							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 6 ) == "Assist" )
+							{
+								// assist
+								
+								string AssistentColourString = KeyString.substr( 6 );
+								uint32_t AssistentColour = UTIL_ToUInt32( AssistentColourString );
+								CGamePlayer *Assistent = m_Game->GetPlayerFromColour( AssistentColour );
+								CGamePlayer *Victim = m_Game->GetPlayerFromColour( ValueInt );
+								
+								if ( Assistent && Victim )
+								{
+									m_Players[AssistentColour]->SetAssists(m_Players[AssistentColour]->GetAssists() + 1);
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Assistent->GetName( ) + "] assist to kill player [" + Victim->GetName( ) + "]" );
+								}
+							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 3 ) == "CSK" )
 							{
 								// kreep kills. All creep kills in valueInt. Pereodic.
+								
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
-								/*
+								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 									m_Players[PlayerColour]->SetCreepKills( ValueInt );
-								*/
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -151,15 +178,14 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 2 ) == "NK" )
 							{
-
 								// neutral kills. All neutral creep kills in valueInt. Pereodic.
 								
 								string PlayerColourString = KeyString.substr( 2 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
-								/*
+								
+								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 									m_Players[PlayerColour]->SetNeutralKills( ValueInt );
-								*/
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -174,10 +200,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
-								/*
+								
+								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 									m_Players[PlayerColour]->SetCreepDenies( ValueInt );
-								*/
+								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
 								//if ( Player )
@@ -191,13 +218,24 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
-
-								//m_Player[PlayerColour].SetItem( 0, string( Value.rbegin( ), Value.rend( ) ) );
+								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
+								string playerName = PlayerColourString; 
+								if ( Player )
+									playerName = Player->GetName( );
 								
-								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
-								//string playerName = PlayerColourString; 
-								//if ( Player )
-								//	playerName = Player->GetName( );
+								if ( m_SwitchOff )
+								{
+									bool error = true;
+									for ( int i = 0; i < 6; i++ )
+										if ( m_Player[PlayerColour].getItem(i) == string( ) )
+										{
+											m_Player[PlayerColour].SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
+											error = false;
+											break;
+										}
+									if (error)
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "] but all slots already occupied.");
+								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
 							}
@@ -207,13 +245,25 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
-
-								//m_Player[PlayerColour].SetItem(0, string( Value.rbegin( ), Value.rend( ) ) );
-
-								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
-								//string playerName = PlayerColourString; 
-								//if ( Player )
-								//	playerName = Player->GetName( );
+								string item = string( Value.rbegin( ), Value.rend( ) );
+								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
+								string playerName = PlayerColourString;
+								if ( Player )
+									playerName = Player->GetName( );
+									
+								if ( m_SwitchOff )
+								{
+									bool error = true;
+									for ( int i = 0; i < 6; i++ )
+										if ( m_Player[PlayerColour].getItem(i) == item )
+										{
+											m_Player[PlayerColour].SetItem(i, string( ));
+											error = false;
+											break;
+										}
+									if (error) 
+										CONSOLE_Print( "[STATSDOTA: ERROR: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "] but hi hasn't this item.");
+								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
 							}
@@ -384,7 +434,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ((ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ))
 								{
-
 									uint32_t i = KeyString.find("D");
 									uint32_t y = KeyString.find("N");
 
@@ -401,12 +450,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										m_Players[ValueInt]->SetColour( ValueInt );
 									}
 
-
 									m_Players[ValueInt]->SetCreepKills( CreepKills );
 									m_Players[ValueInt]->SetCreepDenies( CreepDenies );
 									m_Players[ValueInt]->SetNeutralKills( NeutralKills );
-									m_Players[ValueInt]->SetNewColour( ValueInt );
-									
 								}
 								
 								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player disconnected." );
@@ -434,7 +480,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									string ToString = KeyString.substr( y + 1 );
 									uint32_t ToColour = UTIL_ToUInt32( ToString );
 									CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
-									/*
+									
+									if( m_SwitchOff)
 									if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
 									if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
 									{
@@ -450,10 +497,21 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] swap players from ["+FromString+"] to ["+ToString+"]." );
 									}
-									*/
+									
 								}
 								else
 									m_Swap = false;
+							}
+							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Mode" ) //Modearso Modensom
+							{
+								// Game mode
+								string gameMode = KeyString.substr(4);
+								// If SO mod, we must know about that.
+								if (gameMode.find("nsom") != string::npos )
+									gameMode.erase(gameMode.find("nsom"), 4);
+								if (gameMode.find("so") != string::npos )
+										m_SwitchOff = false;
+							
 							}
 						}
 						else if( DataString == "Global" )
