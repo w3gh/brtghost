@@ -3360,6 +3360,15 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							return HideCommand;
 						}
 					}
+					
+					
+					CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
+					SendAllChat(m_GHost->m_Language->GetLang("lang_1168")); // "Game will end in 5 seconds"
+					m_GameEndCountDownStarted = true;
+					m_GameEndCountDownCounter = 5;
+					m_GameEndLastCountDownTicks = GetTicks();
+					m_Stats->SetWinner(m_RequestedWinner);
+					return HideCommand;
 				}
 
 				if (!m_GameEndCountDownStarted)

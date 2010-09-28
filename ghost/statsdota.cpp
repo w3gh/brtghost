@@ -120,7 +120,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								if (Victim)
 								{
 									Victim->SetDOTADeaths(Victim->GetDOTADeaths()+1);
-									m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
+									if(m_SwitchOff) m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
 								}
 								if (Killer == Victim ) // Just whant to check this ficher. Griffon
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed himself");
@@ -131,7 +131,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									else
 									{
 										Killer->SetDOTAKills(Killer->GetDOTAKills()+1);
-										m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
+										if(m_SwitchOff) m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
 									}
 								}
