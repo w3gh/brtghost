@@ -227,9 +227,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								{
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
-										if ( m_Player[PlayerColour].getItem(i) == string( ) )
+										if ( m_Players[PlayerColour]->GetItem(i) == string( ) )
 										{
-											m_Player[PlayerColour].SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
+											m_Players[PlayerColour]->SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
 											error = false;
 											break;
 										}
@@ -255,9 +255,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								{
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
-										if ( m_Player[PlayerColour].getItem(i) == item )
+										if ( m_Players[PlayerColour]->GetItem(i) == item )
 										{
-											m_Player[PlayerColour].SetItem(i, string( ));
+											m_Players[PlayerColour]->SetItem(i, string( ));
 											error = false;
 											break;
 										}
