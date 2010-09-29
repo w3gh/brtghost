@@ -644,6 +644,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 					"$RKPG$", UTIL_ToString( DotAPlayerSummary->GetRaxKillsPerGame( )),
                     "$CouKPG$", UTIL_ToString( DotAPlayerSummary->GetCourierKillsPerGame( )),
                     "$SCORE$", UTIL_ToString2( DotAPlayerSummary->GetScore()),
+					"$TITLE1$", player_class,
                     "$RANK$", RankS);
 
 
@@ -4308,7 +4309,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !HCL
 			//
 
-			else if( Command == "hcl" && !m_CountDownStarted )
+			else if( (Command == "hcl" || Command == "mode" || Command == "gamemode") && !m_CountDownStarted )
 			{
 
 				if (m_GHost->m_onlyownerscanstart && !Payload.empty( ))

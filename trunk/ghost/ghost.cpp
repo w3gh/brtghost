@@ -2711,16 +2711,32 @@ void CGHost :: UDPCommands( string Message )
 
     if (Command == "sendgamesstatus")
     {
-        string games;
+        string games; games.clear();
+
+		string separator = "|~'_$|";
 
 		//if( m_CurrentGame )
 		//	games = games + "L "+m_CurrentGame->GetKilledTowers()+"|";
+		
+		if (m_CurrentGame)
+		{
+			games = "|currentgame|--|" + m_CurrentGame->GetOwnerName() + 
+					separator +	 m_CurrentGame->GetGameName() +
+					separator + UTIL_ToString(m_CurrentGame->GetSlotsOccupied())+
+					separator + UTIL_ToString(m_CurrentGame->m_Slots.size());
 
-		games = "|gamesinfo|--|";
+			if (!m_CurrentGame->m_Players.empty())
+			{
+			//	games += separator + "C" + UTIL_ToString(m_CurrentGame->m_Players->size());
 
-//		games = games + UTIL_ToString(m_Games.size( ));
-//		games = "|games "+games+" ";
+				for (uint32_t i=0; i < m_CurrentGame->m_Players.size(); i++)
+					games += separator + m_CurrentGame->m_Players[i]->GetName();
+			}
 
+		}
+
+		games += "|gamesinfo|--|";
+		
 		if (m_Games.size( )>0)
 		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
 		{
@@ -2738,19 +2754,27 @@ void CGHost :: UDPCommands( string Message )
             reserv1 = "";
             reserv2 = "";
 
-            game_name = (*g)->GetGameName();
+//            for (int i=0; i < 32 - (int)(*g)->GetGameName().size(); i++)
+//                game_name += " ";
 
-            for (int i=0; i < 32 - (int)(*g)->GetGameName().size(); i++)
-                game_name += " ";
+			games += (*g)->GetGameName() + separator + (*g)->GetKilledTowers() + separator + UTIL_ToString(iTime) + separator + (*g)->GetOwnerName() + separator + reserv2;
 
-			games = games + game_name + "," + (*g)->GetKilledTowers() + "," + UTIL_ToString(iTime) + "," + (*g)->GetCreatorName() + "," + reserv2+"|--|";
+			if ((*g)->m_Players.empty())
+			{
+			//	games += separator + "C" + UTIL_ToString(m_CurrentGame->m_Players->size());
+
+				for (uint32_t i=0; i < (*g)->m_Players.size(); i++)
+					games += separator + (*g)->m_Players[i]->GetName();
+			}
+
+			games += "|--|";
+
+
 		} else
-            games = "|gamesinfo|--|";
+            games += "|gamesinfo|--|";
 
 
 		UDPChatSendBack(games);
-
-
     }
 
 	if (Command == "readwelcome")
