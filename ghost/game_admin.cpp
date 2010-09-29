@@ -327,8 +327,8 @@ void CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoin
 	CGamePlayer* player = CBaseGame :: GetPlayerFromName(joinPlayer->GetName(), true);
 
 	for (uint32_t i=0; i < cache_admin_players.size(); i++)
-		if (cache_admin_players[i]->GetName() == player->GetName() &&
-			cache_admin_players[i]->GetExternalIPString() == player->GetExternalIPString())
+		if (cache_admin_players[i].name == player->GetName() &&
+			cache_admin_players[i].ip == player->GetExternalIPString())
 		{	
 			// We are find a cached admin in this session
 			CONSOLE_Print( "[ADMINGAME] user [" + joinPlayer->GetName() + "] logged in" );
@@ -1623,11 +1623,17 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 			bool admin_find = false;
 			for (uint32_t i=0; i < cache_admin_players.size(); i++)
-				if (cache_admin_players[i]->GetName() == player->GetName() &&
-					cache_admin_players[i]->GetInternalIP() == player->GetInternalIP()) { admin_find = true; break; };
+				if (cache_admin_players[i].name == player->GetName() &&
+					cache_admin_players[i].ip == player->GetExternalIPString()) { admin_find = true; break; };
 
 			if (!admin_find)
-				cache_admin_players.push_back(player);
+			{
+				CachePlayer tmp;
+				tmp.name = player->GetName();
+				tmp.ip = player->GetExternalIPString();
+
+				cache_admin_players.push_back(tmp);
+			}
 
 			player->SetLoggedIn( true );
 		}
