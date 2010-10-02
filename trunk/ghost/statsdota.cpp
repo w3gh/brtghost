@@ -162,7 +162,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( Assistent && Victim )
 								{
-									m_Players[AssistentColour]->SetAssists(m_Players[AssistentColour]->GetAssists() + 1);
+									if (m_Players[AssistentColour])
+										m_Players[AssistentColour]->SetAssists(m_Players[AssistentColour]->GetAssists() + 1);
+									else
+										CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] AssistentColour = "+ UTIL_ToString(AssistentColour) +" not exist in m_Player array!");
+
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Assistent->GetName( ) + "] assist to kill player [" + Victim->GetName( ) + "]" );
 								}
 							}
@@ -175,7 +179,10 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetCreepKills( ValueInt );
+									if (m_Players[PlayerColour])
+										m_Players[PlayerColour]->SetCreepKills( ValueInt );
+									else
+										CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] PlayerColour = "+ UTIL_ToString(PlayerColour) +" not exist in m_Player array!");
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -193,7 +200,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
+								if (m_Players[PlayerColour])
 									m_Players[PlayerColour]->SetNeutralKills( ValueInt );
+								else
+										CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] PlayerColour = "+ UTIL_ToString(PlayerColour) +" not exist in m_Player array!");
+								
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -211,7 +222,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
+								if (m_Players[PlayerColour])
 									m_Players[PlayerColour]->SetCreepDenies( ValueInt );
+								else
+										CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] PlayerColour = "+ UTIL_ToString(PlayerColour) +" not exist in m_Player array!");
+								
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -233,16 +248,20 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								{
-									bool error = true;
-									for ( int i = 0; i < 6; i++ )
-										if ( m_Players[PlayerColour]->GetItem(i) == string( ) )
-										{
-											m_Players[PlayerColour]->SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
-											error = false;
-											break;
-										}
-									if (error)
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "] but all slots already occupied.");
+									if (m_Players[PlayerColour])
+									{
+										bool error = true;
+										for ( int i = 0; i < 6; i++ )
+											if ( m_Players[PlayerColour]->GetItem(i) == string( ) )
+											{
+												m_Players[PlayerColour]->SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
+												error = false;
+												break;
+											}
+										if (error)
+											CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "] but all slots already occupied.");
+									} else
+										CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] PlayerColour = "+ UTIL_ToString(PlayerColour) +" not exist in m_Player array!");
 								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
@@ -261,16 +280,20 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									
 								if ( m_SwitchOff )
 								{
-									bool error = true;
-									for ( int i = 0; i < 6; i++ )
-										if ( m_Players[PlayerColour]->GetItem(i) == item )
-										{
-											m_Players[PlayerColour]->SetItem(i, string( ));
-											error = false;
-											break;
-										}
-									if (error) 
-										CONSOLE_Print( "[STATSDOTA: ERROR: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "] but hi hasn't this item.");
+									if (m_Players[PlayerColour])
+									{
+										bool error = true;
+										for ( int i = 0; i < 6; i++ )
+											if ( m_Players[PlayerColour]->GetItem(i) == item )
+											{
+												m_Players[PlayerColour]->SetItem(i, string( ));
+												error = false;
+												break;
+											}
+										if (error) 
+											CONSOLE_Print( "[STATSDOTA: ERROR: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "] but hi hasn't this item.");
+									} else
+									CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] PlayerColour = "+ UTIL_ToString(PlayerColour) +" not exist in m_Player array!");
 								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
