@@ -1008,10 +1008,25 @@ CGHost :: CGHost( CConfig *CFG )
 		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
 		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "USA" );
 		string Country = CFG->GetString( Prefix + "country", "United States" );
+		string Locale = CFG->GetString( Prefix + "locale", "system" );
+		uint32_t LocaleID;
+	
+		if( Locale == "system" )
+		{
+		#ifdef WIN32
+			LocaleID = GetUserDefaultLangID( );
+		#else
+			LocaleID = 1033;
+		#endif
+		}
+		else
+			LocaleID = UTIL_ToUInt32( Locale );
+
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
 		string RootAdmin = CFG->GetString( Prefix + "rootadmin", string( ) );
+
 		if (!RootAdmin.empty())
 			m_RootAdmin = RootAdmin;
 		string BNETCommandTrigger = CFG->GetString( Prefix + "commandtrigger", "!" );
@@ -1069,7 +1084,16 @@ CGHost :: CGHost( CConfig *CFG )
 		}
 
 		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
+		if( Locale == "system" )
+		{
+		#ifdef WIN32
+			CONSOLE_Print( "[GHOST] using system locale of " + UTIL_ToString( LocaleID ) );
+		#else
+			CONSOLE_Print( "[GHOST] unable to get system locale, using default locale of 1033" );
+		#endif
+		}
+	
+		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
 		m_BNETs[m_BNETs.size()-1]->SetWhereis(Whereis);
 		if (m_AutoHostServer.length()==0)
 			m_AutoHostServer = Server;
@@ -2713,15 +2737,17 @@ void CGHost :: UDPCommands( string Message )
     {
         string games; games.clear();
 
-		string separator = "|~'_$|";
+		string separator = ",";
+		string block = "|--|";
 
-		//if( m_CurrentGame )
-		//	games = games + "L "+m_CurrentGame->GetKilledTowers()+"|";
-		
 		if (m_CurrentGame)
 		{
-			games = "|currentgame|--|" + m_CurrentGame->GetOwnerName() + 
-					separator +	 m_CurrentGame->GetGameName() +
+			string game_name;
+
+			game_name = m_CurrentGame->GetGameName();
+
+			games = "|currentgame"+ block + UTIL_ToString(game_name.size()) + separator + game_name +
+					separator +	m_CurrentGame->GetOwnerName() + 
 					separator + UTIL_ToString(m_CurrentGame->GetSlotsOccupied())+
 					separator + UTIL_ToString(m_CurrentGame->m_Slots.size());
 
@@ -2735,7 +2761,7 @@ void CGHost :: UDPCommands( string Message )
 
 		}
 
-		games += "|gamesinfo|--|";
+		games += "|gamesinfo" + block;
 		
 		if (m_Games.size( )>0)
 		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
@@ -2749,15 +2775,13 @@ void CGHost :: UDPCommands( string Message )
 			else
 				iTime = (int)(GetTime() - (*g)->GetCreepSpawnTime());
 
-            string reserv1, reserv2, tower_kills, game_name;
+            string reserv1, tower_kills, game_name;
 
-            reserv1 = "";
-            reserv2 = "";
+            reserv1.clear();
 
-//            for (int i=0; i < 32 - (int)(*g)->GetGameName().size(); i++)
-//                game_name += " ";
+			game_name = (*g)->GetGameName();
 
-			games += (*g)->GetGameName() + separator + (*g)->GetKilledTowers() + separator + UTIL_ToString(iTime) + separator + (*g)->GetOwnerName() + separator + reserv2;
+			games += UTIL_ToString(game_name.size()) + separator + game_name + separator + (*g)->GetKilledTowers() + separator + UTIL_ToString(iTime) + separator + (*g)->GetOwnerName() + separator + reserv1;
 
 			if ((*g)->m_Players.empty())
 			{
@@ -2767,11 +2791,8 @@ void CGHost :: UDPCommands( string Message )
 					games += separator + (*g)->m_Players[i]->GetName();
 			}
 
-			games += "|--|";
-
-
-		} else
-            games += "|gamesinfo|--|";
+			games += block;
+		}
 
 
 		UDPChatSendBack(games);
