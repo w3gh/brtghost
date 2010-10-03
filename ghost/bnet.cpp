@@ -4662,7 +4662,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					srand((unsigned)time(0));
 
-					vector<string> randoms;
+					vector<string> randoms; randoms.clear();
 					string nam1 = User;
 					string nam2 = Payload;
 					// if no user is specified, randomize one != with the user giving the command
@@ -4697,8 +4697,11 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					{
 						m_LastMars = GetTime();
 						string msg = m_GHost->GetMars();
+
 						randoms.push_back(m_GHost->m_RootAdmin);
-						randoms.push_back(m_GHost->m_VirtualHostName);
+
+						if (!m_GHost->m_VirtualHostName.empty())
+							randoms.push_back(m_GHost->m_VirtualHostName);
 						for( uint32_t i = 0; i != Channel_Users().size( ); i++ )
 						{
 							if (Channel_Users()[i]!=nam2 && Channel_Users()[i]!=nam1)
@@ -4710,7 +4713,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							Replace( msg, "$VICTIM$", nam2 );       
 
 						while (msg.find("$RANDOM$") != string :: npos)
-							Replace( msg, "$RANDOM$", randoms[0] ); 
+							Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 						while (msg.find("$USER$") != string :: npos)
 							Replace( msg, "$USER$", nam1 );        

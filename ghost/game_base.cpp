@@ -5003,7 +5003,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 							string srv = m_Server;
 							string nam1 = m_VirtualHostName;
 							string nam2 = player->GetName();
-							vector<string> randoms;
+							vector<string> randoms; randoms.clear();
 							srand((unsigned)time(0));
 
 							bool safe2 = false;
@@ -5014,7 +5014,8 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 								string msg = m_GHost->GetMars();
 
 								randoms.push_back(m_GHost->m_RootAdmin);
-								randoms.push_back(m_GHost->m_VirtualHostName);
+								if (!m_GHost->m_VirtualHostName.empty())
+									randoms.push_back(m_GHost->m_VirtualHostName);
 								for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 								{
 									if ((*i)->GetName()!=nam2 && (*i)->GetName()!=nam1)
@@ -5026,7 +5027,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 									Replace( msg, "$VICTIM$", nam2 );       
 
 								while (msg.find("$RANDOM$") != string :: npos)
-									Replace( msg, "$RANDOM$", randoms[0] ); 
+									Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 								while (msg.find("$USER$") != string :: npos)
 									Replace( msg, "$USER$", nam1 );        
