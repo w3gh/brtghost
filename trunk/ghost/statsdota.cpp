@@ -117,16 +117,16 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t GameNr = m_Game->GetGameNr();
 
 								m_Game->m_GHost->UDPChatSend("|gameupdate "+UTIL_ToString(GameNr));
-								if (Victim)
+								if (Victim && Killer)
 								{
 									Victim->SetDOTADeaths(Victim->GetDOTADeaths()+1);
 									if (m_Players[VictimColour])
 									{
 										if(m_SwitchOff) m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
 									} else
-									CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] VictimColour = "+ UTIL_ToString(VictimColour) +" not exist in m_Player array!");
+									CONSOLE_Print( "[STATSDOTA: WARNING " + m_Game->GetGameName( ) + "] VictimColour = "+ UTIL_ToString(VictimColour) +" not exist in m_Player array!");
 								}
-								if (Killer == Victim ) // Just whant to check this ficher. Griffon
+								if (Killer && Victim && Killer == Victim ) // Just whant to check this ficher. Griffon
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed himself");
 								if( Killer && Victim )
 								{
@@ -135,12 +135,12 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									else
 									{
 										Killer->SetDOTAKills(Killer->GetDOTAKills()+1);
-										if (m_Players[VictimColour])
+										if (m_Players[VictimColour] && Killer)
 										{
 											if(m_SwitchOff) m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
 											CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
 										} else
-											CONSOLE_Print( "[STATSDOTA: SetDotaKills() WARNING " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] VictimColour = "+ UTIL_ToString(VictimColour) +" not exist in m_Player array!");
+											CONSOLE_Print( "[STATSDOTA: SetDotaKills() WARNING " + m_Game->GetGameName( ) + "] VictimColour = "+ UTIL_ToString(VictimColour) +" not exist in m_Player array!");
 									}
 								}
 								else if( Victim )
