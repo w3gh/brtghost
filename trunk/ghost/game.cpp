@@ -5239,7 +5239,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				srand((unsigned)time(0));
 
-				vector<string> randoms;
+				vector<string> randoms; randoms.clear();
 				string nam2 = Payload;
 				string nam1 = User;
 				// if no user is specified, randomize one != with the user giving the command
@@ -5281,7 +5281,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					string msg = m_GHost->GetMars();
 
 					randoms.push_back(m_GHost->m_RootAdmin);
-					randoms.push_back(m_GHost->m_VirtualHostName);
+					if (!m_GHost->m_VirtualHostName.empty())
+						randoms.push_back(m_GHost->m_VirtualHostName);
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 					{
 						if ((*i)->GetName()!=nam2 && (*i)->GetName()!=nam1)
@@ -5293,7 +5294,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						Replace( msg, "$VICTIM$", nam2 );       
 
 					while (msg.find("$RANDOM$") != string :: npos)
-						Replace( msg, "$RANDOM$", randoms[0] ); 
+						Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 					while (msg.find("$USER$") != string :: npos)
 						Replace( msg, "$USER$", nam1 );        
