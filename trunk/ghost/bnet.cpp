@@ -4659,6 +4659,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				{
 					if (m_GHost->m_Mars.size()==0)
 						return;
+
+					srand((unsigned)time(0));
+
 					vector<string> randoms;
 					string nam1 = User;
 					string nam2 = Payload;
@@ -4703,9 +4706,23 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						}
 						random_shuffle(randoms.begin(), randoms.end());
 
-						Replace( msg, "$VICTIM$", nam2 );       // WTF
-						Replace( msg, "$RANDOM$", randoms[0] ); // WTF
-						Replace( msg, "$USER$", nam1 );         // WTF
+						while (msg.find("$VICTIM$") != string :: npos)
+							Replace( msg, "$VICTIM$", nam2 );       
+
+						while (msg.find("$RANDOM$") != string :: npos)
+							Replace( msg, "$RANDOM$", randoms[0] ); 
+
+						while (msg.find("$USER$") != string :: npos)
+							Replace( msg, "$USER$", nam1 );        
+
+						while (msg.find("$RANDNUMBER$") != string ::npos)
+						{
+							int RandomNumber;
+							RandomNumber = (rand()%99)+1;
+
+							Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
+						}
+
 						QueueChatCommand( msg );
 					}
 				}

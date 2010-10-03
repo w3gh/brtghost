@@ -5236,6 +5236,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			{
 				if (m_GHost->m_Mars.size()==0)
 					return HideCommand;
+
+				srand((unsigned)time(0));
+
 				vector<string> randoms;
 				string nam2 = Payload;
 				string nam1 = User;
@@ -5285,9 +5288,24 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							randoms.push_back((*i)->GetName());
 					}
 					random_shuffle(randoms.begin(), randoms.end());
-					Replace( msg, "$VICTIM$", nam2 );
-					Replace( msg, "$USER$", nam1 );
-					Replace( msg, "$RANDOM$", randoms[0] );
+
+					while (msg.find("$VICTIM$") != string :: npos)
+						Replace( msg, "$VICTIM$", nam2 );       
+
+					while (msg.find("$RANDOM$") != string :: npos)
+						Replace( msg, "$RANDOM$", randoms[0] ); 
+
+					while (msg.find("$USER$") != string :: npos)
+						Replace( msg, "$USER$", nam1 );        
+
+					while (msg.find("$RANDNUMBER$") != string ::npos)
+					{
+						int RandomNumber;
+						RandomNumber = (rand()%99)+1;
+
+						Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
+					}
+
 					SendAllChat( msg );
 				}
 			}
