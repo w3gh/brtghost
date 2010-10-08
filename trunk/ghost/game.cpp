@@ -5817,11 +5817,18 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	* NON ADMIN COMMANDS *
 	*********************/
 
+	// 
+	// !HELP
+	//
+
+	if ( Command == "help" )
+		SendChat( player, m_GHost->m_Language->GetLang("lang_1213"));
+
 	//
 	// !PING
 	//
 
-	if( Command == "ping" )
+	else if( Command == "ping" )
 		SendChat( player,  player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + m_GHost->m_Language->GetLang("lang_1017") : m_GHost->m_Language->GetLang("lang_1018")); // "ms" : "N/A"
 
 	//

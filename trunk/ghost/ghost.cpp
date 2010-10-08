@@ -952,6 +952,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_RootAdmin = "dev";
 	m_CookieOffset = GetPID() * 10;
 	m_CallableDownloadFile = NULL;
+	m_GameNameContainString.clear();
 	UTIL_ExtractStrings(CMD_string, m_Commands);
 	m_HostCounter = 1;
 	m_AutoHostServer = string();
@@ -1190,7 +1191,7 @@ CGHost :: CGHost( CConfig *CFG )
 				m_ExternalIP=GetExternalIP2();
 			else
 				m_ExternalIP=GetExternalIP();
-		if (m_ExternalIP!="")
+		if (!m_ExternalIP.empty())
 		{
 			m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
 			m_Country=m_DBLocal->FromCheck(m_ExternalIPL);
@@ -1218,7 +1219,7 @@ CGHost :: CGHost( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
 #ifdef GHOST_MYSQL
-	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (with MySQL support)" );
+	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (with MySQL support)" );
 #else
 	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
 #endif
@@ -2794,7 +2795,6 @@ void CGHost :: UDPCommands( string Message )
 			games += block;
 		}
 
-
 		UDPChatSendBack(games);
     }
 
@@ -2898,7 +2898,7 @@ void CGHost :: UDPCommands( string Message )
 						}
 					}
 
-					if (Pl!=NULL)
+					if (Pl)
 					{
 						CONSOLE_Print( "[GHOST] received remote command [" + CCommand + "] with payload [" + CPayload + "]" );
 						string n = m_RootAdmins;
@@ -3763,6 +3763,8 @@ void CGHost :: ReloadConfig ()
 	if ((m_AutoHostMapCFG.find("\\")==string::npos) && (m_AutoHostMapCFG.find("/")==string::npos))
 		m_AutoHostMapCFG = m_MapCFGPath + m_AutoHostMapCFG;
 
+	m_GameNameContainString = CFG->GetString( "bot_gamenamecontainstring", string( ) );
+
 	m_GUIPort = CFG->GetInt( "udp_guiport", 5868 );
 	m_AutoBan = CFG->GetInt( "bot_autoban", 0 ) == 0 ? false : true;
 	m_AutoBanTeamDiffMax = CFG->GetInt( "bot_autobanteamdiffmax", 0 );
@@ -4158,7 +4160,7 @@ void CGHost :: UDPChatSend(BYTEARRAY b)
 
 void CGHost :: UDPChatSend(string s)
 {
-	m_inconsole = true;
+//	m_inconsole = true;
 //	CONSOLE_Print("[UDP] "+s);
 	m_inconsole = false;
 	string ip;
@@ -4176,7 +4178,7 @@ void CGHost :: UDPChatSend(string s)
 		for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
 		{
 			ip = (*i);
-			m_UDPSocket->SendTo(ip,m_GUIPort,b);
+			m_UDPSocket->SendTo(ip, m_GUIPort, b);
 		//	CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
 		}
 	}
