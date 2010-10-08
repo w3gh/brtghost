@@ -517,7 +517,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			CDBGamePlayerSummary *GamePlayerSummary = i->second->GetResult( );
 
 			if( GamePlayerSummary )
-				QueueChatCommand( m_GHost->m_Language->GetLang("lang_0061", "$USER$", i->second->GetName( ),
+				QueueChatCommand( m_GHost->m_Language->GetLang("lang_0061","$USER$", i->second->GetName( ),
                                                                            "$FIRSTGAME$", GamePlayerSummary->GetFirstGameDateTime( ),
                                                                            "$LASTGAME$", GamePlayerSummary->GetLastGameDateTime( ),
                                                                            "$TOTALGAMES$", UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ),
@@ -3963,7 +3963,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						return;
 					}
 
-					if (m_GHost->m_LastGameName=="" && Payload.empty()) 
+					if (m_GHost->m_LastGameName.empty() && Payload.empty()) 
 					{
 						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1207"), User, Whisper); // "No game has been hosted till now, specify a name"
 						return;
@@ -4016,18 +4016,29 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 					m_GHost->m_QuietRehost = false;
 
-					// adding the game creator as friend
-					bool cf = false;
-					if (m_GHost->m_addcreatorasfriendonhost && !IsFriend(User))
+					string gamename = GameName;
+					transform( gamename.begin( ), gamename.end( ), gamename.begin( ), (int(*)(int))tolower );
+
+					string containstring = m_GHost->m_GameNameContainString;
+					transform( containstring.begin( ), containstring.end( ), containstring.begin( ), (int(*)(int))tolower );
+
+					if (m_GHost->m_GameNameContainString.empty() || gamename.find(containstring) != string::npos)
 					{
-						QueueChatCommand( "/f a "+User);
-						cf = true;
-					}
+						// adding the game creator as friend
+						bool cf = false;
+						if (m_GHost->m_addcreatorasfriendonhost && !IsFriend(User))
+						{
+							QueueChatCommand( "/f a "+User);
+							cf = true;
+						}
 
-					m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, User, User, m_Server, Whisper );
-					if (m_GHost->m_addcreatorasfriendonhost && !cf && m_GHost->m_CurrentGame)
-						m_GHost->m_CurrentGame->m_CreatorAsFriend = false;
 
+							m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, User, User, m_Server, Whisper );
+							if (m_GHost->m_addcreatorasfriendonhost && !cf && m_GHost->m_CurrentGame)
+								m_GHost->m_CurrentGame->m_CreatorAsFriend = false;
+					} else
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1214", m_GHost->m_GameNameContainString), User, Whisper);
+	
 				}
 
 				//
@@ -5678,8 +5689,11 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					return;
 
 
+			if ( Command == "help" )
+				QueueChatCommand( m_GHost->m_Language->GetLang("lang_1213"), User, Whisper );
+
 //			if( IsAdmin( User ) || IsRootAdmin( User ) || m_OutPackets.size( ) <= 3 )
-			if( m_OutPackets.size( ) <= 3 )
+			else if( m_OutPackets.size( ) <= 3 )
 			{
 				//
 				// !STATS
@@ -5707,7 +5721,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !STATSDOTA
 				//
 
-				if( Command == "statsdota" && (GetTime()-m_LastStats>=5) && !m_GHost->m_nostatsdota )
+				else if( Command == "statsdota" && (GetTime()-m_LastStats>=5) && !m_GHost->m_nostatsdota )
 				{
 					m_LastStats = GetTime();
 					string StatsUser = User;
@@ -5733,7 +5747,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !SDPUB
 				//
 
-				if( (Command == "sd" || Command == "sdi" || Command == "sdpub" || Command == "sdpriv") && (GetTime()-m_LastStats>=5))
+				else if( (Command == "sd" || Command == "sdi" || Command == "sdpub" || Command == "sdpriv") && (GetTime()-m_LastStats>=5))
 				{
 					m_LastStats = GetTime();
 					string StatsUser = User;
@@ -5771,7 +5785,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !CW
 				//
 
-				if( (Command == "checkwarn" || Command == "checkwarns" || Command == "cw" )&& Payload.empty( ) )
+				else if( (Command == "checkwarn" || Command == "checkwarns" || Command == "cw" )&& Payload.empty( ) )
 				{
 					uint32_t WarnCount = 0;
 					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
@@ -5807,7 +5821,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !V
 				//
 
-				if( Command == "version" || Command == "v" )
+				else if( Command == "version" || Command == "v" )
 				{
 					if( IsAdmin( User ) || IsRootAdmin( User ) )
 						QueueChatCommand( m_GHost->m_Language->GetLang("lang_0036", m_GHost->m_Version ), User, Whisper ); // VersionAdmin

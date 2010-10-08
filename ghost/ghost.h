@@ -194,6 +194,7 @@ public:
 	string m_MOTDFile;						// config value: motd.txt
 	string m_GameLoadedFile;				// config value: gameloaded.txt
 	string m_GameOverFile;					// config value: gameover.txt
+	string m_GameNameContainString;         // config value: if no empty, game name must contain this string
 	bool m_LocalAdminMessages;				// config value: send local admin messages or not
 	bool m_AdminMessages;					// config value: send admin messages or not
 	bool m_AdminGameCreate;					// config value: create the admin game or not
