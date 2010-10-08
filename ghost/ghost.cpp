@@ -1186,7 +1186,7 @@ CGHost :: CGHost( CConfig *CFG )
 		else
 			m_ExternalIP=GetExternalIP2();
 
-		if (m_ExternalIP=="" || m_ExternalIP.length()<3)
+		if (m_ExternalIP.empty() || m_ExternalIP.length()<3)
 			if (!m_AltFindIP)
 				m_ExternalIP=GetExternalIP2();
 			else
@@ -1221,7 +1221,7 @@ CGHost :: CGHost( CConfig *CFG )
 #ifdef GHOST_MYSQL
 	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (with MySQL support)" );
 #else
-	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
+	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (without MySQL support)" );
 #endif
 }
 

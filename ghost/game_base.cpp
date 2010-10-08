@@ -1504,7 +1504,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		if (!m_GameEnded)
 		if (!m_Switched) // disable gameoverteamdifference if someone has switched
 		if (!lessthanminplayers && !lessthanminpercent)
-		if (m_GetMapNumTeams==2 && m_GHost->m_gameovermaxteamdifference!=0 && m_Players.size()<m_PlayersatStart && m_Players.size()>1)
+		if (m_GetMapNumTeams==2 && m_GHost->m_gameovermaxteamdifference && m_Players.size()<m_PlayersatStart && m_Players.size()>1)
 		{
 			bool unbalanced = false;
 
@@ -2586,7 +2586,7 @@ void CBaseGame :: EventPlayerDisconnectSocketError( CGamePlayer *player )
 	}
 
 	player->SetDeleteMe( true );
-	player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0080") ); //     HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) )
+	player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0080", player->GetSocket( )->GetErrorString( ) ); //     HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) )
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
 
 	if( !m_GameLoading && !m_GameLoaded )
