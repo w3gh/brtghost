@@ -1799,6 +1799,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( ( Command == "sladd" || Command == "sla" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 				{
+					if (!RootAdminCheck)
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper); // GetLang("lang_0005")
+						return;
+					}
+
 					string srv = GetServer();
 					string nam = Payload;
 					string pnam = GetPlayerFromNamePartial(Payload);
@@ -1827,6 +1833,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( ( Command == "sld" || Command == "slr" || Command == "sldel" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 				{
+					if (!RootAdminCheck)
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper); // GetLang("lang_0005")
+						return;
+					}
+
 					string srv = GetServer();
 					string nam = Payload;
 					string pnam = GetPlayerFromNamePartial(Payload);

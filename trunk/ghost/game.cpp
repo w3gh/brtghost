@@ -1442,6 +1442,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( ( Command == "sladd" || Command == "sla" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 			{
+				if (!RootAdminCheck)
+				{
+					SendChat(player->GetPID(),(m_GHost->m_Language->GetLang("lang_0005")));
+					return HideCommand;
+				}
+
 
 				CGamePlayer *LastMatch = NULL;
 
@@ -1484,6 +1490,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( ( Command == "sld" || Command == "slr" || Command == "sldel" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 			{
+				if (!RootAdminCheck)
+				{
+					SendChat(player->GetPID(),(m_GHost->m_Language->GetLang("lang_0005")));
+					return HideCommand;
+				}
+
 
 				CGamePlayer *LastMatch = NULL;
 
