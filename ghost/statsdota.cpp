@@ -245,7 +245,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "] but all slots already occupied.");
 								}
 								//It spams. Don't uncomment.
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
+								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 4 ) == "DRI_" )
 							{
@@ -273,7 +273,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSDOTA: ERROR: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "] but hi hasn't this item.");
 								}
 								//It spams. Don't uncomment.
-								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
+								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 7 ) == "Courier" )
 							{
