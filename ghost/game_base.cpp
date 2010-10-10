@@ -2586,7 +2586,7 @@ void CBaseGame :: EventPlayerDisconnectSocketError( CGamePlayer *player )
 	}
 
 	player->SetDeleteMe( true );
-	player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0080", player->GetSocket( )->GetErrorString( ) ); //     HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) )
+	player->SetLeftReason( m_GHost->m_Language->GetLang("lang_0080", player->GetSocket( )->GetErrorString( ) )); //     HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) )
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
 
 	if( !m_GameLoading && !m_GameLoaded )
