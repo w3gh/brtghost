@@ -599,20 +599,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
                                   name, Whisper);
 
-
-
-
-
-/*
-
-				QueueChatCommand( m_GHost->m_Language->HasPlayedDotAGamesWithThisBot2( i->second->GetName( ),
-					UTIL_ToString(DotAPlayerSummary->GetTotalGames( )), UTIL_ToString( DotAPlayerSummary->GetWinsPerGame( )),
-					UTIL_ToString( DotAPlayerSummary->GetLossesPerGame( )),UTIL_ToString( DotAPlayerSummary->GetKillsPerGame( )),
-					UTIL_ToString( DotAPlayerSummary->GetDeathsPerGame( )),UTIL_ToString( DotAPlayerSummary->GetCreepKillsPerGame( )),
-					UTIL_ToString( DotAPlayerSummary->GetCreepDeniesPerGame( )),UTIL_ToString( DotAPlayerSummary->GetAssistsPerGame( )),
-					UTIL_ToString( DotAPlayerSummary->GetNeutralKillsPerGame( )),UTIL_ToString( DotAPlayerSummary->GetTowerKillsPerGame( )),
-					UTIL_ToString( DotAPlayerSummary->GetRaxKillsPerGame( )), UTIL_ToString( DotAPlayerSummary->GetCourierKillsPerGame( )), UTIL_ToString2( DotAPlayerSummary->GetScore()),RankS), name, Whisper );
-*/
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->GetLang("lang_0075", i->second->GetName( )), name, Whisper ); // HasntPlayedDotAGamesWithThisBot( i->second->GetName( ) )
@@ -644,30 +630,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
                                                                         //UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
                                                                         //UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
                                                                         //UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ) );
-/*
-				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ) );
-*/
+
 				QueueChatCommand( Summary, name, Whisper );
 			}
 			else
@@ -1567,7 +1530,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			if (RootAdminCheck)
 				AdminAccess = CMDAccessAll();
 
-			if( AdminCheck || RootAdminCheck )
+			if( (m_GHost->m_EnableBnetCommandInChannel || Whisper) && (AdminCheck || RootAdminCheck) )
 			{
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]" );
 
@@ -5700,6 +5663,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				if (!m_GHost->m_NonAdminCommands && !IsRootAdmin(User) && !IsAdmin( User ) )
 					return;
 
+				if (!(m_GHost->m_EnableBnetCommandInChannel || Whisper))
+					return;
 
 			if ( Command == "help" )
 				QueueChatCommand( m_GHost->m_Language->GetLang("lang_1213"), User, Whisper );

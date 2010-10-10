@@ -428,7 +428,7 @@ void CONSOLE_Print( string message )
 		message.insert(1,45-loc,' ');
 //#endif
 
-	if (gGHost!=NULL)
+	if (gGHost)
 	{
 		if (!gGHost->m_inconsole)
 		if (gGHost->m_UDPConsole)
@@ -2273,7 +2273,7 @@ void CGHost :: LoadIPToCountryDataOpt( )
 	{
 		LoadIPToCountryData( );
 		m_DBLocal->RunQuery("ATTACH DATABASE 'ips.dbs' AS ips");
-		m_DBLocal->RunQuery("DELETE * FROM ips.iptocountry");
+		m_DBLocal->RunQuery("DELETE FROM ips.iptocountry");
 		m_DBLocal->RunQuery("INSERT INTO ips.iptocountry SELECT * FROM iptocountry");
 		m_DBLocal->RunQuery("DETACH DATABASE ips");
 		if (file_len!=0)
@@ -2529,7 +2529,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	// country checks
 	if (!m_AutoHosted)
-	if (m_AllowedCountries!="")
+	if (!m_AllowedCountries.empty())
 	{
 		m_CurrentGame->m_Countries = m_AllowedCountries;
 		m_CurrentGame->m_CountryCheck = true;
@@ -2537,7 +2537,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	// score checks
 	if (!m_AutoHosted)
-		if (m_AllowedScores!=0)
+		if (m_AllowedScores)
 		{
 			m_CurrentGame->m_Scores = m_AllowedScores;
 			m_CurrentGame->m_ScoreCheck = true;
@@ -2552,7 +2552,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	}
 
 	if (!m_AutoHosted)
-	if (m_DeniedCountries!="")
+	if (!m_DeniedCountries.empty())
 	{
 		m_CurrentGame->m_Countries2 = m_DeniedCountries;
 		m_CurrentGame->m_CountryCheck2 = true;
@@ -3802,6 +3802,7 @@ void CGHost :: ReloadConfig ()
 	m_channeljoingreets = CFG->GetInt( "bot_channeljoingreets", 1 ) == 0 ? false : true;
 	m_channeljoinmessage = CFG->GetInt( "bot_channeljoinmessage", 0 ) == 0 ? false : true;
 	m_channeljoinexceptions = CFG->GetString( "bot_channeljoinexceptions", string() );
+	m_EnableBnetCommandInChannel = CFG->GetInt( "bot_enablebnetcommandsinchannel", 1 ) == 0 ? false : true;
 	UTIL_ExtractStrings(m_channeljoinexceptions, m_channeljoinex);
 	m_broadcastinlan = CFG->GetInt( "bot_broadcastlan", 1 ) == 0 ? false : true;
 	string m_IPUsersString = CFG->GetString( "bot_ipusers", string() );

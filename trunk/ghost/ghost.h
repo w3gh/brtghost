@@ -195,6 +195,7 @@ public:
 	string m_GameLoadedFile;				// config value: gameloaded.txt
 	string m_GameOverFile;					// config value: gameover.txt
 	string m_GameNameContainString;         // config value: if no empty, game name must contain this string
+	bool m_EnableBnetCommandInChannel;		// config value: if 0 - bot don't responding any commands on bnet channel (only whisper)
 	bool m_LocalAdminMessages;				// config value: send local admin messages or not
 	bool m_AdminMessages;					// config value: send admin messages or not
 	bool m_AdminGameCreate;					// config value: create the admin game or not
