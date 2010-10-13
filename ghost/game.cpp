@@ -5834,7 +5834,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	//
 
 	if ( Command == "help" )
-		SendChat( player, m_GHost->m_Language->GetLang("lang_1213"));
+		SendChat( player, m_GHost->m_Language->GetLang("lang_1215"));
 
 	//
 	// !PING

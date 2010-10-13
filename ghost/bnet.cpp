@@ -5667,7 +5667,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					return;
 
 			if ( Command == "help" )
-				QueueChatCommand( m_GHost->m_Language->GetLang("lang_1213"), User, Whisper );
+				QueueChatCommand( m_GHost->m_Language->GetLang("lang_1215"), User, Whisper );
 
 //			if( IsAdmin( User ) || IsRootAdmin( User ) || m_OutPackets.size( ) <= 3 )
 			else if( m_OutPackets.size( ) <= 3 )
