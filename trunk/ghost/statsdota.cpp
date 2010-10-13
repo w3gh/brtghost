@@ -500,39 +500,33 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								CONSOLE_Print( "[STATSDOTA: debug swap players" );
 
-								// swap players
-								if (!m_Swap)
+							// swap players
+								int i = KeyString.find( "_") + 1;
+								int y = KeyString.find( "_", i );
+								string FromString = KeyString.substr( i, y-i );
+								uint32_t FromColour = UTIL_ToUInt32( FromString );
+								CGamePlayer *FromPlayer = m_Game->GetPlayerFromColour( FromColour );
+								string ToString = KeyString.substr( y + 1 );
+								uint32_t ToColour = UTIL_ToUInt32( ToString );
+								CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
+								
+								if( m_SwitchOff)
+								if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
+								if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
 								{
-									m_Swap = true;
-									int i = KeyString.find( "_") + 1;
-									int y = KeyString.find( "_", i );
-									string FromString = KeyString.substr( i, y-i );
-									uint32_t FromColour = UTIL_ToUInt32( FromString );
-									CGamePlayer *FromPlayer = m_Game->GetPlayerFromColour( FromColour );
-									string ToString = KeyString.substr( y + 1 );
-									uint32_t ToColour = UTIL_ToUInt32( ToString );
-									CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
+									m_Players[ToColour]->SetNewColour( FromColour );
+									m_Players[FromColour]->SetNewColour( ToColour );
 									
-									if( m_SwitchOff)
-									if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
-									if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
-									{
-										m_Players[ToColour]->SetNewColour( FromColour );
-										m_Players[FromColour]->SetNewColour( ToColour );
-										
-										CDBDotAPlayer* bufferPlayer = m_Players[ToColour];
-										m_Players[ToColour] = m_Players[FromColour];
-										m_Players[FromColour] = bufferPlayer;
-										
-										if ( FromPlayer ) FromString = FromPlayer->GetName( );
-										if ( ToPlayer ) ToString = ToPlayer->GetName( );
-										
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] swap players from ["+FromString+"] to ["+ToString+"]." );
-									}
+									CDBDotAPlayer* bufferPlayer = m_Players[ToColour];
+									m_Players[ToColour] = m_Players[FromColour];
+									m_Players[FromColour] = bufferPlayer;
 									
+									if ( FromPlayer ) FromString = FromPlayer->GetName( );
+									if ( ToPlayer ) ToString = ToPlayer->GetName( );
+									
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] swap players from ["+FromString+"] to ["+ToString+"]." );
 								}
-								else
-									m_Swap = false;
+								
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Mode" ) //Modearso Modensom
 							{
