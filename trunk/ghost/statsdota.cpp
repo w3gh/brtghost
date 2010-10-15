@@ -109,7 +109,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a hero died
 
-								CONSOLE_Print( "[STATSDOTA: debug hero died 1" );
+							//	CONSOLE_Print( "[STATSDOTA: debug hero died 1" );
 
 								string VictimColourString = KeyString.substr( 4 );
 								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
@@ -154,7 +154,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// assist
 
-								CONSOLE_Print( "[STATSDOTA: debug assist 1" );
+							//	CONSOLE_Print( "[STATSDOTA: debug assist 1" );
 								
 								string AssistentColourString = KeyString.substr( 6 );
 								uint32_t AssistentColour = UTIL_ToUInt32( AssistentColourString );
@@ -174,7 +174,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// kreep kills. All creep kills in valueInt. Pereodic.
 
-								CONSOLE_Print( "[STATSDOTA: debug CSK 1" );
+							//	CONSOLE_Print( "[STATSDOTA: debug CSK 1" );
 								
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -194,7 +194,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// neutral kills. All neutral creep kills in valueInt. Pereodic.
 
-								CONSOLE_Print( "[STATSDOTA: debug neutral kills 1" );
+							//	CONSOLE_Print( "[STATSDOTA: debug neutral kills 1" );
 								
 								string PlayerColourString = KeyString.substr( 2 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -214,7 +214,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// creep denies. All creep denies in valueInt. Pereodic.
 
-								CONSOLE_Print( "[STATSDOTA: debug creep denies 1" );
+							//	CONSOLE_Print( "[STATSDOTA: debug creep denies 1" );
 
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -234,7 +234,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// Hero pick up an item.
 
-								CONSOLE_Print( "[STATSDOTA: debug Hero pick up an item." );
+							//	CONSOLE_Print( "[STATSDOTA: debug Hero pick up an item." );
 
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -263,7 +263,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// Hero drop an item.
 
-								CONSOLE_Print( "[STATSDOTA: debug Hero drop an item." );
+							//	CONSOLE_Print( "[STATSDOTA: debug Hero drop an item." );
 
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -293,7 +293,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a courier died
 
-								CONSOLE_Print( "[STATSDOTA: debug a courier died" );
+							//	CONSOLE_Print( "[STATSDOTA: debug a courier died" );
 
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
@@ -322,7 +322,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a tower died
 
-								CONSOLE_Print( "[STATSDOTA: debug a tower died" );
+							//	CONSOLE_Print( "[STATSDOTA: debug a tower died" );
 
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
@@ -391,7 +391,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a rax died
 
-								CONSOLE_Print( "[STATSDOTA: debug a rax died" );
+							//	CONSOLE_Print( "[STATSDOTA: debug a rax died" );
 
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
@@ -460,7 +460,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a player disconnected
 
-								CONSOLE_Print( "[STATSDOTA: debug a player disconnected" );
+							//	CONSOLE_Print( "[STATSDOTA: debug a player disconnected" );
 								
 								if ((ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ))
 								{
@@ -498,7 +498,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 4 ) == "SWAP" )
 							{
-								CONSOLE_Print( "[STATSDOTA: debug swap players" );
+							//	CONSOLE_Print( "[STATSDOTA: debug swap players" );
 
 							// swap players
 								int i = KeyString.find( "_") + 1;
@@ -537,6 +537,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									gameMode.erase(gameMode.find("nsom"), 4);
 								if (gameMode.find("so") != string::npos )
 										m_SwitchOff = false;
+
+								m_SwitchOff = true;
 							
 							}
 						}
@@ -717,3 +719,43 @@ void CStatsDOTA :: SetWinner( uint32_t winner )
 {
 	m_Winner = winner;
 }
+
+void CStatsDOTA :: SwitchProcess( uint32_t FromSID, uint32_t ToSID, uint32_t FromColour, uint32_t ToColour)
+{
+	CGamePlayer *FromPlayer = m_Game->GetPlayerFromColour( FromColour );
+	CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
+
+	string FromString, ToString; FromString.clear(); ToString.clear();
+
+	if ( FromPlayer ) FromString = FromPlayer->GetName( );
+	if ( ToPlayer ) ToString = ToPlayer->GetName( );
+
+	CONSOLE_Print( "[STATSDOTA: Switch FromColor " + UTIL_ToString(FromColour)+ " ToColour "+UTIL_ToString(ToColour) +" FromName " + FromString + " ToName "+ ToString );
+
+	FromPlayer = m_Game->GetPlayerFromSID( FromSID );
+	ToPlayer = m_Game->GetPlayerFromSID( ToSID );
+
+	FromString.clear(); ToString.clear();
+
+	if ( FromPlayer ) FromString = FromPlayer->GetName( );
+	if ( ToPlayer ) ToString = ToPlayer->GetName( );
+
+	CONSOLE_Print( "[STATSDOTA: Switch2 FromSID " + UTIL_ToString(FromSID)+ " ToSID "+UTIL_ToString(ToSID) +" FromName " + FromString + " ToName "+ ToString );
+		
+	if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
+	if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
+	{
+		CDBDotAPlayer* bufferPlayer = m_Players[ToColour];
+		m_Players[ToColour] = m_Players[FromColour];
+		m_Players[FromColour] = bufferPlayer;
+
+		string FromString, ToString; FromString.clear(); ToString.clear();
+
+		if ( FromPlayer ) FromString = FromPlayer->GetName( );
+		if ( ToPlayer ) ToString = ToPlayer->GetName( );
+								
+
+		CONSOLE_Print( "[STATSDOTA: Switch complete From " + FromString + " To " + ToString );
+	}
+								
+}	

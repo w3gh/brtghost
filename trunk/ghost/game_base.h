@@ -34,6 +34,7 @@ class CGamePlayer;
 class CDBGamePlayer;
 class CDBBan;
 class CMap;
+class CStats;
 class CSaveGame;
 class CReplay;
 class CIncomingJoinPlayer;
@@ -53,6 +54,7 @@ public:
 protected:
 	CTCPServer *m_Socket;							// listening socket
 	CGameProtocol *m_Protocol;						// game protocol
+	CStats *m_Stats;								// class to keep track of game stats such as kills/deaths/assists in dota
 //	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 //	vector<CGamePlayer *> m_Players;				// vector of players
