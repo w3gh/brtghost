@@ -29,9 +29,12 @@
 #include "packed.h"
 #include "savegame.h"
 #include "replay.h"
+#include "stats.h"
+#include "statsdota.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "game_base.h"
+
 
 #include <cmath>
 #include <string.h>
@@ -4849,7 +4852,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 //						if (m.substr(0,2)== "ok" || m.substr(0,3) == "-ok" || m.substr(0,14) == "-switch accept")
 						if (m=="-ok" || m=="-switch accept")
-						if (m_SwitchTime!=0)
+						if (m_SwitchTime)
 							SwitchAccept(chatPlayer->GetFromPID());
 						// disable gameoverteamdiff if switch is detected (until we handle switches)
 //						m_GameOverDiffCanceled = true;
@@ -7035,7 +7038,11 @@ void CBaseGame :: SwitchAccept ( unsigned char PID)
 		if (m_SwitchNr == m_Players.size()-2)
 		{
 			// have to fix this somehow - fixed! hopefully :)
+			if( m_Map->GetMapType( ) == "dota" )
+				reinterpret_cast<CStatsDOTA*>(m_Stats)->SwitchProcess( m_SwitchS, m_SwitchT, m_Slots[m_SwitchS].GetColour(), m_Slots[m_SwitchT].GetColour());
+				
 			SwapSlotsS(m_SwitchS, m_SwitchT);
+
 			m_Switched = true;
 			ReCalculateTeams();
 			CONSOLE_Print("[GAME: " + m_GameName + "] Switch completed");

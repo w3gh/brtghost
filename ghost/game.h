@@ -48,7 +48,6 @@ class CGame : public CBaseGame
 {
 protected:
 	CDBGame *m_DBGame;							// potential game data for the database
-	CStats *m_Stats;							// class to keep track of game stats such as kills/deaths/assists in dota
 	CCallableGameAdd *m_CallableGameAdd;		// threaded database game addition in progress
 	vector<PairedBanCheck> m_PairedBanChecks;	// vector of paired threaded database ban checks in progress
 	vector<PairedRanks> m_PairedRanks;			// vector of paired threaded database ranks in progress
