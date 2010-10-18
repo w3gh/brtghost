@@ -7038,8 +7038,8 @@ void CBaseGame :: SwitchAccept ( unsigned char PID)
 		if (m_SwitchNr == m_Players.size()-2)
 		{
 			// have to fix this somehow - fixed! hopefully :)
-			if( m_Map->GetMapType( ) == "dota" )
-				reinterpret_cast<CStatsDOTA*>(m_Stats)->SwitchProcess( m_SwitchS, m_SwitchT, m_Slots[m_SwitchS].GetColour(), m_Slots[m_SwitchT].GetColour());
+			if( m_Map->GetMapType( ) == "dota" && m_Stats)
+				dynamic_cast<CStatsDOTA*>(m_Stats)->SwitchProcess( m_SwitchS, m_SwitchT, m_Slots[m_SwitchS].GetColour(), m_Slots[m_SwitchT].GetColour());
 				
 			SwapSlotsS(m_SwitchS, m_SwitchT);
 
