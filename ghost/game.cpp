@@ -3302,11 +3302,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
 						return HideCommand;
 					}
-					string winnerString = "";
+					string winnerString; winnerString.clear();
 					uint32_t RequestedWinner = 0;
 					
-				//	if ( m_Map->GetMapType( ) == "dota" ) FIXME, m_Map is a null pointer, why???
-				//	{
+					if ( m_Map->GetMapType( ) == "dota" ) //FIXME, m_Map is a null pointer, why???
+					{
 						if ( Payload == "1" )
 						{
 							winnerString = "[SENTINEL]";
@@ -3317,7 +3317,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							winnerString = "[SCOURGE]";
 							RequestedWinner = 2;
 						}
-				//	}
+					}
 
 					if ( !RequestedWinner )
 					{
@@ -6138,7 +6138,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		uint32_t votes1 = 0, votes2 = 0; //count of votes in the team.
 		string teamname = (playerTeam == 0 ? "SENTINEL" : "SCOURGE");
 
-
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
 			if( !(*i)->GetLeftMessageSent( ) )
@@ -6153,7 +6152,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					votes2++;
 			}
 		}
-	
+
+		if ((votes1 != count1) && (votes2 != count2))
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] canceled end game" );
+			m_GameEndCountDownStarted = false;
+		}
+
 		SendAllChat( m_GHost->m_Language->GetLang("lang_1212", "$USER$", User, "$TEAMNAME$", teamname, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$COUNT$", UTIL_ToString(playerTeam == 0 ? count1 : count2)));
 
 		return HideCommand;
