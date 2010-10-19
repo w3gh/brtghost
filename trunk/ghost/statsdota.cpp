@@ -34,9 +34,13 @@
 CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
-
+	CDotaAllItems* nAllItems = new CDotaAllItems();
+	
 	for( unsigned int i = 0; i < 12; i++ )
 		m_Players[i] = NULL;
+	
+	for( unsigned int i = 0; i < 12; i++ )
+		m_DotaItems[i] = new CDotaItems(nAllItems);
 
 	m_Winner = 0;
 	m_Min = 0;
@@ -51,6 +55,8 @@ CStatsDOTA :: ~CStatsDOTA( )
 	{
 		if( m_Players[i] )
 			delete m_Players[i];
+		if( m_DotaItems[i] )
+			delete m_DotaItems[i];
 	}
 }
 
@@ -240,6 +246,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								string playerName = PlayerColourString; 
+								string item = string( Value.rbegin( ), Value.rend( ) );
 								if ( Player )
 									playerName = Player->GetName( );
 								
@@ -249,7 +256,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									for ( int i = 0; i < 6; i++ )
 										if ( m_Players[PlayerColour]->GetItem(i) == string( ) )
 										{
-											m_Players[PlayerColour]->SetItem( i, string( Value.rbegin( ), Value.rend( ) ) );
+											m_Players[PlayerColour]->SetItem( i,  item);
 											error = false;
 											break;
 										}
@@ -720,7 +727,7 @@ void CStatsDOTA :: SetWinner( uint32_t winner )
 	m_Winner = winner;
 }
 
-void CStatsDOTA :: SwitchProcess( uint32_t FromSID, uint32_t ToSID, uint32_t FromColour, uint32_t ToColour)
+void CStatsDOTA :: SwitchProcess( uint32_t FromColour, uint32_t ToColour )
 {
 	CGamePlayer *FromPlayer = m_Game->GetPlayerFromColour( FromColour );
 	CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
@@ -730,17 +737,7 @@ void CStatsDOTA :: SwitchProcess( uint32_t FromSID, uint32_t ToSID, uint32_t Fro
 	if ( FromPlayer ) FromString = FromPlayer->GetName( );
 	if ( ToPlayer ) ToString = ToPlayer->GetName( );
 
-	CONSOLE_Print( "[STATSDOTA: Switch FromColor " + UTIL_ToString(FromColour)+ " ToColour "+UTIL_ToString(ToColour) +" FromName " + FromString + " ToName "+ ToString );
-
-	FromPlayer = m_Game->GetPlayerFromSID( FromSID );
-	ToPlayer = m_Game->GetPlayerFromSID( ToSID );
-
-	FromString.clear(); ToString.clear();
-
-	if ( FromPlayer ) FromString = FromPlayer->GetName( );
-	if ( ToPlayer ) ToString = ToPlayer->GetName( );
-
-	CONSOLE_Print( "[STATSDOTA: Switch2 FromSID " + UTIL_ToString(FromSID)+ " ToSID "+UTIL_ToString(ToSID) +" FromName " + FromString + " ToName "+ ToString );
+	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] Switch FromColor " + UTIL_ToString(FromColour)+ " ToColour "+UTIL_ToString(ToColour) +" FromName " + FromString + " ToName "+ ToString );
 		
 	if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
 	if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
@@ -755,7 +752,7 @@ void CStatsDOTA :: SwitchProcess( uint32_t FromSID, uint32_t ToSID, uint32_t Fro
 		if ( ToPlayer ) ToString = ToPlayer->GetName( );
 								
 
-		CONSOLE_Print( "[STATSDOTA: Switch complete From " + FromString + " To " + ToString );
+		CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] Switch complete From " + FromString + " To " + ToString );
 	}
 								
 }	
