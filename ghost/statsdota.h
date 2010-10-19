@@ -21,6 +21,8 @@
 #ifndef STATSDOTA_H
 #define STATSDOTA_H
 
+#include "items.h"
+
 //
 // CStatsDOTA
 //
@@ -31,6 +33,7 @@ class CStatsDOTA : public CStats
 {
 private:
 	CDBDotAPlayer *m_Players[12];
+	CDotaItems *m_DotaItems[12];
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
@@ -44,7 +47,7 @@ public:
 	virtual bool ProcessAction( CIncomingAction *Action );
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
 	virtual void SetWinner( uint32_t winner );
-	virtual void SwitchProcess(  uint32_t FromSID, uint32_t ToSID, uint32_t FromColour, uint32_t ToColour );
+	virtual void SwitchProcess( uint32_t FromColour, uint32_t ToColour );
 };
 
 #endif
