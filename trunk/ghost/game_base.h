@@ -232,6 +232,7 @@ public:
 	string m_Providers2;						// what providers are denied
 	string m_ShowScoreOf;
 	string m_ShowNoteOf;
+	string m_PlayerScoreCheck;					// To store scores of player
 	uint32_t m_LastSlotsUnoccupied;				// how many slots are not occupied
 	bool m_AllSlotsOccupied;					// if we're full
 	bool m_AllSlotsAnnounced;					// announced or not

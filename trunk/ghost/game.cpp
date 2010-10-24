@@ -295,8 +295,15 @@ bool CGame :: Update( void *fd, void *send_fd )
 //		CONSOLE_Print( "[GAME: " + m_GameName + "] checking score for "+ m_ShowScoreOf );
 		if (!m_GHost->m_CalculatingScores)
 		m_PairedDPSChecks.push_back( PairedDPSCheck( "%", m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( m_ShowScoreOf, m_GHost->m_ScoreFormula, m_GHost->m_ScoreMinGames, string() ) ) );
-		m_PairedDPSChecks.push_back( PairedDPSCheck( "n", m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( m_ShowScoreOf, m_GHost->m_ScoreFormula, m_GHost->m_ScoreMinGames, string() ) ) );
-		m_ShowScoreOf=string();
+		m_ShowScoreOf = string();
+	}
+
+	if (!m_PlayerScoreCheck.empty())
+	{
+		if (!m_GHost->m_CalculatingScores)
+			m_PairedDPSChecks.push_back( PairedDPSCheck( "n", m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( m_PlayerScoreCheck, m_GHost->m_ScoreFormula, m_GHost->m_ScoreMinGames, string() ) ) );
+
+		m_PlayerScoreCheck = string();
 	}
 
 	// show note of
