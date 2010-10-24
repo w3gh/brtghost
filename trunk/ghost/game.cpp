@@ -1024,9 +1024,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if ( Command == "autobalance" || Command == "abc")
 			{
-
-                m_GHost -> m_CurrentGame -> BalanceSlots();
-
+                BalanceSlots();
 			}
 
 			//
