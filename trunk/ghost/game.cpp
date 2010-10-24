@@ -295,6 +295,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 //		CONSOLE_Print( "[GAME: " + m_GameName + "] checking score for "+ m_ShowScoreOf );
 		if (!m_GHost->m_CalculatingScores)
 		m_PairedDPSChecks.push_back( PairedDPSCheck( "%", m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( m_ShowScoreOf, m_GHost->m_ScoreFormula, m_GHost->m_ScoreMinGames, string() ) ) );
+		m_PairedDPSChecks.push_back( PairedDPSCheck( "n", m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( m_ShowScoreOf, m_GHost->m_ScoreFormula, m_GHost->m_ScoreMinGames, string() ) ) );
 		m_ShowScoreOf=string();
 	}
 
@@ -559,6 +560,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			CDBDotAPlayerSummary *DotAPlayerSummary = i->second->GetResult( );
 
 			bool sd = false;
+			bool show_score = true;
 			bool Whisper = !i->first.empty();
 			string name = i->first;
 
@@ -567,7 +569,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 				name = i->first.substr(1,i->first.length()-1);
 				Whisper = i->first.length()>1;
 				sd = true;
-			}
+			} 
+			else if (i->first[0]=='n') show_score = false;
 
 			if (sd)
 			if( DotAPlayerSummary )
@@ -578,6 +581,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 
 				if( PlayerN )
 				{
+					PlayerN->SetScore( DotAPlayerSummary->GetScore() );
 					PlayerN->SetScoreS(UTIL_ToString2( DotAPlayerSummary->GetScore()));
 					PlayerN->SetRankS(UTIL_ToString( DotAPlayerSummary->GetRank()));
 				}
@@ -647,16 +651,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 					"$TITLE1$", player_class,
                     "$RANK$", RankS);
 
+				if (show_score)
+					if (!Whisper)
+						SendAllChat(Summary);
+					else
+					{
+						CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
-				if (!Whisper)
-					SendAllChat(Summary);
-				else
-				{
-					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
-					if( Player )
-						SendChat( Player, Summary );
-				}
+						if( Player )
+							SendChat( Player, Summary );
+					}
 			}
 			if (!sd)
 			if( DotAPlayerSummary )

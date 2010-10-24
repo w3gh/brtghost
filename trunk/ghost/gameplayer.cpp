@@ -426,7 +426,7 @@ uint32_t CGamePlayer :: GetPing( bool LCPing )
 
 string CGamePlayer :: GetProvider()
 {
-	if (m_Provider=="")
+	if (m_Provider.empty())
 	{
 		if (GetCountry()!="??" && GetCountry()!="Ga")
 			m_Provider=m_Game->m_GHost->UDPChatWhoIs(GetCountry(), GetExternalIPString( ));
@@ -436,7 +436,7 @@ string CGamePlayer :: GetProvider()
 
 string CGamePlayer :: GetCountry()
 {
-	if (m_Country=="")
+	if (m_Country.empty())
 	{
 		if (GetExternalIPString()=="127.0.0.1")
 			m_Country = "Ga";

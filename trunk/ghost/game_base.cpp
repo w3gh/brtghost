@@ -3185,7 +3185,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 //						string sBan = joinPlayer->GetName()+"("+potential->GetExternalIPString()+") is IP banned by "+sAdmin;
 						string sBReason = sBan + ", "+sReason;
 
-						if (sReason=="")
+						if (sReason.empty())
 							SendAllChat( sBan );
 						else
 						{
@@ -6807,6 +6807,8 @@ void CBaseGame :: BalanceSlots( )
 
 				//	double Score = (*i)->GetScore( );
                     double Score = (*i)->GetScore( );
+
+					SendAllChat( (*i)->GetName() + " score " + UTIL_ToString((*i)->GetScore()) );
 
 				//	SendAllChat(UTIL_ToString(Score)+' '+(*i)->GetScoreS());
 
