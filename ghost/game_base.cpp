@@ -3627,6 +3627,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	if (m_GHost->m_ShowNotesOnJoin)
 		m_ShowNoteOf = Player->GetName();
 
+	m_PlayerScoreCheck = Player->GetName();
+
 	// check for multiple IP usage
 
 	if( m_GHost->m_CheckMultipleIPUsage )
@@ -6805,15 +6807,12 @@ void CBaseGame :: BalanceSlots( )
 				{
 					// we are forced to use a default score because there's no way to balance the teams otherwise
 
-				//	double Score = (*i)->GetScore( );
                     double Score = (*i)->GetScore( );
 
-					SendAllChat( (*i)->GetName() + " score " + UTIL_ToString((*i)->GetScore()) );
-
-				//	SendAllChat(UTIL_ToString(Score)+' '+(*i)->GetScoreS());
-
-					if( Score < -99999.0 )
+					if(!Score || Score < -99999.0)
 						Score = m_Map->GetMapDefaultPlayerScore( );
+
+//					SendAllChat( (*i)->GetName() + " score " + UTIL_ToString((*i)->GetScore()) );
 
 					PlayerIDs.push_back( PID );
 					TeamSizes[Team]++;
