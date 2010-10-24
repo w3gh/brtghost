@@ -570,7 +570,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				Whisper = i->first.length()>1;
 				sd = true;
 			} 
-			else if (i->first[0]=='n') show_score = false;
+			else if (i->first[0]=='n') show_score = false; // If we don't want show score when player join
 
 			if (sd)
 			if( DotAPlayerSummary )
