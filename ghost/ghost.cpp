@@ -3757,6 +3757,8 @@ void CGHost :: ReloadConfig ()
 	m_AutoHostCountries = CFG->GetString( "bot_autohostallowedcountries", string( ) );
 	if (m_AutoHostCountries.length()>0)
 		m_AutoHostCountryCheck = true;
+
+	m_ForceAutoBalanceTeams = CFG->GetInt( "bot_forceautobalanceteams" , 0 ) == 0 ? false : true;
 	m_AutoHostGameName = CFG->GetString( "bot_autohostgamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "bot_autohostowner", string( ) );
 	m_AutoHostMapCFG = CFG->GetString( "bot_autohostmapcfg", string( ) );
