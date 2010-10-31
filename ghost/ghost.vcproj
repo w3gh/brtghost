@@ -424,6 +424,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\items.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\language.cpp"
 				>
 			</File>
@@ -559,6 +563,10 @@
 			</File>
 			<File
 				RelativePath=".\includes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\items.h"
 				>
 			</File>
 			<File

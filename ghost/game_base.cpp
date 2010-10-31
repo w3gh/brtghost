@@ -7539,8 +7539,6 @@ void CBaseGame :: StartCountDown( bool force )
 {
 	if( !m_CountDownStarted )
 	{
-		if (m_GHost->m_ForceAutoBalanceTeams)
-			BalanceSlots();
 
 		if( force )
 		{
