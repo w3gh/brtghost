@@ -178,7 +178,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 3 ) == "CSK" )
 							{
-								// kreep kills. All creep kills in valueInt. Pereodic.
+								// kreep kills. Ñreep kills by the period in valueInt. Pereodic.
 
 							//	CONSOLE_Print( "[STATSDOTA: debug CSK 1" );
 								
@@ -187,7 +187,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetCreepKills( ValueInt );
+									m_Players[PlayerColour]->SetCreepKills( m_Players[PlayerColour]->GetCreepKills + ValueInt );
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -198,7 +198,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 2 ) == "NK" )
 							{
-								// neutral kills. All neutral creep kills in valueInt. Pereodic.
+								// neutral kills. Neutral creep kills by the period in valueInt. Pereodic.
 
 							//	CONSOLE_Print( "[STATSDOTA: debug neutral kills 1" );
 								
@@ -207,7 +207,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetNeutralKills( ValueInt );
+									m_Players[PlayerColour]->SetNeutralKills( m_Players[PlayerColour]->GetNeutralKills + ValueInt );
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -218,7 +218,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 3 ) == "CSD" )
 							{
-								// creep denies. All creep denies in valueInt. Pereodic.
+								// creep denies. Creep denies by the period in valueInt. Pereodic.
 
 							//	CONSOLE_Print( "[STATSDOTA: debug creep denies 1" );
 
@@ -227,7 +227,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetCreepDenies( ValueInt );
+									m_Players[PlayerColour]->SetCreepDenies( m_Players[PlayerColour]->GetCreepDenies + ValueInt );
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
