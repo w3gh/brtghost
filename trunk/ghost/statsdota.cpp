@@ -115,8 +115,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a hero died
 
-							//	CONSOLE_Print( "[STATSDOTA: debug hero died 1" );
-
 								string VictimColourString = KeyString.substr( 4 );
 								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
 								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
@@ -160,8 +158,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// assist
 
-							//	CONSOLE_Print( "[STATSDOTA: debug assist 1" );
-								
 								string AssistentColourString = KeyString.substr( 6 );
 								uint32_t AssistentColour = UTIL_ToUInt32( AssistentColourString );
 								CGamePlayer *Assistent = m_Game->GetPlayerFromColour( AssistentColour );
@@ -180,18 +176,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// kreep kills. Ñreep kills by the period in valueInt. Pereodic.
 
-							//	CONSOLE_Print( "[STATSDOTA: debug CSK 1" );
-								
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-<<<<<<< .mine
 									m_Players[PlayerColour]->SetCreepKills( m_Players[PlayerColour]->GetCreepKills() + ValueInt );
-=======
-									m_Players[PlayerColour]->SetCreepKills( m_Players[PlayerColour]->GetCreepKills + ValueInt );
->>>>>>> .r86
+
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -211,11 +202,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-<<<<<<< .mine
 									m_Players[PlayerColour]->SetNeutralKills( m_Players[PlayerColour]->GetNeutralKills() + ValueInt );
-=======
-									m_Players[PlayerColour]->SetNeutralKills( m_Players[PlayerColour]->GetNeutralKills + ValueInt );
->>>>>>> .r86
+
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -228,18 +216,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// creep denies. Creep denies by the period in valueInt. Pereodic.
 
-							//	CONSOLE_Print( "[STATSDOTA: debug creep denies 1" );
-
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
 								if ( m_SwitchOff )
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-<<<<<<< .mine
 									m_Players[PlayerColour]->SetCreepDenies( m_Players[PlayerColour]->GetCreepDenies() + ValueInt );
-=======
-									m_Players[PlayerColour]->SetCreepDenies( m_Players[PlayerColour]->GetCreepDenies + ValueInt );
->>>>>>> .r86
+
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								//string playerName = PlayerColourString; 
@@ -251,8 +234,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 4 ) == "PUI_" )
 							{
 								// Hero pick up an item.
-
-							//	CONSOLE_Print( "[STATSDOTA: debug Hero pick up an item." );
 
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
@@ -282,8 +263,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// Hero drop an item.
 
-							//	CONSOLE_Print( "[STATSDOTA: debug Hero drop an item." );
-
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								string item = string( Value.rbegin( ), Value.rend( ) );
@@ -312,8 +291,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a courier died
 
-							//	CONSOLE_Print( "[STATSDOTA: debug a courier died" );
-
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
 									if( !m_Players[ValueInt] )
@@ -340,8 +317,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 5 ) == "Tower" )
 							{
 								// a tower died
-
-							//	CONSOLE_Print( "[STATSDOTA: debug a tower died" );
 
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
@@ -410,8 +385,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a rax died
 
-							//	CONSOLE_Print( "[STATSDOTA: debug a rax died" );
-
 								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
 								{
 									if( !m_Players[ValueInt] ) // It must exist here in cause of "9" command sending in the start of the game. So why it here? @gpm
@@ -479,8 +452,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a player disconnected
 
-							//	CONSOLE_Print( "[STATSDOTA: debug a player disconnected" );
-								
 								if ((ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ))
 								{
 									uint32_t i = KeyString.find("D");
@@ -517,7 +488,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 4 ) == "SWAP" )
 							{
-							//	CONSOLE_Print( "[STATSDOTA: debug swap players" );
 
 							// swap players
 								int i = KeyString.find( "_") + 1;
