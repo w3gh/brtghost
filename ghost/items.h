@@ -31,7 +31,7 @@ struct CDotaItem {
 	CDotaItem ( ) {value=0; name=string(); max_count=0; count=0; recipes.clear();};
 	CDotaItem (CDotaItem* p) {value=p->value; name=p->name; max_count=p->max_count; count=p->count; recipes=p->recipes;};
 	CDotaItem (uint32_t nVal, string nName, int nMax) {value=nVal; name=nName; max_count=nMax; count=0; recipes.clear();};
-	void addRecipe(CDotaItemRecipe* recipe) { if(recipes.find(recipe)==vector::eof) recipes.push_back(recipe); }
+	void addRecipe(CDotaItemRecipe* recipe);
 	uint32_t value;
 	string name;
 	int max_count;
