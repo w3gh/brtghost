@@ -21,17 +21,22 @@
 
 #include "includes.h"
 
+class CDotaItemRecipe;
+class CDotaAllItems;
 //
 // CDotaItem
 //
 
 struct CDotaItem {
-	CDotaItem ( ) {value=0; name=string(); max_count=0; count=0;};
-	CDotaItem (uint32_t nVal, string nName, int nMax) {value=nVal; name=nName; max_count=nMax; count=0;};
+	CDotaItem ( ) {value=0; name=string(); max_count=0; count=0; recipes.clear();};
+	CDotaItem (CDotaItem* p) {value=p->value; name=p->name; max_count=p->max_count; count=p->count; recipes=p->recipes;};
+	CDotaItem (uint32_t nVal, string nName, int nMax) {value=nVal; name=nName; max_count=nMax; count=0; recipes.clear();};
+	void addRecipe(CDotaItemRecipe* recipe) { if(recipes.find(recipe)==vector::eof) recipes.push_back(recipe); }
 	uint32_t value;
 	string name;
 	int max_count;
 	int count;
+	vector<CDotaItemRecipe*> recipes;
 };
 
 //
@@ -47,12 +52,13 @@ class CDotaItemRecipe
 		uint32_t m_Counter;
 		
 	public:
-		CDotaItemRecipe(uint32_t nItem);
-		~CDotaItemRecipe();
-		vector<uint32_t> PickUpItem (uint32_t nItem);
-		void DropItem (uint32_t nItem);
-		void AddItem (uint32_t nItem);
+		CDotaItemRecipe(uint32_t nItem, CDotaAllItems* nAllItems);			   // nItem - result of recipe
+		~CDotaItemRecipe();							   //
+		vector<uint32_t> PickUpItem (uint32_t nItem);  // drop an item from some storage
+		void DropItem (uint32_t nItem);                // pick up an item to some storage
+		void AddItem (uint32_t nItem);                 // add item to recipe
 };
+
 
 //
 // CDotaAllItems
@@ -66,8 +72,14 @@ class CDotaAllItems
 	public:
 		CDotaAllItems( );
 		~CDotaAllItems( ) { m_AllItems.clear(); };
-		CDotaItem  find (uint32_t nItem) { return m_AllItems.find(nItem)->second; };	
+		CDotaItem*  find (uint32_t nItem) { return &m_AllItems.find(nItem)->second; };	
 };
+
+/*
+class CDotaAllItems_669 : public CDotaAllItems {
+	CDotaAllItems_669( );
+}
+*/
 
 //
 // CDotaItems
@@ -91,4 +103,9 @@ class CDotaItems
 		vector<string> GetItems();
 };
 
+/*
+class CDotaItems_669 : public CDotaItems {
+	CDotaItems_669(CDotaAllItems* nAllItems) : CDotaAllItems(nAllItems);
+}
+*/
 #endif
