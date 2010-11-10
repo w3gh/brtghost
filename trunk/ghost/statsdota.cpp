@@ -245,16 +245,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								{
+									m_DotaItems[PlayerColour]->PickUpItem(UTIL_ToUint32(item));
+									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
-										if ( m_Players[PlayerColour]->GetItem(i) == string( ) )
-										{
-											m_Players[PlayerColour]->SetItem( i,  item);
-											error = false;
-											break;
-										}
-									if (error)
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "] but all slots already occupied.");
+									{
+										m_Players[PlayerColour]->SetItem( i,  items[i]);
+									}
 								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
@@ -273,16 +270,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									
 								if ( m_SwitchOff )
 								{
+									m_DotaItems[PlayerColour]->DropItem(UTIL_ToUint32(item));
+									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
-										if ( m_Players[PlayerColour]->GetItem(i) == item )
-										{
-											m_Players[PlayerColour]->SetItem(i, string( ));
-											error = false;
-											break;
-										}
-									if (error) 
-										CONSOLE_Print( "[STATSDOTA: ERROR: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "] but hi hasn't this item.");
+									{
+										m_Players[PlayerColour]->SetItem( i,  items[i]);
+									}
 								}
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
