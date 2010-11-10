@@ -249,8 +249,13 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								{
 									iItem = UTIL_ToInt32(item);
 									/*debug*/
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] start debug ========= items");
 									CDotaItem *it = m_AllItems->find(iItem);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] you can by for it such recipes:");
+									for (vector<CDotaRecipes*>::iterator iii = it->recipes.begin(); iii != it->recipes.end(); iii++);
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] - "+m_AllItems->find(iii->m_ReturnedItem)->name+";");
+									
 									/*end debug*/
 									m_DotaItems[PlayerColour]->PickUpItem(iItem);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
