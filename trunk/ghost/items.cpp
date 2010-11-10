@@ -229,7 +229,6 @@ CDotaItemRecipe::~CDotaItemRecipe ()
 vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 {
 	vector<uint32_t> ret;
-	
 	for (multimap<uint32_t, bool>::iterator it = m_Items.begin(); it != m_Items.end(); it++)
 	{
 		if ( (*it).first == nItem && !(*it).second)

@@ -34,6 +34,7 @@ class CStatsDOTA : public CStats
 private:
 	CDBDotAPlayer *m_Players[12];
 	CDotaItems *m_DotaItems[12];
+	CDotaAllItems *m_AllItems;
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
