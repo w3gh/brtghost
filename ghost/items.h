@@ -98,8 +98,8 @@ class CDotaItems
 	public:
 		CDotaItems(CDotaAllItems* nAllItems);
 		~CDotaItems();
-		bool PickUpItem (uint32_t nItem);
-		bool DropItem (uint32_t nItem);
+		bool PickUpItem (uint32_t nItem);   // return true if recipe works or item increment.
+		bool DropItem (uint32_t nItem);		// return true if recipe works or item decrement.
 		vector<string> GetItems();
 };
 
