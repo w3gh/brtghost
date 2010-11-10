@@ -20,6 +20,24 @@
 #include "util.h"
 
 //
+// CDotaItem
+//
+
+void CDotaItem::addRecipe(CDotaItemRecipe* recipe) 
+{ 
+	bool have = false;
+	for (vector<CDotaItemRecipe*>::iterator it = recipes.begin(); it != recipes.end(); it++)
+	{
+		if((*it)==recipe)
+		{
+			have = true;
+			break;
+		}
+	}
+	if(!have) recipes.push_back(recipe);
+};
+
+//
 // CDotaAllItems
 //
 
