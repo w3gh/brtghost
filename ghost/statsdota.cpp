@@ -34,13 +34,14 @@
 CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
-	CDotaAllItems* nAllItems = new CDotaAllItems();
+	
+	m_AllItems = new CDotaAllItems();
 	
 	for( unsigned int i = 0; i < 12; i++ )
 		m_Players[i] = NULL;
 	
 	for( unsigned int i = 0; i < 12; i++ )
-		m_DotaItems[i] = new CDotaItems(nAllItems);
+		m_DotaItems[i] = new CDotaItems(m_AllItems);
 
 	m_Winner = 0;
 	m_Min = 0;
@@ -58,6 +59,7 @@ CStatsDOTA :: ~CStatsDOTA( )
 		if( m_DotaItems[i] )
 			delete m_DotaItems[i];
 	}
+	delete m_AllItems;
 }
 
 bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
@@ -245,12 +247,18 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								{
-									m_DotaItems[PlayerColour]->PickUpItem(UTIL_ToUint32(item));
+									iItem = UTIL_ToInt32(item);
+									/*debug*/
+									CDotaItem *it = m_AllItems->find(iItem);
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
+									/*end debug*/
+									m_DotaItems[PlayerColour]->PickUpItem(iItem);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+it->name+","+item+"].");
 									}
 								}
 								//It spams. Don't uncomment.
@@ -270,12 +278,18 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									
 								if ( m_SwitchOff )
 								{
-									m_DotaItems[PlayerColour]->DropItem(UTIL_ToUint32(item));
+									iItem = UTIL_ToInt32(item);
+									/*debug*/
+									CDotaItem *it = m_AllItems->find(iItem);
+									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
+									/*end debug*/
+									m_DotaItems[PlayerColour]->DropItem(iItem);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+it->name+","+item+"].");
 									}
 								}
 								//It spams. Don't uncomment.
