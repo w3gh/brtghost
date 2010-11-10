@@ -18,6 +18,7 @@
 
 #include "items.h"
 #include "util.h"
+#include <algorithm>
 
 //
 // CDotaItem
@@ -25,16 +26,8 @@
 
 void CDotaItem::addRecipe(CDotaItemRecipe* recipe) 
 { 
-	bool have = false;
-	for (vector<CDotaItemRecipe*>::iterator it = recipes.begin(); it != recipes.end(); it++)
-	{
-		if((*it)==recipe)
-		{
-			have = true;
-			break;
-		}
-	}
-	if(!have) recipes.push_back(recipe);
+	if ( find(recipes.begin(), recipes.end(), recipe) == recipes.end() ) 
+		recipes.push_back(recipe);
 };
 
 //
@@ -725,14 +718,7 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 		items = (*it1)->PickUpItem(nItem);
 		if (!items.empty()) // we have a new item
 		{
-			for (vector<uint32_t>::iterator it2 = items.begin(); it2 < items.end(); it2++)
-			{
-				if((*it2)==nItem)
-				{
-					items.erase(it2);
-					break;
-				}
-			}
+			items.erase(find(items.begin(), items.end(), nItem));
 			uint32_t nItem = items.back();
 			items.pop_back();
 			// drop all items that in recipe
