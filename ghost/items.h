@@ -50,6 +50,7 @@ class CDotaItemRecipe
 		uint32_t m_ReturnedItem;
 		uint32_t m_Count;
 		uint32_t m_Counter;
+		CDotaAllItems* mAllItems;
 		
 	public:
 		CDotaItemRecipe(uint32_t nItem, CDotaAllItems* nAllItems);			   // nItem - result of recipe

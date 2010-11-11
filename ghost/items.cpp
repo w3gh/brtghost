@@ -220,6 +220,7 @@ CDotaItemRecipe::CDotaItemRecipe (uint32_t nItem, CDotaAllItems* nAllItems)
 	m_Count = 0;
 	m_Counter = 0;
 	m_ReturnedItem = nItem;
+	m_AllItems = nAllItems;
 };
 
 CDotaItemRecipe::~CDotaItemRecipe ()
@@ -274,7 +275,7 @@ void CDotaItemRecipe::AddItem (uint32_t nItem)
 {
 	m_Items.insert( pair<uint32_t, bool>(nItem, false) );
 	m_Count++;
-	nAllItems->find(nItem)->addRecipe(this);
+	m_AllItems->find(nItem)->addRecipe(this);
 };
 
 //
