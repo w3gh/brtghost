@@ -36,6 +36,7 @@ void CDotaItem::addRecipe(CDotaItemRecipe* recipe)
 
 CDotaAllItems::CDotaAllItems( )
 {
+	CONSOLE_Print( "[CDotaAllItems : Construcotr] Start.");
 	add(1227900983, "Recipe Magic Wand", 1);
 	add(1227900994, "Magic Wand", 1);
 	add(1227900739, "Magic stick", 1);
@@ -199,15 +200,21 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227896138, "Animal Courier", 1);
 	add(1227896137, "Scroll of Town Portal", 100);
 	add(1227901010, "Quelling Blade", 1);
+	CONSOLE_Print( "[CDotaAllItems : Construcotr] End.");
 };
 
-CDotaAllItems::find(uint32_t nItem)
+CDotaItem* CDotaAllItems::find(uint32_t nItem)
 { 
-	multimap<uint32_t, bool>::iterator it =  m_AllItems.find(nItem);
-	if(it == multimap::eof)
+	CONSOLE_Print( "[CDotaAllItems : find] Start.");
+	map<uint32_t, CDotaItem>::iterator it;
+	for (it = m_AllItems.begin(); it != m_AllItems.end(); it++)
+		CONSOLE_Print( "[CDotaAllItems : find] "+it->second.name);
+	it =  m_AllItems.find(nItem);
+	if(it == m_AllItems.end())
 		CONSOLE_Print( "[DEATH COMES FOR AS ALL]");
 	CDotaItem* dotaItem = &(it->second);
-	return dotaitem; 
+	CONSOLE_Print( "[CDotaAllItems : find] End.");
+	return dotaItem; 
 };
 
 
@@ -721,8 +728,11 @@ CDotaItems::~CDotaItems ()
 bool CDotaItems::PickUpItem (uint32_t nItem)
 {
 	// update recipe list info and check for a building of a new item.
+	CONSOLE_Print( "[PickUpItem] Strart.");
 	vector<uint32_t> items;
+	CONSOLE_Print( "[PickUpItem] Try to find an item.");
 	CDotaItem* oItem = m_AllItems->find(nItem);
+	CONSOLE_Print( "[PickUpItem] Start for .");
 	for (vector<CDotaItemRecipe*>::iterator it1 = oItem->recipes.begin(); it1 != oItem->recipes.end(); it1++)
 	{
 		items = (*it1)->PickUpItem(nItem);
