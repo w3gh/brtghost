@@ -231,7 +231,7 @@ CDotaItemRecipe::~CDotaItemRecipe ()
 
 vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 {
-	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] check recipe for item ["+UTIL_ToString(m_ReturnedItem)+"].");
+//	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] check recipe for item ["+UTIL_ToString(m_ReturnedItem)+"].");
 	vector<uint32_t> ret;
 	for (multimap<uint32_t, bool>::iterator it = m_Items.begin(); it != m_Items.end(); it++)
 	{
@@ -239,7 +239,7 @@ vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 		{
 			(*it).second = true;
 			m_Counter++;
-			CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] ["+UTIL_ToString(m_Counter)+"]["+UTIL_ToString(m_Count)+"].");
+//			CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] ["+UTIL_ToString(m_Counter)+"]["+UTIL_ToString(m_Count)+"].");
 			break;
 		}
 	}
@@ -251,10 +251,10 @@ vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 			ret.push_back((*it).first);
 		
 		ret.push_back(m_ReturnedItem);
-		CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with recipe list.");
+//		CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with recipe list.");
 		return ret;
 	}
-	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with empty list.");
+//	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with empty list.");
 	return ret;
 };
 
@@ -725,7 +725,7 @@ CDotaItems::~CDotaItems ()
 
 bool CDotaItems::PickUpItem (uint32_t nItem)
 {
-	CONSOLE_Print( "[CDotaItems:PickUpItem] Start.");
+	//CONSOLE_Print( "[CDotaItems:PickUpItem] Start.");
 	// update recipe list info and check for a building of a new item.
 	vector<uint32_t> items;
 	CDotaItem* oItem = m_AllItems->find(nItem);
@@ -746,11 +746,11 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 				items.pop_back();
 			}
 			PickUpPItem(nItem);
-			CONSOLE_Print( "[CDotaItems:PickUpItem] End with recipe.");
+	//		CONSOLE_Print( "[CDotaItems:PickUpItem] End with recipe.");
 			return true;
 		}
 	}
-	CONSOLE_Print( "[CDotaItems:PickUpItem] End without recipe.");
+//	CONSOLE_Print( "[CDotaItems:PickUpItem] End without recipe.");
 	// Pick up a new item
 	return PickUpPItem(nItem);
 };
