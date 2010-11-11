@@ -30,7 +30,7 @@ void CDotaItem::addRecipe(CDotaItemRecipe* recipe)
 	vector<CDotaItemRecipe*>::iterator it;
 	for (it = recipes.begin(); it != recipes.end(); it++)
 	{
-		if ((*it) == recipe)
+		if ((*it)->m_ReturnedItem == recipe->m_ReturnedItem)
 		{
 			have = true;
 			break;
@@ -209,14 +209,18 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227896138, "Animal Courier", 1);
 	add(1227896137, "Scroll of Town Portal", 100);
 	add(1227901010, "Quelling Blade", 1);
+	add(1227896148, "Boots of Travel Recipe", 1);
+	add(1227896386, "Boots of Travel", 1);
+	add(1, "ErrorItem", 1);
 };
 
 CDotaItem* CDotaAllItems::find(uint32_t nItem)
 { 
 	map<uint32_t, CDotaItem>::iterator it;
 	it =  m_AllItems.find(nItem);
+	if (it == m_AllItems.end())
+		return &(m_AllItems.find(1)->second); 
 	CDotaItem* dotaItem = &(it->second);
-
 	return dotaItem;
 };
 
@@ -442,7 +446,9 @@ CDotaItems::CDotaItems(CDotaAllItems* nAllItems)
 	recipe->AddItem(1227895890);
 	recipe->AddItem(1227896112);
 	recipe->AddItem(1227895860);
+	recipe->AddItem(1227895887);
 	// Aghanim's Scepter 2
+	/*
 	recipe = new CDotaItemRecipe(1227894833, nAllItems);
 	recipe->AddItem(1227895890);
 	recipe->AddItem(1227895887);
@@ -452,6 +458,12 @@ CDotaItems::CDotaItems(CDotaAllItems* nAllItems)
 	recipe->AddItem(1227895890);
 	recipe->AddItem(1227895887);
 	recipe->AddItem(1227896112);
+	*/
+	m_ItemRecipes.push_back(recipe);
+	// Boots of Travel
+	recipe = new CDotaItemRecipe(1227896386, nAllItems);
+	recipe->AddItem(1227895375);
+	recipe->AddItem(1227896148);
 	m_ItemRecipes.push_back(recipe);
 	// Necromicon 1
 	recipe = new CDotaItemRecipe(1227897172, nAllItems);
@@ -473,7 +485,7 @@ CDotaItems::CDotaItems(CDotaAllItems* nAllItems)
 	recipe = new CDotaItemRecipe(1227897165, nAllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227896112);
-	recipe->AddItem(1227895861);
+	recipe->AddItem(1227896396);
 	m_ItemRecipes.push_back(recipe);
 	// Dagon 2
 	recipe = new CDotaItemRecipe(1227897168, nAllItems);

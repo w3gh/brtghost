@@ -47,12 +47,12 @@ class CDotaItemRecipe
 {
 	private:
 		multimap<uint32_t, bool> m_Items;
-		uint32_t m_ReturnedItem;
 		uint32_t m_Count;
 		uint32_t m_Counter;
 		CDotaAllItems* m_AllItems;
 		
 	public:
+		uint32_t m_ReturnedItem;
 		CDotaItemRecipe(uint32_t nItem, CDotaAllItems* nAllItems);			   // nItem - result of recipe
 		~CDotaItemRecipe();							   //
 		vector<uint32_t> PickUpItem (uint32_t nItem);  // drop an item from some storage
