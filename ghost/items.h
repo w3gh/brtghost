@@ -72,7 +72,7 @@ class CDotaAllItems
 	public:
 		CDotaAllItems( );
 		~CDotaAllItems( ) { m_AllItems.clear(); };
-		CDotaItem*  find (uint32_t nItem) { return &m_AllItems.find(nItem)->second; };	
+		CDotaItem*  find (uint32_t nItem);	
 };
 
 /*

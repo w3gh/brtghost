@@ -201,6 +201,16 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227901010, "Quelling Blade", 1);
 };
 
+CDotaAllItems::find(uint32_t nItem)
+{ 
+	multimap<uint32_t, bool>::iterator it =  m_AllItems.find(nItem);
+	if(it == multimap::eof)
+		CONSOLE_Print( "[DEATH COMES FOR AS ALL]");
+	CDotaItem* dotaItem = &(it->second);
+	return dotaitem; 
+};
+
+
 //
 // CDotaItemRecipe
 //
