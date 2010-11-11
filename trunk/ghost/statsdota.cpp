@@ -252,7 +252,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									/*debug*/
 									CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
-								//	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] you can by for it such recipes:");
 
 									/*end debug*/
 									m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
@@ -261,10 +260,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
-										BYTEARRAY b = UTIL_CreateByteArray( items[i].c_str(), items[i].size() );
-										uint32_t itemnumber = UTIL_ByteArrayToUInt32( b, false );
-										//m_AllItems->find(itemnumber)->name
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+UTIL_ToString(itemnumber)+","+items[i]+"].");
+										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
 									}
 								}
 								//It spams. Don't uncomment.
@@ -297,10 +293,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
-										BYTEARRAY b = UTIL_CreateByteArray( items[i].c_str(), items[i].size() );
-										uint32_t itemnumber = UTIL_ByteArrayToUInt32( b, false );
-										//m_AllItems->find(itemnumber)->name
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+UTIL_ToString(itemnumber)+","+items[i]+"].");
+										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
 									}
 								}
 								//It spams. Don't uncomment.

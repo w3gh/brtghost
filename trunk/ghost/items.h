@@ -28,9 +28,9 @@ class CDotaAllItems;
 //
 
 struct CDotaItem {
-	CDotaItem ( ) {value=0; name=string(); max_count=0; count=0; recipes.clear();};
+	CDotaItem ( ) {value=0; name=string(); max_count=1; count=1; recipes.clear();};
 	CDotaItem (CDotaItem* p) {value=p->value; name=p->name; max_count=p->max_count; count=p->count; recipes=p->recipes;};
-	CDotaItem (uint32_t nVal, string nName, int nMax) {value=nVal; name=nName; max_count=nMax; count=0; recipes.clear();};
+	CDotaItem (uint32_t nVal, string nName, int nMax) {value=nVal; name=nName; max_count=nMax; count=1; recipes.clear();};
 	void addRecipe(CDotaItemRecipe* recipe);
 	uint32_t value;
 	string name;
