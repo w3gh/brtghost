@@ -298,7 +298,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
 										BYTEARRAY b = UTIL_CreateByteArray( items[i].c_str(), items[i].size() );
-										uint32_t itemnumber = UTIL_ByteArrayToUInt32( Value, false );
+										uint32_t itemnumber = UTIL_ByteArrayToUInt32( b, false );
 										//m_AllItems->find(itemnumber)->name
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+UTIL_ToString(itemnumber)+","+items[i]+"].");
 									}
