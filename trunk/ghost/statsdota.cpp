@@ -261,7 +261,10 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
+										BYTEARRAY b = UTIL_CreateByteArray( items[i].c_str(), items[i].size() );
+										uint32_t itemnumber = UTIL_ByteArrayToUInt32( Value, false );
+										//m_AllItems->find(itemnumber)->name
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+UTIL_ToString(itemnumber)+","+items[i]+"].");
 									}
 								}
 								//It spams. Don't uncomment.
@@ -294,7 +297,10 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
+										BYTEARRAY b = UTIL_CreateByteArray( items[i].c_str(), items[i].size() );
+										uint32_t itemnumber = UTIL_ByteArrayToUInt32( Value, false );
+										//m_AllItems->find(itemnumber)->name
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+UTIL_ToString(itemnumber)+","+items[i]+"].");
 									}
 
 
