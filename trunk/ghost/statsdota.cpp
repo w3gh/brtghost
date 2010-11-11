@@ -240,8 +240,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
+								string item = string( Value.rbegin(), Value.rend());
 								string playerName = PlayerColourString; 
-								string item = string( Value.rbegin( ), Value.rend( ) );
 								if ( Player )
 									playerName = Player->GetName( );
 
@@ -249,20 +249,19 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								if ( m_SwitchOff )
 								{
-									uint32_t iItem = ValueInt;
 									/*debug*/
-									CDotaItem *it = m_AllItems->find(iItem);
+									CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] you can by for it such recipes:");
 
 									/*end debug*/
-									m_DotaItems[PlayerColour]->PickUpItem(iItem);
+									m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+it->name+","+item+"].");
+										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
 									}
 								}
 								//It spams. Don't uncomment.

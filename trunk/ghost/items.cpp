@@ -809,7 +809,8 @@ vector<string> CDotaItems::GetItems( )
 	for (int i = 0; i < 6; i++)
 	{
 		if (m_Items[i].value > 0)
-			ret.push_back(UTIL_ToString(m_Items[i].value));
+			BYTEARRAY b = UTIL_CreateByteArray( m_Items[i].value, false );
+			ret.push_back(string(b.rbegin(), b.rend()));
 		else
 			ret.push_back(string( ));
 	}
