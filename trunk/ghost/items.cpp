@@ -26,7 +26,17 @@
 
 void CDotaItem::addRecipe(CDotaItemRecipe* recipe) 
 { 
-	if ( find(recipes.begin(), recipes.end(), recipe) == recipes.end() ) 
+	bool have = false;
+	vector<CDotaItemRecipe*>::iterator it;
+	for (it = recipes.begin(); it != recipes.end(); it++)
+	{
+		if ((*it) == recipe)
+		{
+			have = true;
+			break;
+		}
+	}
+	if(!have) 
 		recipes.push_back(recipe);
 };
 
@@ -725,14 +735,15 @@ CDotaItems::~CDotaItems ()
 
 bool CDotaItems::PickUpItem (uint32_t nItem)
 {
-	CONSOLE_Print( "[CDotaItems:PickUpItem] Start.");
-	// update recipe list info and check for a building of a new item.
+	
 	vector<uint32_t> items;
+	vector<CDotaItemRecipe*>::iterator it;
 	CDotaItem* oItem = m_AllItems->find(nItem);
-
-	for (vector<CDotaItemRecipe*>::iterator it1 = oItem->recipes.begin(); it1 != oItem->recipes.end(); it1++)
+	CONSOLE_Print( "[CDotaItems:PickUpItem] Start ["+m_AllItems->find(nItem)->name+"] ["+UTIL_ToString(oItem->recipes.size())+"].");
+	// update recipe list info and check for a building of a new item.
+	for (it = oItem->recipes.begin(); it != oItem->recipes.end(); it++)
 	{
-		items = (*it1)->PickUpItem(nItem);
+		items = (*it)->PickUpItem(nItem);
 		if (!items.empty()) // we have a new item
 		{
 
@@ -745,7 +756,7 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 				DropPItem(items.back());
 				items.pop_back();
 			}
-			PickUpPItem(nItem);
+			PickUpItem(nItem);
 			CONSOLE_Print( "[CDotaItems:PickUpItem] End with recipe.");
 			return true;
 		}
