@@ -36,7 +36,6 @@ void CDotaItem::addRecipe(CDotaItemRecipe* recipe)
 
 CDotaAllItems::CDotaAllItems( )
 {
-	CONSOLE_Print( "[CDotaAllItems : Construcotr] Start.");
 	add(1227900983, "Recipe Magic Wand", 1);
 	add(1227900994, "Magic Wand", 1);
 	add(1227900739, "Magic stick", 1);
@@ -200,20 +199,14 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227896138, "Animal Courier", 1);
 	add(1227896137, "Scroll of Town Portal", 100);
 	add(1227901010, "Quelling Blade", 1);
-	CONSOLE_Print( "[CDotaAllItems : Construcotr] End.");
 };
 
 CDotaItem* CDotaAllItems::find(uint32_t nItem)
 { 
-	CONSOLE_Print( "[CDotaAllItems : find] Start "+UTIL_ToString(nItem));
 	map<uint32_t, CDotaItem>::iterator it;
-	for (it = m_AllItems.begin(); it != m_AllItems.end(); it++)
-		CONSOLE_Print( "[CDotaAllItems : find] "+it->second.name);
 	it =  m_AllItems.find(nItem);
-	if(it == m_AllItems.end())
-		CONSOLE_Print( "[DEATH COMES FOR AS ALL]");
 	CDotaItem* dotaItem = &(it->second);
-	CONSOLE_Print( "[CDotaAllItems : find] End.");
+
 	return dotaItem;
 };
 
@@ -238,7 +231,6 @@ CDotaItemRecipe::~CDotaItemRecipe ()
 
 vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 {
-	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] Strart.");
 	vector<uint32_t> ret;
 	for (multimap<uint32_t, bool>::iterator it = m_Items.begin(); it != m_Items.end(); it++)
 	{
@@ -252,16 +244,14 @@ vector<uint32_t> CDotaItemRecipe::PickUpItem (uint32_t nItem)
 	
 	if (m_Counter == m_Count)
 	{	
-		CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] Strart new recipe.");
 		//create vector with an items that we need to drop, and the last item is an item we need to pick up.
 		for (multimap<uint32_t, bool>::iterator it = m_Items.begin(); it != m_Items.end(); it++)
 			ret.push_back((*it).first);
 		
 		ret.push_back(m_ReturnedItem);
-		CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with a new recipe.");
 		return ret;
 	}
-	CONSOLE_Print( "[CDotaItemRecipe:PickUpItem] End with emty result.");
+
 	return ret;
 };
 
@@ -732,17 +722,15 @@ CDotaItems::~CDotaItems ()
 bool CDotaItems::PickUpItem (uint32_t nItem)
 {
 	// update recipe list info and check for a building of a new item.
-	CONSOLE_Print( "[CDotaItems:PickUpItem] Strart.");
 	vector<uint32_t> items;
-	CONSOLE_Print( "[CDotaItems:PickUpItem] Try to find an item.");
 	CDotaItem* oItem = m_AllItems->find(nItem);
-	CONSOLE_Print( "[CDotaItems:PickUpItem] Start for each recipe.");
+
 	for (vector<CDotaItemRecipe*>::iterator it1 = oItem->recipes.begin(); it1 != oItem->recipes.end(); it1++)
 	{
 		items = (*it1)->PickUpItem(nItem);
 		if (!items.empty()) // we have a new item
 		{
-			CONSOLE_Print( "[CDotaItems:PickUpItem] We have recipe! YAH!!!!.");
+
 			items.erase(find(items.begin(), items.end(), nItem));
 			uint32_t nItem = items.back();
 			items.pop_back();
@@ -753,25 +741,22 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 				items.pop_back();
 			}
 			PickUpPItem(nItem);
-			CONSOLE_Print( "[CDotaItems:PickUpItem] End.");
+
 			return true;
 		}
 	}
-	CONSOLE_Print( "[CDotaItems:PickUpItem] End.");
 	// Pick up a new item
 	return PickUpPItem(nItem);
 };
 
 bool CDotaItems::PickUpPItem (uint32_t nItem)
 {
-	CONSOLE_Print( "[CDotaItems:PickUpPItem] Start.");
 	for (int i = 0; i < 6; i++)
 	{
 		// if we already have this item and it count less than max value.
 		if (m_Items[i].value == nItem && m_Items[i].max_count > m_Items[i].count)
 		{
 			m_Items[i].count++;
-			CONSOLE_Print( "[CDotaItems:PickUpPItem] End with incriment of item count.");
 			return true;
 		}
 	}
@@ -780,7 +765,6 @@ bool CDotaItems::PickUpPItem (uint32_t nItem)
 		if (m_Items[i].value == 0)
 		{
 			m_Items[i] = CDotaItem(m_AllItems->find(nItem));
-			CONSOLE_Print( "[CDotaItems:PickUpPItem] End with pickup item.");
 			return false;
 		}
 	}

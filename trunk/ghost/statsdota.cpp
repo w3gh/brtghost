@@ -26,6 +26,7 @@
 #include "game_base.h"
 #include "stats.h"
 #include "statsdota.h"
+#include "items.h"
 
 //
 // CStatsDOTA
@@ -236,7 +237,6 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 4 ) == "PUI_" )
 							{
 								// Hero pick up an item.
-
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
@@ -244,18 +244,17 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string item = string( Value.rbegin( ), Value.rend( ) );
 								if ( Player )
 									playerName = Player->GetName( );
+
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "," + item + "]");
 								
 								if ( m_SwitchOff )
 								{
-									iItem = UTIL_ToInt32(item);
+									uint32_t iItem = ValueInt;
 									/*debug*/
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] start debug ========= items");
 									CDotaItem *it = m_AllItems->find(iItem);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] you can by for it such recipes:");
-									for (vector<CDotaRecipes*>::iterator iii = it->recipes.begin(); iii != it->recipes.end(); iii++);
-										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] - "+m_AllItems->find(iii->m_ReturnedItem)->name+";");
-									
+
 									/*end debug*/
 									m_DotaItems[PlayerColour]->PickUpItem(iItem);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
@@ -280,13 +279,14 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string playerName = PlayerColourString;
 								if ( Player )
 									playerName = Player->GetName( );
-									
+
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "," + item + "]");
+								
 								if ( m_SwitchOff )
 								{
-									iItem = UTIL_ToInt32(item);
+									uint32_t iItem = ValueInt;
 									/*debug*/
 									CDotaItem *it = m_AllItems->find(iItem);
-									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
 									/*end debug*/
 									m_DotaItems[PlayerColour]->DropItem(iItem);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
