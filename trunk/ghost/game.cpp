@@ -6054,10 +6054,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					OpenSlot( GetSIDFromPID( Victim->GetPID( ) ), false );
 
 				CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumHumanPlayers( ) ) + " votes" );
-				SendAllChat( m_GHost->m_Language->GetLang("lang_0159", Victim->GetName() ) ); // VoteKickPassed
+				SendAllChat( m_GHost->m_Language->GetLang("lang_0159", m_KickVotePlayer ) ); // VoteKickPassed
 			}
 			else
-				SendAllChat( m_GHost->m_Language->GetLang("lang_0160", Victim->GetName() ) ); // ErrorVoteKickingPlayer
+				SendAllChat( m_GHost->m_Language->GetLang("lang_0160", m_KickVotePlayer ) ); // ErrorVoteKickingPlayer
 
 			m_KickVotePlayer.clear( );
 			m_StartedKickVoteTime = 0;

@@ -137,6 +137,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_SyncCounter = 0;
 	m_MaxSyncCounter = 0;
 	m_GameTicks = 0;
+	m_LastEndGameTime = 0;
 	m_CreationTime = GetTime( );
 	m_LastPingTime = GetTime( );
 	m_LastDBstatsUpdateTime = GetTime( );
@@ -685,7 +686,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			uint32_t slotstotal = m_Slots.size( );
 			uint32_t slotsopen = GetSlotsOpen();
-			if (slotsopen<2) slotsopen = 2;
+			if (slotsopen < 2) slotsopen = 2;
 
 			if (!m_ShowRealSlotCount)
 			{
@@ -698,42 +699,81 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
 
 				uint32_t MapGameType = MAPGAMETYPE_SAVEDGAME;
-
 				BYTEARRAY MapWidth;
-				MapWidth.push_back( 0 );
-				MapWidth.push_back( 0 );
 				BYTEARRAY MapHeight;
-				MapHeight.push_back( 0 );
-				MapHeight.push_back( 0 );
+
+				if ( m_GHost->m_Reconnect )
+				{
+					MapWidth.push_back( 192 );
+					MapWidth.push_back( 7 );
+
+					MapHeight.push_back( 192 );
+					MapHeight.push_back( 7 );
+				}
+				else
+				{
+					MapWidth.push_back( 0 );
+					MapWidth.push_back( 0 );
+
+					MapHeight.push_back( 0 );
+					MapHeight.push_back( 0 );
+				}
+
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter );
+
+				m_GHost->m_UDPSocket->Broadcast( 6112, data );
+				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
+				{
+					(*i)->PutBytes( data );
+				}
+
 				if (m_GHost->m_broadcastinlan)
 				{
 					m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
 					m_GHost->m_UDPSocket->SendTo("127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
 				}
-//				if (m_GarenaOnly)
-				{
-					//m_GHost->m_UDPSocket->SendTo("127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter ) );
-				}
-				m_GHost->UDPChatSend(m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
+
+			//	m_GHost->UDPChatSend(m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
 			}
 			else
 			{
 				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
 				// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
+//				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
+
 				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
+				BYTEARRAY MapWidth;
+				BYTEARRAY MapHeight;
+
+				if ( m_GHost->m_Reconnect )
+				{
+					MapWidth.push_back( 192 );
+					MapWidth.push_back( 7 );
+					MapHeight.push_back( 192 );
+					MapHeight.push_back( 7 );
+				}
+				else
+				{
+					MapWidth = m_Map->GetMapWidth( );
+					MapHeight = m_Map->GetMapHeight( );
+				}
+
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter );
+				m_GHost->m_UDPSocket->Broadcast( 6112, data );
+				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
+				{
+					(*i)->PutBytes( data );
+				}
 
 				if (m_GHost->m_broadcastinlan)
 				{
 					m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
 					m_GHost->m_UDPSocket->SendTo( "127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter ) );
 				}
-//				if (m_GarenaOnly)
-				{
-//					m_GHost->m_UDPSocket->SendTo( "127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
-//					m_GHost->m_UDPSocket->SendTo( "192.168.1.2", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_LANWar3Version, MapGameType, m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ) );
-				}
-				m_GHost->UDPChatSend(m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ));
+
+
+			//	m_GHost->UDPChatSend(m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter ));
 			}
 		}
 
@@ -1692,17 +1732,25 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// end the game if there aren't any players left
 
-	if( m_Players.empty( ) && ( m_GameLoading || m_GameLoaded ) )
+	if( m_Players.empty( ) && ( m_GameLoading || m_GameLoaded ) ) // todotodo freed!!!!!
 	{
-		if( !m_Saving )
+		if (!m_LastEndGameTime) 
+			m_LastEndGameTime = GetTime();
+		else
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (no players left)" );
-			SaveGameData( );
+			if (GetTime() - m_LastEndGameTime > 30)
+			{
+				if( !m_Saving )
+				{
+					CONSOLE_Print( "[GAME: " + m_GameName + "] is over (no players left)" );
+					SaveGameData( );
 
-			m_Saving = true;
+					m_Saving = true;
+				}
+				else if( IsGameDataSaved( ) )
+					return true;
+			}
 		}
-		else if( IsGameDataSaved( ) )
-			return true;
 	}
 
 	// accept new connections

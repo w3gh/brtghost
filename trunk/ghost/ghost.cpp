@@ -1215,6 +1215,13 @@ CGHost :: CGHost( CConfig *CFG )
 	else
 		m_AdminGame = NULL;
 
+	// create the listening socket for broadcasters;
+	
+	int Port = CFG->GetInt("bot_broadcasters_port", 6969 );
+	m_GameBroadcastersListener = new CTCPServer( );
+	m_GameBroadcastersListener->Listen( string( ),Port );
+	CONSOLE_Print( "[GHOST] Listening for game broadcasters on port [" + UTIL_ToString( Port ) +"]" );
+
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
@@ -1427,6 +1434,20 @@ bool CGHost :: Update( unsigned long usecBlock )
 
 	m_UDPCommandSocket->SetFD( &fd,  &send_fd, &nfds);
 	// SetFD of the UDPServer does not return the number of sockets belonging to it as it's obviously one
+	NumFDs++;
+
+	// 7. the Game Broadcasters
+	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); i++ )
+	{
+		if ( (*i)->GetConnected( ) && !(*i)->HasError( ) )
+		{
+			(*i)->SetFD( &fd, &send_fd, &nfds );
+			NumFDs++;
+		}
+	}
+ 
+	// 8. the listener for game broadcasters
+	m_GameBroadcastersListener->SetFD( &fd, &send_fd,&nfds );
 	NumFDs++;
 
 	// before we call select we need to determine how long to block for
@@ -1914,6 +1935,25 @@ bool CGHost :: Update( unsigned long usecBlock )
 		}
 
 		m_LastAutoHostTime = GetTime( );
+	}
+
+	CTCPSocket *NewSocket = m_GameBroadcastersListener->Accept( &fd );
+	if ( NewSocket )
+	{
+		m_GameBroadcasters.push_back( NewSocket );
+		CONSOLE_Print("[GHOST] Game Broadcaster [" + NewSocket->GetIPString( ) +"] connected" );
+	}
+	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); )
+	{
+		if ( (*i)->HasError( ) || !(*i)->GetConnected( ) )
+		{
+			CONSOLE_Print("[GHOST] Game Broadcaster [" + (*i)->GetIPString( ) +"] disconnected");
+			delete *i;
+			i = m_GameBroadcasters.erase( i );
+			continue;
+		}
+		(*i)->DoSend( &send_fd );
+		i++;
 	}
 
 	return m_Exiting || AdminExit || BNETExit;
@@ -2686,7 +2726,19 @@ void CGHost :: UDPCommands( string Message )
 	string IP;
 	string Command;
 	string Payload;
+	string :: size_type key = Message.find("e579d5e14d8fd95ea1ef8025505cf8e2");
+
+	if (key == string :: npos)
+		return; 
+	else
+		Message.substr(key);
+
 	string :: size_type CommandStart = Message.find( " " );
+
+	//  justapass
+	//  e579d5e14d8fd95ea1ef8025505cf8e2
+
+
 
 //	CONSOLE_Print( Message );
 
@@ -2714,9 +2766,10 @@ void CGHost :: UDPCommands( string Message )
 
 //	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
 
+
 	if (Command == "connect")
 	{
-		if (m_UDPPassword!="")
+		if (!m_UDPPassword.empty())
 		if (Payload!=m_UDPPassword)
 		{
 			UDPChatSendBack("|invalidpassword");
