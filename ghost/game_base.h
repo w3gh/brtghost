@@ -137,9 +137,10 @@ protected:
 	uint32_t m_GameLoadedTime;					// GetTime when the game was loaded
 	bool m_GameLoadedMessage;					// GameLoad message shown
 	bool m_AllPlayersWarnChecked;				// iff true, all players have been warn checked and informed already.
+	uint32_t m_EndGameTime;
 	uint32_t m_LastWarnCheck;
 	uint32_t m_DownloadInfoTime;                // GetTime when we last showed download info
-	uint32_t m_EndGameTime;                     // GetTime when we issued !rehost
+	uint32_t m_LastEndGameTime;                     // GetTime when we issued !rehost
 	uint32_t m_SwitchTime;						// GetTime when someone issued -switch
 	bool m_Switched;							// if someone has switched
 	uint32_t m_SwitchNr;						// How many have accepted

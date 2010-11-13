@@ -4009,12 +4009,109 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 
 							m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, User, User, m_Server, Whisper );
+
 							if (m_GHost->m_addcreatorasfriendonhost && !cf && m_GHost->m_CurrentGame)
 								m_GHost->m_CurrentGame->m_CreatorAsFriend = false;
 					} else
 						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1214", m_GHost->m_GameNameContainString), User, Whisper);
 	
 				}
+
+				//
+				// !PUBAUTO (host public game with autostart)
+				// !PA
+				//
+
+				else if( Command == "pubauto" || Command == "pa" )
+				{
+					if (!CMDCheck(CMD_host, AdminAccess))
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper);
+						return;
+					}
+
+					if (m_GHost->m_LastGameName.empty() && Payload.empty()) 
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1207"), User, Whisper); // "No game has been hosted till now, specify a name"
+						return;
+					}
+
+					string GameName = Payload;
+
+					if (GameName.empty())
+						GameName = m_GHost->m_LastGameName;
+
+					string GameNr = string();
+					uint32_t idx = 0;
+					uint32_t Nr = 0;
+/*
+					if (!GameName.empty() && GameName==m_GHost->m_LastGameName)
+					{
+						QueueChatCommand("You can't use the same name!", User, Whisper);
+						return;
+					}
+*/
+					if (Payload.empty())
+					{
+						idx = GameName.length()-1;
+						if (idx>=2)
+						if (GameName.at(idx-2)=='#')
+							idx = idx-1;
+						else
+							if (GameName.at(idx-1)=='#')
+								idx = idx;
+							else
+								idx = 0;
+
+						// idx = 0, no Game Nr found in gamename
+						if (idx == 0)
+						{
+							GameNr = "0";
+							GameName = GameName + " #";
+						}
+						else
+						{
+							GameNr = GameName.substr(idx,GameName.length()-idx);
+							GameName = GameName.substr(0,idx);
+						}
+						stringstream SS;
+						SS << GameNr;
+						SS >> Nr;
+						Nr ++;
+						if (Nr>20)
+							Nr = 1;
+						GameNr = UTIL_ToString(Nr);
+						GameName = GameName + GameNr;
+					}
+					m_GHost->m_QuietRehost = false;
+
+					string gamename = GameName;
+					transform( gamename.begin( ), gamename.end( ), gamename.begin( ), (int(*)(int))tolower );
+
+					string containstring = m_GHost->m_GameNameContainString;
+					transform( containstring.begin( ), containstring.end( ), containstring.begin( ), (int(*)(int))tolower );
+
+					if (m_GHost->m_GameNameContainString.empty() || gamename.find(containstring) != string::npos)
+					{
+						// adding the game creator as friend
+						bool cf = false;
+						if (m_GHost->m_addcreatorasfriendonhost && !IsFriend(User))
+						{
+							QueueChatCommand( "/f a "+User);
+							cf = true;
+						}
+
+
+							m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, User, User, m_Server, Whisper );
+							m_GHost->m_CurrentGame->SetAutoStartPlayers(10); // hackhack
+
+							if (m_GHost->m_addcreatorasfriendonhost && !cf && m_GHost->m_CurrentGame)
+								m_GHost->m_CurrentGame->m_CreatorAsFriend = false;
+					} else
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1214", m_GHost->m_GameNameContainString), User, Whisper);
+	
+				}
+
 
 				//
 				// !PUBG (host public game allowing only garena)
@@ -6145,6 +6242,8 @@ void CBNET :: QueueGameUncreate( )
 {
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
+
+	/// todotodo LAN rehost
 }
 
 void CBNET :: UnqueuePackets( unsigned char type )
@@ -6294,60 +6393,15 @@ bool CBNET :: IsRootAdmin( string name )
 
 CDBBan *CBNET :: IsBannedName( string name )
 {
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+    transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	// todotodo: optimize this - maybe use a map?
+    for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
+    {
+        if( (*i)->GetName( ) == name )
+            return *i;
+    }
 
-	// we're using a map to search the bans only from letter x to x+1 ex:
-	// for name = rider, we'll search from r to t
-/*
-	uint32_t x, y;
-	vector<uint32_t> idx;
-	idx = m_BanlistIndexes;
-
-	unsigned char letter, letter2;
-	letter = name[0];
-
-	if (idx.size()>letter)
-	{
-		x = idx[letter];
-		y = m_Bans.size()-1;
-		letter2=letter+1;
-		if (idx.size()>letter2)
-		do
-		{
-			y = idx[letter2];
-			letter2++;
-		} while (letter2<idx.size() && y==999999);
-		// x contains the index of the first ban beginning with the same letter as the name being checked
-		// y contains the index of the ban beginning with the next letter
-		if (y==999999)
-			y = m_Bans.size()-1;
-*/
-		// if x!=999999, there is at least a ban with the same letter
-//		if (x!=999999)
-//		{
-//				CONSOLE_Print("[GHOST] Searching bans from "+ m_Bans[x]->GetName()+ " through "+m_Bans[y]->GetName());
-//				for( vector<CDBBan *> :: iterator i = m_Bans.begin()+x; i != m_Bans.begin()+y; i++ )
-			//for(uint32_t i=x; i<=y; i++)
-			for(uint32_t i=0; i < m_Bans.size(); i++)
-			{
-				if (m_Bans[i] && m_Bans[i]->GetName() == name)
-					return m_Bans[i];
-
-			}
-//		}
-//	}
-
-/*
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); i++ )
-	{
-		if( (*i)->GetName( ) == name )
-			return *i;
-	}
-*/
-
-	return NULL;
+    return NULL;
 }
 
 CDBBan *CBNET :: IsBannedIP( string ip )

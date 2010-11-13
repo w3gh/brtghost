@@ -429,6 +429,8 @@ public:
 	// UDPCommandSocket patch
 	CUDPServer *m_UDPCommandSocket;		// a UDP socket for receiving commands
 	string m_UDPCommandSpoofTarget;     // the realm to send udp received commands to
+	CTCPServer *m_GameBroadcastersListener; // listening socket for game broadcasters
+	vector<CTCPSocket *> m_GameBroadcasters;// vector of sockets that broadcast the games
 		
 	// Metal_Koola's attempts
 	bool m_dropifdesync;				// config value: Drop desynced players
