@@ -183,8 +183,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
 								if ( m_SwitchOff )
-								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetCreepKills( m_Players[PlayerColour]->GetCreepKills() + ValueInt );
+								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
+									m_Players[PlayerColour]->SetCreepKills( ValueInt );
 
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
@@ -204,8 +204,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
 								if ( m_SwitchOff )
-								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetNeutralKills( m_Players[PlayerColour]->GetNeutralKills() + ValueInt );
+								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
+									m_Players[PlayerColour]->SetNeutralKills( ValueInt );
 
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
@@ -223,8 +223,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
 								if ( m_SwitchOff )
-								if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
-									m_Players[PlayerColour]->SetCreepDenies( m_Players[PlayerColour]->GetCreepDenies() + ValueInt );
+								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
+									m_Players[PlayerColour]->SetCreepDenies( ValueInt );
 
 								
 								//CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
