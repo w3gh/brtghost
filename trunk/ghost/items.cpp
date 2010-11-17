@@ -335,7 +335,7 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 				{
 					// but we just do incriment for all the recipes, and now we need to do it back.
 					for (vector<CDotaItemRecipe*>::iterator it2 = oItem->recipes.begin(); it2 != oItem->recipes.end(); it2++)
-						(*it)->DropItem(nItem);
+						(*it2)->DropItem(nItem);
 				}else
 					DropItem(items.back());
 				items.pop_back();
