@@ -72,8 +72,10 @@ class CDotaAllItems
 		void add (uint32_t nItem, string name, uint32_t max_count) {m_AllItems.insert(pair<uint32_t, CDotaItem>(nItem, CDotaItem(nItem, name, max_count)));};
 	public:
 		CDotaAllItems( );
+		CDotaAllItems(CDotaAllItems* p);
 		~CDotaAllItems( ) { m_AllItems.clear(); };
 		CDotaItem*  find (uint32_t nItem);
+		map<uint32_t, CDotaItem> GetAllItems() {return m_AllItems;};
 };
 
 /*
