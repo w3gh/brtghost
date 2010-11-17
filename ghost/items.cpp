@@ -202,7 +202,8 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227896132, "Clarity Potion", 100);
 	add(1227896134, "Healing Salve", 100);
 	add(1227896131, "Ancient Tango of Essifation", 100);
-	add(1227899222, "Empty Bottle", 1);
+	add(1227899222, "Empty Bottle Store", 1); // IOAV
+	add(1227899216, "3/3 Bottle", 1);  // IOAP
 	add(1227896135, "Observer Wards", 100);
 	add(1227896136, "Sentry Wards", 100);
 	add(1227900744, "Dust of Appearance", 2);
@@ -212,6 +213,13 @@ CDotaAllItems::CDotaAllItems( )
 	add(1227896148, "Boots of Travel Recipe", 1);
 	add(1227896386, "Boots of Travel", 1);
 	add(1, "ErrorItem", 1);
+};
+
+CDotaAllItems::CDotaAllItems(CDotaAllItems* p)
+{
+	m_AllItems = p->GetAllItems();
+	for (map<uint32_t, CDotaItem>::iterator it = m_AllItems.begin(); it != m_AllItems.end(); it++)
+		it->second.recipes.clear();
 };
 
 CDotaItem* CDotaAllItems::find(uint32_t nItem)
@@ -303,11 +311,11 @@ CDotaItems::~CDotaItems ()
 		delete m_ItemRecipes.back();
 		m_ItemRecipes.pop_back();
 	}
+	delete m_AllItems;
 };
 
 bool CDotaItems::PickUpItem (uint32_t nItem)
 {
-	
 	vector<uint32_t> items;
 	CDotaItem* oItem = m_AllItems->find(nItem);
 //	CONSOLE_Print( "[CDotaItems:PickUpItem] Start ["+m_AllItems->find(nItem)->name+"] ["+UTIL_ToString(oItem->recipes.size())+"].");
@@ -322,7 +330,14 @@ bool CDotaItems::PickUpItem (uint32_t nItem)
 			// drop all items that in recipe
 			while(!items.empty())
 			{
-				DropItem(items.back());
+				// we cant drop an item that we just try to pick up
+				if(items.back() == nItem)
+				{
+					// but we just do incriment for all the recipes, and now we need to do it back.
+					for (vector<CDotaItemRecipe*>::iterator it2 = oItem->recipes.begin(); it2 != oItem->recipes.end(); it2++)
+						(*it)->DropItem(nItem);
+				}else
+					DropItem(items.back());
 				items.pop_back();
 			}
 			PickUpItem(nItem);
@@ -405,7 +420,7 @@ vector<string> CDotaItems::GetItems( )
 
 CDotaItems::CDotaItems(CDotaAllItems* nAllItems)
 {
-	m_AllItems = nAllItems;
+	m_AllItems = new CDotaAllItems(nAllItems);
 	
 	m_Items[0] = CDotaItem();
 	m_Items[1] = CDotaItem();
