@@ -4357,6 +4357,77 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+				// !ROOMBAN
+				// !RB
+				//
+
+				else if( ( Command == "roomban" || Command == "rb" ) && !Payload.empty( ) )
+				{
+					if (!CMDCheck(CMD_ban, AdminAccess))
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper);
+						return;
+					}
+
+					QueueChatCommand( "/ban " + Payload );
+				}
+
+				//
+				// !ROOMKICK
+				// !RK
+				//
+
+				else if( ( Command == "roomkick" || Command == "rk" ) && !Payload.empty( ) )
+				{
+					if (!CMDCheck(CMD_kick, AdminAccess))
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper);
+						return;
+					}
+
+					QueueChatCommand( "/kick " + Payload );
+				}
+
+				//
+				// !ROOMTOPIC
+				// !RT
+				//
+
+				else if( ( Command == "roomtopic" || Command == "rt" ) && !Payload.empty( ) )
+				{
+					if (!CMDCheck(CMD_kick, AdminAccess))
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_0005"), User, Whisper);
+						return;
+					}
+
+					// extract the owner and the game name
+					// e.g. "Varlock dota 6.54b arem ~~~" -> owner: "Varlock", game name: "dota 6.54b arem ~~~"
+
+					string RoomName;
+					string RoomTopic;
+					string :: size_type MessageStart = Payload.find( " " );
+
+					if( GameNameStart != string :: npos )
+					{
+						RoomName = Payload.substr( 0, MessageStart );
+						RoomTopic = Payload.substr( MessageStart + 1 );
+
+						if (RoomTopic.length()<1 || RoomTopic == " ")
+							return;
+
+					} else
+					{
+						QueueChatCommand(m_GHost->m_Language->GetLang("lang_1216"), User, Whisper);
+						return;
+					}
+
+
+					QueueChatCommand( "/topic " + RoomName + " """ + RoomTopic + """" );
+				}
+				
+
+				//
 				// !SAYGAME
 				// !SG
 				//
@@ -5847,7 +5918,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					string Usr;
 					Usr = Whisper ? sUser : nUser;
-					if (m_GHost->m_WhisperAllMessages)
+					if (m_GHost->m_WhisperAllMessages || Payload.empty())
 						Usr = sUser;
 
 					if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
