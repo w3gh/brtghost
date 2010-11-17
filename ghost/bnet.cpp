@@ -4408,7 +4408,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					string RoomTopic;
 					string :: size_type MessageStart = Payload.find( " " );
 
-					if( GameNameStart != string :: npos )
+					if( MessageStart != string :: npos )
 					{
 						RoomName = Payload.substr( 0, MessageStart );
 						RoomTopic = Payload.substr( MessageStart + 1 );
