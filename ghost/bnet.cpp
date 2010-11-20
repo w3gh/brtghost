@@ -4361,7 +4361,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !RB
 				//
 
-				else if( ( Command == "roomban" || Command == "rb" ) && !Payload.empty( ) )
+				else if( ( Command == "roomban" ) && !Payload.empty( ) )
 				{
 					if (!CMDCheck(CMD_ban, AdminAccess))
 					{
@@ -4423,9 +4423,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 
 
-					QueueChatCommand( "/topic " + RoomName + " """ + RoomTopic + """" );
-				}
-				
+					QueueChatCommand( "/topic " + RoomName + " " + """" + RoomTopic + """" );
+				} 
 
 				//
 				// !SAYGAME
