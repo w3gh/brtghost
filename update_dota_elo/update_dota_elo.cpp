@@ -139,6 +139,10 @@ int main( int argc, char **argv )
 	string Password = CFG.GetString( "db_mysql_password", string( ) );
 	int Port = CFG.GetInt( "db_mysql_port", 0 );
 
+	bool DontUpdateScoresToAdmins = CFG.GetInt("elo_dont_calculate_score_to_admins", 0) == 1 ? true : false;
+
+	vector<string> AdminsList; AdminsList.clear();
+
 	cout << "connecting to database server" << endl;
 	MYSQL *Connection = NULL;
 
@@ -157,7 +161,38 @@ int main( int argc, char **argv )
 		return 1;
 	}
 
-	cout << "connected" << endl;
+	cout << "Checking Admins List" << endl;
+
+	string QAdminsList = "SELECT name FROM admins;";
+
+	if( mysql_real_query( Connection, QAdminsList.c_str( ), QAdminsList.size( ) ) != 0 )
+	{
+		cout << "error: " << mysql_error( Connection ) << endl;
+		return 1;
+	}
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( Connection );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( !Row.empty( ) )
+			{
+				AdminsList.push_back( Row[0] );
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+		{
+			cout << "error: " << mysql_error( Connection ) << endl;
+			return 1;
+		}
+	}
+
 	cout << "beginning transaction" << endl;
 
 	string QBegin = "BEGIN";
@@ -390,11 +425,7 @@ int main( int argc, char **argv )
                                         if (names[player_id] == Row[1]) break;
 
 										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
-/*
-                                        if (old_player_ratings[player_id] <= player_ratings[player_id])
-                                            elopoint = UTIL_ToString((uint32_t)player_ratings[player_id] - (uint32_t)old_player_ratings[player_id]); else
-                                            elopoint = "-"+UTIL_ToString((uint32_t)old_player_ratings[player_id] - (uint32_t)player_ratings[player_id]);
-*/
+
                                         string QUpdatePlayerPoint = "UPDATE dotaplayers SET elopoint="+elopoint+" WHERE gameid="+UTIL_ToString( GameID ) + " AND id=" + Row[0];
 
                                         if( mysql_real_query( Connection, QUpdatePlayerPoint.c_str( ), QUpdatePlayerPoint.size( ) ) != 0 )
@@ -417,9 +448,17 @@ int main( int argc, char **argv )
 										{
 											string EscName = MySQLEscapeString( Connection, names[player_id] );
 											string EscServer = MySQLEscapeString( Connection, servers[player_id] );
+
+											bool isAdmin; isAdmin = false;
+
+											if (DontUpdateScoresToAdmins)
+											for( uint32_t i = 0; i < AdminsList.size(); i++ )
+												if (AdminsList[i] == names[player_id])
+													isAdmin = true;
+													
 											string QInsertScore = "INSERT INTO dota_elo_scores ( name, server, score ) VALUES ( '" + EscName + "', '" + EscServer + "', " + UTIL_ToString( player_ratings[player_id], 2 ) + " )";
 
-											if( mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
+											if(!isAdmin && mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
 											{
 												cout << "error: " << mysql_error( Connection ) << endl;
 												return 1;
@@ -440,7 +479,7 @@ int main( int argc, char **argv )
 						    bool id_rating;
 						    id_rating = false;
 
-						    for (int cid=0;cid < player_who_scored.size(); cid++)
+						    for (uint32_t cid=0;cid < player_who_scored.size(); cid++)
                                 if (player_who_scored[cid] == names[i])
                                 {
                                     id_rating = true;
