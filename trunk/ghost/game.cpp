@@ -1590,14 +1590,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				if (!banned)
 				{
-					SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_0012", "$SERVER$", m_Server, "$VICTIM$", User)); // UserIsNotBanned
+					SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_0012", "$SERVER$", m_Server, "$VICTIM$", PlayerName)); // UserIsNotBanned
 					return HideCommand;
 				}
 
 				if( Matches == 0 )
 				{
 					if (!admin.empty())
-						m_PairedBanRemoves.push_back( PairedBanRemove( User, m_GHost->m_DB->ThreadedBanRemove( string(), Payload, User, 0 ) ) );
+						m_PairedBanRemoves.push_back( PairedBanRemove( User, m_GHost->m_DB->ThreadedBanRemove( string(), Payload, PlayerName, 0 ) ) );
 					else
 						m_PairedBanRemoves.push_back( PairedBanRemove( User, m_GHost->m_DB->ThreadedBanRemove( Payload, 0 ) ) );
 				}
@@ -1717,7 +1717,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						}
 
 						uint32_t BanTime = m_GHost->m_BanTime;
-						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, BanTime, 0 ) ) );
+
+						if(!(LastMatch->GetServer().empty()))
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, BanTime, 0 ) ) );
+						else
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, LastMatch->GetName( ), "", m_GameName, User, Reason, BanTime, 0 ) ) );
 
 						uint32_t GameNr = GetGameNr();
 
@@ -1802,10 +1806,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						uint32_t BanTime = m_GHost->m_BanTime;
 
-						if (Matches == 1)
+						if(Matches == 1 && !(LastMatch->GetJoinedRealm().empty()))
 							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, BanTime, 0 ) ) );
 						else
-							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, "", m_GameName, User, Reason, BanTime, 0 ) ) );
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, LastMatch->GetName( ), "", m_GameName, User, Reason, BanTime, 0 ) ) );
 
 						m_GHost->UDPChatSend("|ban "+Victim);
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
@@ -1817,12 +1821,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							if (BanTime)
 								sBan = m_GHost->m_Language->GetLang("lang_0519", "$SERVER$", GetCreatorServer(),
-									                                             "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+									                                             "$VICTIM$", Victim,
 										                                         "$USER$",  User,
 											                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
 							else
 	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
-																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$VICTIM$", Victim,
 																				 "$USER$",  User);
 						}
                         else
@@ -1833,7 +1837,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 																				 "$BANDAYTIME$", UTIL_ToString(BanTime));
 							else
 	                            sBan = m_GHost->m_Language->GetLang("lang_0052", "$SERVER$", GetCreatorServer(),
-																				 "$VICTIM$", Victim+" ("+LastMatch->GetExternalIPString()+")",
+																				 "$VICTIM$", Victim,
 																				 "$USER$",  User);
 
 						string sBReason = sBan + ", "+Reason;
@@ -6078,6 +6082,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		if ( !m_Stats )
 		{
 			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
+			return HideCommand;
+		}
+
+		if ( m_GHost->m_minFFtime && ((GetTime() - GetGameLoadedTime()) < m_GHost->m_minFFtime) )
+		{
+			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1217", UTIL_ToString(m_GHost->m_minFFtime)));
 			return HideCommand;
 		}
 		

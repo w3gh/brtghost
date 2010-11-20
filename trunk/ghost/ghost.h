@@ -261,6 +261,7 @@ public:
 	bool m_SafelistedBanImmunity;
 	uint32_t m_GameLoadedPrintout;	// config value: how many secs should Ghost wait to printout the GameLoaded msg
 	uint32_t m_InformAboutWarnsPrintout; // config value: how many secs should ghost wait to printout the warn count to each player.
+	uint32_t m_minFFtime;				// config value: min time to enable !ff command.
 
 	bool m_LanAdmins;						// config value: LAN people who join the game are considered admins
 	bool m_LanRootAdmins;					// config value: LAN people who join the game are considered rootadmins

@@ -1168,7 +1168,7 @@ CGHost :: CGHost( CConfig *CFG )
 	// external ip and country
 
 //	m_ExternalIP="";
-	if (m_ExternalIP!="")
+	if (!m_ExternalIP.empty())
 	{
 		m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
 		m_Country=m_DBLocal->FromCheck(m_ExternalIPL);
@@ -2735,11 +2735,6 @@ void CGHost :: UDPCommands( string Message )
 
 	string :: size_type CommandStart = Message.find( " " );
 
-	//  justapass
-	//  e579d5e14d8fd95ea1ef8025505cf8e2
-
-
-
 //	CONSOLE_Print( Message );
 
 	if( CommandStart != string :: npos )
@@ -2850,6 +2845,8 @@ void CGHost :: UDPCommands( string Message )
 
 		UDPChatSendBack(games);
     }
+
+	return;
 
 	if (Command == "readwelcome")
 	{
@@ -3995,6 +3992,9 @@ void CGHost :: ReloadConfig ()
 	m_DropVoteTime = CFG->GetInt( "bot_dropvotetime", 30 );
 	m_IPBanning = CFG->GetInt( "bot_ipbanning", 2 );
 	m_Banning = CFG->GetInt( "bot_banning", 1 );
+
+	m_minFFtime = CFG->GetInt( "bot_minFFtime", 0 );
+
 	ReadProviders();
 	size_t f;
 	providersn.clear();
