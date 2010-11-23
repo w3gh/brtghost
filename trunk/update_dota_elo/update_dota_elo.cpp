@@ -425,7 +425,10 @@ int main( int argc, char **argv )
 
 											for( uint32_t i = 0; i < AdminsList.size(); i++ )
 												if (AdminsList[i] == names[player_id])
+												{
 													isAdmin = true;
+													break;
+												}
 
 											if (isAdmin) continue;
 										}
@@ -461,7 +464,7 @@ int main( int argc, char **argv )
 
 											string QInsertScore = "INSERT INTO dota_elo_scores ( name, server, score ) VALUES ( '" + EscName + "', '" + EscServer + "', " + UTIL_ToString( player_ratings[player_id], 2 ) + " )";
 
-											if(mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
+											if(!mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
 											{
 												cout << "error: " << mysql_error( Connection ) << endl;
 												return 1;
