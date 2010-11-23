@@ -589,17 +589,18 @@ bool CGame :: Update( void *fd, void *send_fd )
 				if (m_GHost->m_dontshowsdforadmins)
 				for( vector<CBNET *> :: iterator it = m_GHost->m_BNETs.begin( ); it != m_GHost->m_BNETs.end( ); it++ )
 				{
-					if( (*it)->IsAdmin( i->second->GetName() ) )
-					{
-						isAdmin = true;
-						break;
-					} 
 
 					if ( (*it)->IsRootAdmin( i->second->GetName() ) )
 					{
 						isRootAdmin = true;
 						break;
 					}
+
+					if( (*it)->IsAdmin( i->second->GetName() ) )
+					{
+						isAdmin = true;
+						break;
+					} 
 				}
 
 				uint32_t scorescount = m_GHost->ScoresCount();
