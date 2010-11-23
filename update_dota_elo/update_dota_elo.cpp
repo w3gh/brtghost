@@ -418,24 +418,24 @@ int main( int argc, char **argv )
                                 {
                                         string elopoint; elopoint = "0.0";
                                         int player_id;
+	
+                                        for (player_id = 0;player_id < 10; player_id++)
+                                        if (names[player_id] == Row[1]) break;
+
+										bool isAdmin; isAdmin = false;
 
 										if (DontUpdateScoresToAdmins)
 										{
-											bool isAdmin; isAdmin = false;
-
 												for ( vector<string> :: iterator i = AdminsList.begin(); i != AdminsList.end(); i++)
-													if ( (*i).compare(names[player_id]))
+													if ( (*i) == names[player_id] )
 												{
 													isAdmin = true;
 													break;
 												}
 
-											if (isAdmin) continue;
 										}
-											
-                                        for (player_id = 0;player_id < 10; player_id++)
-                                        if (names[player_id] == Row[1]) break;
 
+										if (isAdmin) continue;
 
 										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
 
