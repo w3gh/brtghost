@@ -558,7 +558,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 				bool isRootAdmin = false;
 
 				if (m_GHost->m_dontshowsdforadmins)
-				for( vector<CBNET *> :: iterator it = m_GHost->m_BNETs.begin( ); it != m_GHost->m_BNETs.end( ); i++ )
+				for( vector<CBNET *> :: iterator it = m_GHost->m_BNETs.begin( ); it != m_GHost->m_BNETs.end( ); it++ )
 				{
 					if ( (*it)->IsAdmin( i->second->GetName() ) )
 					{
@@ -572,7 +572,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 						break;
 					}
 				}
-
 
 			    string leave_games_count, player_class;
 
@@ -600,7 +599,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
                     DotAPlayerSummary->GetAssistsPerGame( ) >= DotAPlayerSummary->GetDeathsPerGame( ))
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
                 leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
-
 
 				string sd_lang = "lang_0995";
 
