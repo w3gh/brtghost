@@ -44,6 +44,7 @@ using namespace std;
 #endif
 
 #include <mysql/mysql.h>
+#include <algorithm>
 
 string UTIL_FloatToString (float number){
      ostringstream buff;
