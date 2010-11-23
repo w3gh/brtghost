@@ -180,7 +180,10 @@ int main( int argc, char **argv )
 
 			while( !Row.empty( ) )
 			{
-				AdminsList.push_back( Row[0] );
+				string name = Row[0];
+				transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+
+				AdminsList.push_back( name );
 				Row = MySQLFetchRow( Result );
 			}
 
@@ -328,6 +331,9 @@ int main( int argc, char **argv )
 						rowids[num_players] = 0;
 
 					names[num_players] = Row[1];
+
+					transform( names[num_players].begin( ), names[num_players].end( ), names[num_players].begin( ), (int(*)(int))tolower );
+
 					servers[num_players] = Row[2];
 
 					if( !Row[5].empty( ) )
@@ -417,28 +423,26 @@ int main( int argc, char **argv )
                                 while( !Row.empty( ) )
                                 {
                                         string elopoint; elopoint = "0.0";
-                                        int player_id;
+                                        int player_id = -1;
 	
                                         for (player_id = 0;player_id < 10; player_id++)
                                         if (names[player_id] == Row[1]) break;
 
-										bool isAdmin; isAdmin = false;
+										if (player_id < 0)
+										{
+											cout << "[ELO] Error, player_id < 0" << endl;
+											break;
+										}
 
 										if (DontUpdateScoresToAdmins)
 										{
 												for ( vector<string> :: iterator i = AdminsList.begin(); i != AdminsList.end(); i++)
 													if ( (*i) == names[player_id] )
 												{
-													isAdmin = true;
+													player_ratings[player_id] = old_player_ratings[player_id];
 													break;
 												}
 
-										}
-
-										if (isAdmin) 
-										{
-											Row = MySQLFetchRow( Result );
-											continue;
 										}
 
 										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
