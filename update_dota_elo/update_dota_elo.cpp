@@ -435,7 +435,11 @@ int main( int argc, char **argv )
 
 										}
 
-										if (isAdmin) continue;
+										if (isAdmin) 
+										{
+											Row = MySQLFetchRow( Result );
+											continue;
+										}
 
 										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
 
