@@ -425,9 +425,12 @@ int main( int argc, char **argv )
                                 {
                                         string elopoint; elopoint = "0.0";
                                         int player_id = -1;
+										string cur_name; cur_name = Row[1];
+										
+										transform( cur_name.begin( ), cur_name.end( ), cur_name.begin( ), (int(*)(int))tolower );
 	
                                         for (player_id = 0;player_id < 10; player_id++)
-                                        if (names[player_id] == Row[1]) break;
+                                        if (names[player_id] == cur_name) break;
 
 										if (player_id < 0)
 										{
