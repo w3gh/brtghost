@@ -554,13 +554,33 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			if (sd)
 			if( DotAPlayerSummary )
 			{
+				bool isAdmin = false;
+				bool isRootAdmin = false;
+
+				if (m_GHost->m_dontshowsdforadmins)
+				for( vector<CBNET *> :: iterator it = m_GHost->m_BNETs.begin( ); it != m_GHost->m_BNETs.end( ); i++ )
+				{
+					if ( (*it)->IsAdmin( i->second->GetName() ) )
+					{
+						isAdmin = true;
+						break;
+					} 
+
+					if ( (*it)->IsRootAdmin( i->second->GetName() ) )
+					{
+						isRootAdmin = true;
+						break;
+					}
+				}
+
+
 			    string leave_games_count, player_class;
 
 				string RankS = UTIL_ToString( DotAPlayerSummary->GetRank());
 				uint32_t scorescount = m_GHost->ScoresCount();
 				float newbie_value = 1.5f;
 
-                player_class = "";
+                player_class.empty();
 
 				if (DotAPlayerSummary->GetRank()>0)
 					RankS = RankS + "/" + UTIL_ToString(scorescount);
@@ -581,7 +601,22 @@ bool CBNET :: Update( void *fd, void *send_fd )
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
                 leave_games_count = UTIL_ToString( (100 * DotAPlayerSummary->GetLeaveCount()) / DotAPlayerSummary->GetTotalGames( )); // In percent
 
-                QueueChatCommand( m_GHost->m_Language->GetLang("lang_0995",
+
+				string sd_lang = "lang_0995";
+
+				if (isAdmin) 
+				{
+					player_class = m_GHost->m_Language->GetLang("lang_1061a"); // Administrator
+					sd_lang = "lang_0995a";
+				}
+				else
+					if (isRootAdmin) 
+					{
+						player_class = m_GHost->m_Language->GetLang("lang_1061r"); // Root admin
+						sd_lang = "lang_0995a";
+					}
+
+                QueueChatCommand( m_GHost->m_Language->GetLang(sd_lang,
                                   "$USER$", i->second->GetName( ),
                                   "$TOTALGAMES$", UTIL_ToString(DotAPlayerSummary->GetTotalGames( )),
                                   "$COUNT$", leave_games_count,

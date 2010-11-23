@@ -582,6 +582,26 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if (sd)
 			if( DotAPlayerSummary )
 			{
+
+				bool isAdmin = false;
+				bool isRootAdmin = false;
+
+				if (m_GHost->m_dontshowsdforadmins)
+				for( vector<CBNET *> :: iterator it = m_GHost->m_BNETs.begin( ); it != m_GHost->m_BNETs.end( ); i++ )
+				{
+					if( (*it)->IsAdmin( i->second->GetName() ) )
+					{
+						isAdmin = true;
+						break;
+					} 
+
+					if ( (*it)->IsRootAdmin( i->second->GetName() ) )
+					{
+						isRootAdmin = true;
+						break;
+					}
+				}
+
 				uint32_t scorescount = m_GHost->ScoresCount();
 
 				CGamePlayer *PlayerN = GetPlayerFromName( i->second->GetName(), true );
@@ -623,9 +643,24 @@ bool CGame :: Update( void *fd, void *send_fd )
                     player_class =  m_GHost->m_Language->GetLang("lang_1058");
 
 
+				
+				string sd_lang = "lang_0995";
+
+				if (isAdmin) 
+				{
+					player_class = m_GHost->m_Language->GetLang("lang_1061a"); // Administrator
+					sd_lang = "lang_0995a";
+				}
+				else
+					if (isRootAdmin) 
+					{
+						player_class = m_GHost->m_Language->GetLang("lang_1061r"); // Root admin
+						sd_lang = "lang_0995a";
+					}
+
                 if (DotAPlayerSummary->GetScore()) // HasPlayedDotAGamesWithThisBot2
 
-				Summary = m_GHost->m_Language->GetLang("lang_0995",
+				Summary = m_GHost->m_Language->GetLang(sd_lang,
 					  "$USER$", i->second->GetName( ),
 					  "$TOTALGAMES$", UTIL_ToString(DotAPlayerSummary->GetTotalGames( )),
 					  "$COUNT$", leave_games_count,

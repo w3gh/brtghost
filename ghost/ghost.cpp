@@ -3816,6 +3816,7 @@ void CGHost :: ReloadConfig ()
 		m_AutoHostMapCFG = m_MapCFGPath + m_AutoHostMapCFG;
 
 	m_GameNameContainString = CFG->GetString( "bot_gamenamecontainstring", string( ) );
+	m_dontshowsdforadmins = CFG->GetInt( "bot_dontshowsdforadmins", 0 ) == 1 ? true : false;
 
 	m_GUIPort = CFG->GetInt( "udp_guiport", 5868 );
 	m_AutoBan = CFG->GetInt( "bot_autoban", 0 ) == 0 ? false : true;
