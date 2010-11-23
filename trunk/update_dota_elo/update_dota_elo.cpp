@@ -395,7 +395,6 @@ int main( int argc, char **argv )
                             return 1;
                         }
 
-
 						vector<string> player_who_scored;
 						player_who_scored.clear();
 
@@ -417,12 +416,23 @@ int main( int argc, char **argv )
 
                                 while( !Row.empty( ) )
                                 {
-                                        string elopoint;
-										elopoint = "0.0";
+                                        string elopoint; elopoint = "0.0";
                                         int player_id;
 
+										if (DontUpdateScoresToAdmins)
+										{
+											bool isAdmin; isAdmin = false;
+
+											for( uint32_t i = 0; i < AdminsList.size(); i++ )
+												if (AdminsList[i] == names[player_id])
+													isAdmin = true;
+
+											if (isAdmin) continue;
+										}
+											
                                         for (player_id = 0;player_id < 10; player_id++)
                                         if (names[player_id] == Row[1]) break;
+
 
 										elopoint = UTIL_FloatToString(player_ratings[player_id] - old_player_ratings[player_id]);
 
@@ -449,16 +459,9 @@ int main( int argc, char **argv )
 											string EscName = MySQLEscapeString( Connection, names[player_id] );
 											string EscServer = MySQLEscapeString( Connection, servers[player_id] );
 
-											bool isAdmin; isAdmin = false;
-
-											if (DontUpdateScoresToAdmins)
-											for( uint32_t i = 0; i < AdminsList.size(); i++ )
-												if (AdminsList[i] == names[player_id])
-													isAdmin = true;
-													
 											string QInsertScore = "INSERT INTO dota_elo_scores ( name, server, score ) VALUES ( '" + EscName + "', '" + EscServer + "', " + UTIL_ToString( player_ratings[player_id], 2 ) + " )";
 
-											if(!isAdmin && mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
+											if(mysql_real_query( Connection, QInsertScore.c_str( ), QInsertScore.size( ) ) != 0 )
 											{
 												cout << "error: " << mysql_error( Connection ) << endl;
 												return 1;

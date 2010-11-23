@@ -280,6 +280,7 @@ public:
 	bool m_autohclfromgamename;				// config value: auto set HCL based on gamename, ignore map_defaulthcl
 	bool m_norank;
 	bool m_nostatsdota; 
+	bool m_dontshowsdforadmins;				// config value: Show !sd for admins or not
 	bool m_UsersCanHost;
 	bool m_SafeCanHost;
 	bool m_Console;
