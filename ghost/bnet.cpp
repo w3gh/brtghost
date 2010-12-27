@@ -3040,6 +3040,34 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				}
 
 				//
+                // !ENFORCESG
+                //
+
+                else if( Command == "enforcesg" && !Payload.empty( ) )
+                {
+                        // only load files in the current directory just to be safe
+
+                        if( Payload.find( "/" ) != string :: npos || Payload.find( "\\" ) != string :: npos )
+                                QueueChatCommand( m_GHost->m_Language->GetLang( "lang_0208" ), User, Whisper ); // Unable to load replay outside of replay folder
+                        else
+                        {
+                                string File = m_GHost->m_ReplayPath + Payload + ".w3g";
+
+                                if( UTIL_FileExists( File ) )
+                                {
+                                        QueueChatCommand( m_GHost->m_Language->GetLang( "lang_0209", "$FILE$", File ), User, Whisper ); // Loading replay
+                                        CReplay *Replay = new CReplay( );
+                                        Replay->Load( File, false );
+                                        Replay->ParseReplay( false );
+                                        m_GHost->m_EnforcePlayers = Replay->GetPlayers( );
+                                        delete Replay;
+                                }
+                                else
+                                        QueueChatCommand( m_GHost->m_Language->GetLang( "lang_0210", "$FILE$", File ), User, Whisper ); // Replay doesn't exist
+                        }
+                }
+
+				//
 				// !EXIT
 				// !QUIT
 				// !Q
