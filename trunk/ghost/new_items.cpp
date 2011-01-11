@@ -110,14 +110,20 @@ CDotaItems::CDotaItems (CDotaItemList* nAllItems)
 CDotaItems::~CDotaItems ()
 {
 	multimap<uint32_t, CDotaItemRecipe*>::iterator it;
+	vector<CDotaItemRecipe*> buf;
 	for(it = m_ItemRecipes.begin(); it != m_ItemRecipes.end(); it++)
 	{
-		delete it->second();
+		if (find(buf.begin(), buf.end(), it->second) == buf.end())
+		{
+			buf.push_back(it->second);
+			delete it->second;
+		}
 	}
 	m_ItemRecipes.clear();
+	buf.clear();
 };
 
-void CDotaItems::addRecipe (CDotaItemRecipe* nRecipe)
+void CDotaItems::AddRecipe (CDotaItemRecipe* nRecipe)
 {
 	vector<uint32_t> items = nRecipe.GetItems();
 	vector<uint32_t>::iterator it;
@@ -245,131 +251,131 @@ CDotaItems_669::CDotaItems_669(CDotaItemList* nAllItems) : CDotaItems(nAllItems)
 	recipe->AddItem(1227895879);
 	recipe->AddItem(1227895879);
 	recipe->AddItem(1227900983);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Null of talisman
 	recipe = new CDotaItemRecipe(1227896396, m_AllItems);
 	recipe->AddItem(1227896152);
 	recipe->AddItem(1227895385);
 	recipe->AddItem(1227895882);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Wraith band
 	recipe = new CDotaItemRecipe(1227896394, m_AllItems);
 	recipe->AddItem(1227896151);
 	recipe->AddItem(1227895385);
 	recipe->AddItem(1227895897);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Bracer
 	recipe = new CDotaItemRecipe(1227896392, m_AllItems);
 	recipe->AddItem(1227896150);
 	recipe->AddItem(1227895385);
 	recipe->AddItem(1227895875);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Poor Man's Shield
 	recipe = new CDotaItemRecipe(1227901766, m_AllItems);
 	recipe->AddItem(1227896113);
 	recipe->AddItem(1227895897);
 	recipe->AddItem(1227895897);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Perseverance
 	recipe = new CDotaItemRecipe(1227896370, m_AllItems);
 	recipe->AddItem(1227896116);
 	recipe->AddItem(1227895892);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Oblivion staff
 	recipe = new CDotaItemRecipe(1227896370, m_AllItems);
 	recipe->AddItem(1227895891);
 	recipe->AddItem(1227895895);
 	recipe->AddItem(1227895898);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Hand of Midas
 	recipe = new CDotaItemRecipe(1227896388, m_AllItems);
 	recipe->AddItem(1227896149);
 	recipe->AddItem(1227895376);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Soul Ring
 	recipe = new CDotaItemRecipe(1227902028, m_AllItems);
 	recipe->AddItem(1227902030);
 	recipe->AddItem(1227895894);
 	recipe->AddItem(1227895898);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Power Threads of Strength 
 	recipe = new CDotaItemRecipe(1227896153, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227895376);
 	recipe->AddItem(1227895859);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Power Threads of Agility 
 	recipe = new CDotaItemRecipe(1227895380, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227895376);
 	recipe->AddItem(1227895378);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Power Threads of Magic
 	recipe = new CDotaItemRecipe(1227896154, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227895376);
 	recipe->AddItem(1227895895);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Phase Boots 
 	recipe = new CDotaItemRecipe(1227900746, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227895861);
 	recipe->AddItem(1227895861);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Headdress of Rejuvenation
 	recipe = new CDotaItemRecipe(1227896371, m_AllItems);
 	recipe->AddItem(1227895894);
 	recipe->AddItem(1227895879);
 	recipe->AddItem(1227896146);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Urn of Shadows 
 	recipe = new CDotaItemRecipe(1227901785, m_AllItems);
 	recipe->AddItem(1227901782);
 	recipe->AddItem(1227895898);
 	recipe->AddItem(1227895875);
 	recipe->AddItem(1227895875);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Khadgar's Pipe of Insight
 	recipe = new CDotaItemRecipe(1227901750, m_AllItems);
 	recipe->AddItem(1227901018);
 	recipe->AddItem(1227896371);
 	recipe->AddItem(1227899469);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Ring of Basilius 
 	recipe = new CDotaItemRecipe(1227896375, m_AllItems);
 	recipe->AddItem(1227895893);
 	recipe->AddItem(1227895898);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Nathrezim Buckler
 	recipe = new CDotaItemRecipe(1227896374, m_AllItems);
 	recipe->AddItem(1227896147);
 	recipe->AddItem(1227895863);
 	recipe->AddItem(1227895879);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Arcane boots
 	recipe = new CDotaItemRecipe(1227902281, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227895874);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Vladmir's Offering
 	recipe = new CDotaItemRecipe(1227899463, m_AllItems);
 	recipe->AddItem(1227896375);
 	recipe->AddItem(1227896898);
 	recipe->AddItem(1227895883);
 	recipe->AddItem(1227895894);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Mekansm
 	recipe = new CDotaItemRecipe(1227897139, m_AllItems);
 	recipe->AddItem(1227896627);
 	recipe->AddItem(1227896371);
 	recipe->AddItem(1227896374);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Refresher orb
 	recipe = new CDotaItemRecipe(1227899210, m_AllItems);
 	recipe->AddItem(1227896888);
 	recipe->AddItem(1227896390);
 	recipe->AddItem(1227896370);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Aghanim's Scepter 1
 	recipe = new CDotaItemRecipe(1227894833, m_AllItems);
 	recipe->AddItem(1227895890);
@@ -398,281 +404,281 @@ CDotaItems_669::CDotaItems_669(CDotaItemList* nAllItems) : CDotaItems(nAllItems)
 	recipe->AddItem(1227896112);
 
 	*/
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Boots of Travel
 	recipe = new CDotaItemRecipe(1227896386, m_AllItems);
 	recipe->AddItem(1227895375);
 	recipe->AddItem(1227896148);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Necromicon 1
 	recipe = new CDotaItemRecipe(1227897172, m_AllItems);
 	recipe->AddItem(1227896881);
 	recipe->AddItem(1227896112);
 	recipe->AddItem(1227895859);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Necromicon 2
 	recipe = new CDotaItemRecipe(1227897176, m_AllItems);
 	recipe->AddItem(1227896881);
 	recipe->AddItem(1227897172);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Necromicon 3
 	recipe = new CDotaItemRecipe(1227897177, m_AllItems);
 	recipe->AddItem(1227896881);
 	recipe->AddItem(1227897176);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Dagon 1
 	recipe = new CDotaItemRecipe(1227897165, m_AllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227896112);
 	recipe->AddItem(1227896396);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Dagon 2
 	recipe = new CDotaItemRecipe(1227897168, m_AllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227897165);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Dagon 3
 	recipe = new CDotaItemRecipe(1227897166, m_AllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227897168);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Dagon 4
 	recipe = new CDotaItemRecipe(1227897167, m_AllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227897166);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Dagon 5
 	recipe = new CDotaItemRecipe(1227897164, m_AllItems);
 	recipe->AddItem(1227896880);
 	recipe->AddItem(1227897167);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Force Staff
 	recipe = new CDotaItemRecipe(1227901001, m_AllItems);
 	recipe->AddItem(1227900998);
 	recipe->AddItem(1227895891);
 	recipe->AddItem(1227896112);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Eul's Scepter of Divinity
 	recipe = new CDotaItemRecipe(1227896922, m_AllItems);
 	recipe->AddItem(1227896626);
 	recipe->AddItem(1227896112);
 	recipe->AddItem(1227896116);
 	recipe->AddItem(1227895898);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Orchid Malevolence
 	recipe = new CDotaItemRecipe(1227895090, m_AllItems);
 	recipe->AddItem(1227896390);
 	recipe->AddItem(1227896390);
 	recipe->AddItem(1227896390);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Guinsoo's Scythe of Vyse
 	recipe = new CDotaItemRecipe(1227899212, m_AllItems);
 	recipe->AddItem(1227895886);
 	recipe->AddItem(1227896114);
 	recipe->AddItem(1227896116);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Hood of Defiance /1
 	recipe = new CDotaItemRecipe(1227899469, m_AllItems);
 	recipe->AddItem(1227895888);
 	recipe->AddItem(1227895877);
 	recipe->AddItem(1227895892);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Hood of Defiance /2
 	recipe = new CDotaItemRecipe(1227899469, m_AllItems);
 	recipe->AddItem(1227895888);
 	recipe->AddItem(1227895877);
 	recipe->AddItem(1227895894);
 	recipe->AddItem(1227895894);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Soul Booster
 	recipe = new CDotaItemRecipe(1227897137, m_AllItems);
 	recipe->AddItem(1227896115);
 	recipe->AddItem(1227895890);
 	recipe->AddItem(1227895874);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Blade Mail 
 	recipe = new CDotaItemRecipe(1227896911, m_AllItems);
 	recipe->AddItem(1227895862);
 	recipe->AddItem(1227895863);
 	recipe->AddItem(1227895895);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Vanguard
 	recipe = new CDotaItemRecipe(1227902019, m_AllItems);
 	recipe->AddItem(1227896113);
 	recipe->AddItem(1227895892);
 	recipe->AddItem(1227896115);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Linken's Sphere
 	recipe = new CDotaItemRecipe(1227897178, m_AllItems);
 	recipe->AddItem(1227896882);
 	recipe->AddItem(1227896370);
 	recipe->AddItem(1227896114);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Bloodstone
 	recipe = new CDotaItemRecipe(1227899467, m_AllItems);
 	recipe->AddItem(1227896370);
 	recipe->AddItem(1227897137);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Shiva's Guard
 	recipe = new CDotaItemRecipe(1227894874, m_AllItems);
 	recipe->AddItem(1227896901);
 	recipe->AddItem(1227895889);
 	recipe->AddItem(1227895886);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Black King Bar
 	recipe = new CDotaItemRecipe(1227900506, m_AllItems);
 	recipe->AddItem(1227896664);
 	recipe->AddItem(1227895887);
 	recipe->AddItem(1227895885);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Heart of Tarrasque
 	recipe = new CDotaItemRecipe(1227899193, m_AllItems);
 	recipe->AddItem(1227896884);
 	recipe->AddItem(1227895884);
 	recipe->AddItem(1227896115);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Assault Cuirass
 	recipe = new CDotaItemRecipe(1227899466, m_AllItems);
 	recipe->AddItem(1227896899);
 	recipe->AddItem(1227895889);
 	recipe->AddItem(1227895878);
 	recipe->AddItem(1227895863);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Diffusal Blade
 	recipe = new CDotaItemRecipe(1227896914, m_AllItems);
 	recipe->AddItem(1227896409);
 	recipe->AddItem(1227895860);
 	recipe->AddItem(1227895860);
 	recipe->AddItem(1227895895);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Mask Of Madness
 	recipe = new CDotaItemRecipe(1227896921, m_AllItems);
 	recipe->AddItem(1227896410);
 	recipe->AddItem(1227895883);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Yasha
 	recipe = new CDotaItemRecipe(1227896903, m_AllItems);
 	recipe->AddItem(1227896399);
 	recipe->AddItem(1227895860);
 	recipe->AddItem(1227895378);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Stygian Desolator
 	recipe = new CDotaItemRecipe(1227897143, m_AllItems);
 	recipe->AddItem(1227896662);
 	recipe->AddItem(1227895885);
 	recipe->AddItem(1227895885);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Maelstorm
 	recipe = new CDotaItemRecipe(1227896912, m_AllItems);
 	recipe->AddItem(1227896406);
 	recipe->AddItem(1227895885);
 	recipe->AddItem(1227895376);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Helm of the Dominator 
 	recipe = new CDotaItemRecipe(1227896916, m_AllItems);
 	recipe->AddItem(1227895877);
 	recipe->AddItem(1227895883);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Sange
 	recipe = new CDotaItemRecipe(1227896904, m_AllItems);
 	recipe->AddItem(1227896400);
 	recipe->AddItem(1227895887);
 	recipe->AddItem(1227895859);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Eye of Skadi
 	recipe = new CDotaItemRecipe(1227899205, m_AllItems);
 	recipe->AddItem(1227896114);
 	recipe->AddItem(1227896114);
 	recipe->AddItem(1227895890);
 	recipe->AddItem(1227902265);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Mjollnir
 	recipe = new CDotaItemRecipe(1227899461, m_AllItems);
 	recipe->AddItem(1227901774);
 	recipe->AddItem(1227896912);
 	recipe->AddItem(1227895878);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Satanic 
 	recipe = new CDotaItemRecipe(1227899202, m_AllItems);
 	recipe->AddItem(1227896885);
 	recipe->AddItem(1227896916);
 	recipe->AddItem(1227895884);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Sange and Yasha 
 	recipe = new CDotaItemRecipe(1227897141, m_AllItems);
 	recipe->AddItem(1227896904);
 	recipe->AddItem(1227896903);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Ethereal Blade 
 	recipe = new CDotaItemRecipe(1227902036, m_AllItems);
 	recipe->AddItem(1227895873);
 	recipe->AddItem(1227901513);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Lothar's Edge
 	recipe = new CDotaItemRecipe(1227897160, m_AllItems);
 	recipe->AddItem(1227896666);
 	recipe->AddItem(1227895864);
 	recipe->AddItem(1227895891);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Armlet of Mordiggian
 	recipe = new CDotaItemRecipe(1227894865, m_AllItems);
 	recipe->AddItem(1227896900);
 	recipe->AddItem(1227895877);
 	recipe->AddItem(1227895376);
 	recipe->AddItem(1227895861);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Crystalys
 	recipe = new CDotaItemRecipe(1227897155, m_AllItems);
 	recipe->AddItem(1227896663);
 	recipe->AddItem(1227895862);
 	recipe->AddItem(1227895861);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Manta Style
 	recipe = new CDotaItemRecipe(1227897158, m_AllItems);
 	recipe->AddItem(1227896665);
 	recipe->AddItem(1227896903);
 	recipe->AddItem(1227896114);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Battle Fury
 	recipe = new CDotaItemRecipe(1227897145, m_AllItems);
 	recipe->AddItem(1227895864);
 	recipe->AddItem(1227895862);
 	recipe->AddItem(1227896370);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Cranium Basher 
 	recipe = new CDotaItemRecipe(1227896907, m_AllItems);
 	recipe->AddItem(1227896403);
 	recipe->AddItem(1227896117);
 	recipe->AddItem(1227895859);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Buriza-do Kyanon
 	recipe = new CDotaItemRecipe(1227899187, m_AllItems);
 	recipe->AddItem(1227896883);
 	recipe->AddItem(1227895865);
 	recipe->AddItem(1227897155);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// The Butterfly
 	recipe = new CDotaItemRecipe(1227899209, m_AllItems);
 	recipe->AddItem(1227895873);
 	recipe->AddItem(1227901494);
 	recipe->AddItem(1227895891);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Radiance
 	recipe = new CDotaItemRecipe(1227899192, m_AllItems);
 	recipe->AddItem(1227896646);
 	recipe->AddItem(1227895896);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Monkey King Bar
 	recipe = new CDotaItemRecipe(1227899189, m_AllItems);
 	recipe->AddItem(1227896117);
 	recipe->AddItem(1227896117);
 	recipe->AddItem(1227895865);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 	// Divine Rapier
 	recipe = new CDotaItemRecipe(1227899185, m_AllItems);
 	recipe->AddItem(1227895865);
 	recipe->AddItem(1227895896);
-	m_ItemRecipes.push_back(recipe);
+	AddRecipe(recipe);
 };
 
 //
