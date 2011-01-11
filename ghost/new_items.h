@@ -57,7 +57,7 @@ class CDotaItems
 		
 		bool PickUpPItem (uint32_t nItem);  // pick up to m_Items
 		bool DropPItem (uint32_t nItem);    // drop from m_Items
-		void addRecipe(CDotaItemRecipe* nRecipe);
+		void AddRecipe(CDotaItemRecipe* nRecipe);
 		
 	public:
 		CDotaItems(CDotaItemList* nAllItems);
