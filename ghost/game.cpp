@@ -174,7 +174,7 @@ CGame :: ~CGame( )
 						{
 							if( !Match->GetServer( ).empty( ) )
 							{
-								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( Match->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", "Reached the warn quota", m_GHost->m_BanTimeOfWarnedPlayer, 0 ));
+								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( Match->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", m_GHost->m_Language->GetLang("lang_1125"), m_GHost->m_BanTimeOfWarnedPlayer, 0 ));
 								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedWarnUpdate( Match->GetName( ), 3, 2));
 								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedWarnUpdate( Match->GetName( ), 1, 3));
 							}
@@ -182,7 +182,7 @@ CGame :: ~CGame( )
 							{
 								for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 								{
-									m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", "Reached the warn quota", m_GHost->m_BanTimeOfWarnedPlayer, 0 ));
+									m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", m_GHost->m_Language->GetLang("lang_1125"), m_GHost->m_BanTimeOfWarnedPlayer, 0 ));
 									m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedWarnUpdate( Match->GetName( ), 3, 2));
 									m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedWarnUpdate( Match->GetName( ), 1, 3));
 								}
@@ -5580,7 +5580,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							bool isAdmin = false;
 							bool isRootAdmin = false;
-							bool sameteam = m_Slots[SID1-1].GetTeam() == m_Slots[SID2-1].GetTeam();
+							bool sameteam = false;
+							if (SID1-1<m_Slots.size() && SID2-1<m_Slots.size())
+								sameteam = m_Slots[SID1-1].GetTeam() == m_Slots[SID2-1].GetTeam();
 							CGamePlayer *Player = GetPlayerFromSID( SID1 - 1 );
 							CGamePlayer *Player2 = GetPlayerFromSID( SID2 - 1 );
 							if (Player)
