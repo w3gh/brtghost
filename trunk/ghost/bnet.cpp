@@ -2919,7 +2919,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						}
 						if (!banned)
 						{
-							QueueChatCommand(m_GHost->m_Language->GetLang("lang_0012", "$SERVER$", m_ServerAlias, "$VICTIM$", User), User, Whisper); // UserIsNotBanned
+							QueueChatCommand(m_GHost->m_Language->GetLang("lang_0012", "$SERVER$", m_ServerAlias, "$VICTIM$", nam), User, Whisper); // UserIsNotBanned
 							return;
 						}
 						if (banned && User!=banadmin && m_GHost->m_AdminsLimitedUnban)
