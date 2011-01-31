@@ -169,6 +169,7 @@ protected:
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
 	bool m_DoAutoWarns;								// enable automated warns for early leavers
+	uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 
 public:
 	vector<CGamePlayer *> m_Players;			// vector of players
@@ -209,6 +210,7 @@ public:
 	double m_ScoreCheckScore;
 	uint32_t m_ScoreCheckRank;
 	bool m_GarenaOnly;							// only allow GArena
+	bool m_NoGarena;							// no Garena allowed
 	bool m_LocalOnly;							// only allow Local
 	bool m_GameOverCanceled;					// cancel game over timer
 	bool m_GameOverDiffCanceled;				// disable game over on team difference

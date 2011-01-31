@@ -438,12 +438,28 @@ string CGamePlayer :: GetCountry()
 {
 	if (m_Country.empty())
 	{
-		if (GetExternalIPString()=="127.0.0.1")
+		if ((GetExternalIPString()=="127.0.0.1" || GetExternalIPString()==m_Game->m_GHost->m_ExternalIP) && !m_Game->m_GHost->IsRootAdmin(m_Name))
 			m_Country = "Ga";
 		else
 			m_Country = m_Game->m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( GetExternalIP( ), true ) );
 	}
 	return m_Country;
+}
+
+string CGamePlayer :: GetShortenedRealm()
+{
+	if(GetJoinedRealm( ) == "uswest.battle.net")
+		return "UsW";
+	else if(GetJoinedRealm( ).empty())
+		return "GGC";
+	else if(GetJoinedRealm( ) == "useast.battle.net")
+		return "UsE";
+	else if(GetJoinedRealm( ) == "asia.battle.net")
+		return "Asia";
+	else if(GetJoinedRealm( ) == "europe.battle.net")
+		return "Euro";
+	else
+		return "??";
 }
 
 bool CGamePlayer :: Update( void *fd )
