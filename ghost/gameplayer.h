@@ -247,6 +247,7 @@ public:
 	void SetName (string nName)												{ m_Name = nName; }
 	virtual string GetProvider( );											
 	virtual string GetCountry ( );
+	virtual string GetShortenedRealm ( );
 	void SetSID( unsigned char nSID )										{ m_SID = nSID; }
 	void SetDOTAKills( uint32_t nKills )									{ m_DOTAKills = nKills; }
 	void SetDOTADeaths( uint32_t nDeaths )									{ m_DOTADeaths = nDeaths; }

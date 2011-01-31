@@ -944,7 +944,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.0.9 r132";
+	m_GHostVersion = "1.7.0.9 r133";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
@@ -2726,12 +2726,12 @@ void CGHost :: UDPCommands( string Message )
 	string IP;
 	string Command;
 	string Payload;
-	string :: size_type key = Message.find("e579d5e14d8fd95ea1ef8025505cf8e2");
+	/*string :: size_type key = Message.find("e579d5e14d8fd95ea1ef8025505cf8e2");
 
 	if (key == string :: npos)
 		return; 
 	else
-		Message.substr(key);
+		Message.substr(key);*/
 
 	string :: size_type CommandStart = Message.find( " " );
 
@@ -2845,8 +2845,6 @@ void CGHost :: UDPCommands( string Message )
 
 		UDPChatSendBack(games);
     }
-
-	return;
 
 	if (Command == "readwelcome")
 	{
@@ -3925,6 +3923,7 @@ void CGHost :: ReloadConfig ()
 	{
 		SetTimerResolution();
 	}
+	m_Refresh0Uptime = CFG->GetInt( "bot_refresh0uptime", 0 ) == 0 ? false : true;
 	m_UsersCanHost = CFG->GetInt( "bot_userscanhost", 0 ) == 0 ? false : true;
 	m_SafeCanHost = CFG->GetInt( "bot_safecanhost", 0 ) == 0 ? false : true;
 	m_AdminMessages = CFG->GetInt( "bot_adminmessages", 0 ) == 0 ? false : true;

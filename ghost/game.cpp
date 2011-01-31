@@ -122,6 +122,7 @@ CGame :: ~CGame( )
 	}
 	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
 	{
+		m_DatabaseID = m_CallableGameAdd->GetResult();
 		if( m_CallableGameAdd->GetResult( ) > 0 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
@@ -4275,6 +4276,71 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !REALM
+			// !R
+			//
+			else if( Command == "realm" || Command == "r")
+			{
+				string Froms;
+				string Froms2;
+				string CNL;
+				string CN;
+				bool samerealm=true;
+				if(!Payload.empty())
+				{
+					CGamePlayer *LastMatch = NULL;
+					uint32_t Matches = GetPlayerFromNamePartial( Payload , &LastMatch );
+
+					if( Matches == 0 )
+						CONSOLE_Print("No matches");
+
+					else if( Matches == 1 )
+					{
+						Froms = LastMatch->GetName( );
+						Froms += ": (";
+						CN = LastMatch->GetShortenedRealm();
+						Froms += CN;
+						Froms += ")";
+						SendAllChat(Froms);
+					}
+					else
+						CONSOLE_Print("Found more than one match");
+					return HideCommand;
+				}
+				
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+				{
+					// we reverse the byte order on the IP because it's stored in network byte order
+
+					Froms2 += (*i)->GetName( );
+					Froms += (*i)->GetName( );
+					Froms += ": (";
+					CN = (*i)->GetShortenedRealm();
+//					CN = m_GHost->m_DB->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
+					Froms += CN;
+					Froms += ")";
+
+					if (CNL=="")
+						CNL=CN;
+					else
+					if (CN!=CNL)
+						samerealm=false;
+
+					if( i != m_Players.end( ) - 1 )
+					{
+						Froms += ", ";
+						Froms2 += ", ";
+					}
+				}
+				Froms2 += " "+ m_GHost->m_Language->GetLang("lang_1181", CNL);  // " are all from ("+CNL+")";
+
+				if (samerealm)
+					SendAllChat( Froms2 );
+				else
+					SendAllChat( Froms );
+			}
+
+			//
 			// !SILENCE
 			//
 
@@ -5267,13 +5333,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						BYTEARRAY MapHeight;
 						MapHeight.push_back( 0 );
 						MapHeight.push_back( 0 );
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
 					}
 					else
 					{
 						uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
 
-						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
+						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, m_HostCounter ) );
 					}
 				}
 			}
@@ -5768,6 +5834,20 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					SendAllChat( m_GHost->m_Language->GetLang("lang_1203")); // "Garena only!"
 				else
 					SendAllChat( m_GHost->m_Language->GetLang("lang_1204")); // "Unrestricted"
+			}
+
+			//
+			// !NOGARENA
+			// !NG
+			//
+
+			else if( Command == "nogarena" || Command == "ng" )
+			{
+				m_NoGarena = !m_NoGarena;
+				if(m_NoGarena)
+					SendAllChat( m_GHost->m_Language->GetLang("lang_1500"));
+				else
+					SendAllChat( m_GHost->m_Language->GetLang("lang_1501"));
 			}
 
 			//
