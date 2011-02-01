@@ -725,7 +725,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					MapHeight.push_back( 0 );
 				}
 
-				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter );
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter );
 
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
 				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
@@ -765,7 +765,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					MapHeight = m_Map->GetMapHeight( );
 				}
 
-				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter );
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter );
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
 				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
 				{
@@ -1683,7 +1683,11 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			//Pings += ": ";
 			bool skipP;
 
+			if (((*i)->GetExternalIPString()=="127.0.0.1" || (*i)->GetExternalIPString()==m_GHost->m_ExternalIP) && !m_GHost->IsRootAdmin((*i)->GetName()))
+				CN = "Ga";
+			else
 			CN = m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
+			//CN = m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
 			if (CNL=="")
 				CNL=CN;
 			else
