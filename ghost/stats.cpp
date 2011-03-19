@@ -49,3 +49,8 @@ void CStats :: SetWinner( uint32_t winner )
 {
 	
 }
+
+bool CStats :: GetSwitchMode( )
+{
+	return false;
+}
