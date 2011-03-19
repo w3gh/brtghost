@@ -63,6 +63,12 @@ CStatsDOTA :: ~CStatsDOTA( )
 	delete m_AllItems;
 }
 
+bool CStatsDOTA :: GetSwitchMode()
+{
+	return !m_SwitchOff;
+}
+
+
 bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 {
 	unsigned int i = 0;
@@ -106,7 +112,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 						string DataString = string( Data.begin( ), Data.end( ) );
 						string KeyString = string( Key.begin( ), Key.end( ) );
 						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
-						// CONSOLE_Print( "[DOTA STATS] " + DataString + ", " + KeyString + ", " + UTIL_ToString( ValueInt ) );
+						CONSOLE_Print( "[DOTA STATS] " + DataString + ", " + KeyString + ", " + UTIL_ToString( ValueInt ) );
 						
 						if( DataString == "Data" )
 						{
@@ -126,13 +132,15 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								if( !m_Players[VictimColour] )
 									m_Players[VictimColour] = new CDBDotAPlayer( );
 
+								if( !m_Players[ValueInt] )
+									m_Players[ValueInt] = new CDBDotAPlayer( );
+
 								uint32_t GameNr = m_Game->GetGameNr();
 
-								m_Game->m_GHost->UDPChatSend("|gameupdate "+UTIL_ToString(GameNr));
 								if (Victim)
 								{
-									Victim->SetDOTADeaths(Victim->GetDOTADeaths()+1);
-									if(m_SwitchOff) m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
+									Victim->SetDOTADeaths( Victim->GetDOTADeaths() + 1 );
+									m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
 								}
 								
 								if (Killer && Killer == Victim ) // Just whant to check this ficher. Griffon
@@ -145,7 +153,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									else
 									{
 										Killer->SetDOTAKills(Killer->GetDOTAKills()+1);
-										if(m_SwitchOff) m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
+
+										m_Players[ValueInt]->SetKills(m_Players[ValueInt]->GetKills() + 1);
+
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
 									}
 								}
@@ -182,8 +192,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								
-								if ( m_SwitchOff )
-								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
+								if( !m_Players[PlayerColour] )
+									m_Players[PlayerColour] = new CDBDotAPlayer( );
+
+								if ( m_Players[PlayerColour] )
+								if ( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
 									m_Players[PlayerColour]->SetCreepKills( ValueInt );
 
 								
@@ -202,8 +215,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 								string PlayerColourString = KeyString.substr( 2 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
+
+								if( !m_Players[PlayerColour] )
+									m_Players[PlayerColour] = new CDBDotAPlayer( );
 								
-								if ( m_SwitchOff )
+								if (m_Players[PlayerColour] )
 								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
 									m_Players[PlayerColour]->SetNeutralKills( ValueInt );
 
@@ -221,8 +237,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								string PlayerColourString = KeyString.substr( 3 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
+
+								if( !m_Players[PlayerColour] )
+									m_Players[PlayerColour] = new CDBDotAPlayer( );
 								
-								if ( m_SwitchOff )
+								if (m_Players[PlayerColour] )
 								if( ( PlayerColour >= 1 && PlayerColour <= 5 ) || ( PlayerColour >= 7 && PlayerColour <= 11 ) )
 									m_Players[PlayerColour]->SetCreepDenies( ValueInt );
 
@@ -241,28 +260,27 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								string item = string( Value.rbegin(), Value.rend());
+								
 								string playerName = PlayerColourString; 
+
 								if ( Player )
 									playerName = Player->GetName( );
 
 							//	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "," + item + "]");
 								
-								if ( m_SwitchOff )
-								{
 									/*debug*/
-									CDotaItem *it = m_AllItems->find(ValueInt);
+							/*		CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
 
 									/*end debug*/
-									m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
+							/*		m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
 										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
-									}
-								}
+									}*/
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
 							}
@@ -275,27 +293,25 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string item = string( Value.rbegin( ), Value.rend( ) );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
 								string playerName = PlayerColourString;
+
 								if ( Player )
 									playerName = Player->GetName( );
 
 							//	CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "," + item + "]");
 								
-								if ( m_SwitchOff )
-								{
 									/*debug*/
-									CDotaItem *it = m_AllItems->find(ValueInt);
+								/*	CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item ["+it->name+","+item+"].");
 
 									/*end debug*/
-									m_DotaItems[PlayerColour]->DropItem(ValueInt);
+								/*	m_DotaItems[PlayerColour]->DropItem(ValueInt);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 
 									for ( int i = 0; i < 6; i++ )
 									{
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
 										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
-									}
-								}
+									}*/
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
 							}
@@ -463,7 +479,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 5 && KeyString.substr( 0, 2 ) == "CK")
 							{
 								// a player disconnected
-
+								if ( m_Players[ValueInt] )
 								if ((ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ))
 								{
 									uint32_t i = KeyString.find("D");
@@ -494,7 +510,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// Zero time in the game, creeps spawn.
 								if (ValueInt == 1)
 								{
-									m_Game->SetCreepSpawnTime(GetTime( ));
+									m_Game->SetCreepSpawnTime( GetTime( ) );
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] creeps spawned." );
 								}
 							}
@@ -511,7 +527,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t ToColour = UTIL_ToUInt32( ToString );
 								CGamePlayer *ToPlayer = m_Game->GetPlayerFromColour( ToColour );
 								
-								if( m_SwitchOff)
+								if (FromPlayer && ToPlayer)
 								if ((FromColour >= 1 && FromColour <= 5 ) || ( FromColour >= 7 && FromColour <= 11 ))
 								if ((ToColour >= 1 && ToColour <= 5 ) || ( ToColour >= 7 && ToColour <= 11 ))
 								{
@@ -533,14 +549,16 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// Game mode
 								string gameMode = KeyString.substr(4);
+
+								SetGameMode(gameMode);
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] Set game mode to " + GetGameMode() );
+
 								// If SO mod, we must know about that.
 								if (gameMode.find("nsom") != string::npos )
 									gameMode.erase(gameMode.find("nsom"), 4);
+
 								if (gameMode.find("so") != string::npos )
 										m_SwitchOff = false;
-
-								m_SwitchOff = true;
-							
 							}
 						}
 						else if( DataString == "Global" )
@@ -560,6 +578,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: Scourge" );
 								else
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] detected winner: " + UTIL_ToString( ValueInt ) );
+
 							}
 							else if( KeyString == "m" )
 								m_Min = ValueInt;
@@ -632,6 +651,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									else
 										m_Players[ID]->SetNewColour( ValueInt );
 								}
+
 							}
 						}
 
@@ -652,6 +672,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 	return m_Winner != 0;
 }
+
+
 
 void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 {
