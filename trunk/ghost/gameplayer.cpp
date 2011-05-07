@@ -28,7 +28,6 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "gpsprotocol.h"
-#include "pubprotocol.h"
 #include "game_base.h"
 #include "ghostdb.h"
 
@@ -566,7 +565,7 @@ void CGamePlayer :: ExtractPackets( )
 
 	while( Bytes.size( ) >= 4 )
 	{
-		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == PUB_HEADER_CONSTANT)
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT )
 		{
 			// bytes 2 and 3 contain the length of the packet
 
@@ -723,33 +722,6 @@ void CGamePlayer :: ProcessPackets( )
 				m_Game->EventPlayerPongToHost( this, Pong );
 				break;
 			}
-		}
-		else if (Packet->GetPacketType( ) == PUB_HEADER_CONSTANT )
-		{
-			BYTEARRAY Data = Packet->GetData( );
-
-			if( Packet->GetID( ) == CPUBProtocol::PUB_BOT_GAME_KEY )
-			{
-				BYTEARRAY Data = Packet->GetData( );
-
-				int length = Data[4];
-				string key = string(Data.begin() + 5, Data.begin() + 4 + length + 1);
-
-				int length_login = Data[4 + length + 1];
-				string login = string(Data.begin() + 5 + length + 1, Data.begin() + 4 + length + 1 + length_login + 1);
-
-				if (m_GHost->m_CommandSocket && m_GHost->m_CommandSocket->GetConnected())
-				{
-					m_GHost->m_CommandSocket->PutBytes( m_GHost->m_PUBProtocol->SEND_GAME_KEY(key, login));
-				} else
-					CONSOLE_Print("[DEBUG] error m_commandsocket ");
-					; // REJECT JOIN
-
-				CONSOLE_Print("[DEBUG] Recieve new key " + key + " " + UTIL_ToString(length) + " login " + login);
-
-				m_GameKey = key;
-			}
-
 		}
 		else if( Packet->GetPacketType( ) == GPS_HEADER_CONSTANT )
 		{

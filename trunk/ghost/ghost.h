@@ -71,15 +71,9 @@ public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
 
-	CTCPServer *m_CommandSocketServer;			// command socket server
-	CTCPSocket *m_CommandSocket;				// 
-	
-	queue<CCommandPacket *> m_CommandPackets;  // queue incoming packets of command server
-
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
 
 	CGPSProtocol *m_GPSProtocol;
-	CPUBProtocol *m_PUBProtocol;
 	CCRC32 *m_CRC;							// for calculating CRC's
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
@@ -414,11 +408,6 @@ public:
 	string IncGameNr( string name);
 	uint32_t ScoresCount( );
 	void CalculateScoresCount();
-
-	void UpdatePlayersNames(string login, string key);
-
-	bool ExctactsCommandPackets();
-	bool ProcessCommandPackets();
 
 	// processing functions
 
