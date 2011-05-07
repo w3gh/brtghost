@@ -21,7 +21,6 @@
 #include "ghost.h"
 #include "stats.h"
 
-
 //
 // CStats
 //
@@ -49,9 +48,4 @@ void CStats :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 void CStats :: SetWinner( uint32_t winner )
 {
 	
-}
-
-bool CStats :: GetSwitchMode( )
-{
-	return false;
 }
