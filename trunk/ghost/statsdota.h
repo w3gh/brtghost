@@ -23,7 +23,6 @@
 
 #include "items.h"
 
-
 //
 // CStatsDOTA
 //
@@ -41,7 +40,6 @@ private:
 	uint32_t m_Sec;
 	bool m_Swap;
 	bool m_SwitchOff;
-	string m_GameMode;
 
 public:
 	CStatsDOTA( CBaseGame *nGame );
@@ -51,9 +49,6 @@ public:
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
 	virtual void SetWinner( uint32_t winner );
 	virtual void SwitchProcess( uint32_t FromColour, uint32_t ToColour );
-	virtual bool GetSwitchMode();
-	virtual string GetGameMode( )					{ return m_GameMode; }
-	virtual void SetGameMode( string nGameMode)		{ m_GameMode = nGameMode; }
 };
 
 #endif

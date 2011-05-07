@@ -21,7 +21,6 @@
 #ifndef STATS_H
 #define STATS_H
 
-
 //
 // CStats
 //
@@ -48,7 +47,6 @@ public:
 	virtual bool ProcessAction( CIncomingAction *Action );
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
 	virtual void SetWinner( uint32_t winner );
-	virtual bool GetSwitchMode();
 };
 
 #endif
