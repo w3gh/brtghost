@@ -32,60 +32,65 @@ bool ValidHostChar(char ch);
 
 // byte arrays
 
-BYTEARRAY UTIL_CreateByteArray( char *a, int size );
 BYTEARRAY UTIL_CreateByteArray( unsigned char *a, int size );
+BYTEARRAY UTIL_CreateByteArray( char *a, int size );
 BYTEARRAY UTIL_CreateByteArray( unsigned char c );
 BYTEARRAY UTIL_CreateByteArray( uint16_t i, bool reverse );
 BYTEARRAY UTIL_CreateByteArray( uint32_t i, bool reverse );
-uint16_t UTIL_ByteArrayToUInt16( BYTEARRAY b, bool reverse, unsigned int start = 0 );
-uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start = 0 );
-string UTIL_ByteArrayToDecString( BYTEARRAY b );
-string UTIL_ByteArrayToHexString( BYTEARRAY b );
-void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append );
-void UTIL_AppendByteArrayFast( BYTEARRAY &b, BYTEARRAY &append );
+
+uint16_t UTIL_ByteArrayToUInt16( const BYTEARRAY& b, bool reverse, unsigned int start = 0 );
+uint32_t UTIL_ByteArrayToUInt32( const BYTEARRAY& b, bool reverse, unsigned int start = 0 );
+
+string UTIL_ByteArrayToDecString( const BYTEARRAY &b );
+string UTIL_ByteArrayToHexString( const BYTEARRAY &b );
+
+void UTIL_AppendByteArray( BYTEARRAY &b, const BYTEARRAY& append );
 void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size );
-void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator = true );
-void UTIL_AppendByteArrayFast( BYTEARRAY &b, string &append, bool terminator = true );
+void UTIL_AppendByteArray( BYTEARRAY &b, const string& append, bool terminator = true );
 void UTIL_AppendByteArray( BYTEARRAY &b, uint16_t i, bool reverse );
 void UTIL_AppendByteArray( BYTEARRAY &b, uint32_t i, bool reverse );
-BYTEARRAY UTIL_ExtractCString( BYTEARRAY &b, unsigned int start );
+
 unsigned char UTIL_ExtractHex( BYTEARRAY &b, unsigned int start, bool reverse );
-void UTIL_ExtractStrings( string s, vector<string> &v );
-void UTIL_AddStrings( vector<string> &dest, vector<string> sourc );
 BYTEARRAY UTIL_ExtractNumbers( string s, unsigned int count );
 BYTEARRAY UTIL_ExtractHexNumbers( string s );
 
-// conversions
+BYTEARRAY UTIL_ExtractCString( const BYTEARRAY &b, unsigned int start );
+//string    UTIL_ExtractString ( const BYTEARRAY &b, unsigned int start );
 
-string UTIL_ToString( unsigned long i );
-string UTIL_ToString( unsigned short i );
-string UTIL_ToString( unsigned int i );
-string UTIL_ToString( long i );
-string UTIL_ToString( short i );
-string UTIL_ToString( int i );
-string UTIL_ToString( float f, int digits );
-string UTIL_ToString ( double d);
-string UTIL_ToString2 ( double d);
-void Replace( string &Text, string Key, string Value );
-string UTIL_ToString( double d, int digits );
+template <class Type> string UTIL_ToString( Type i )
+{
+	string result;
+	stringstream SS;
+	SS << i;
+	SS >> result;
+	return result;
+}
+
+template <class Type> string UTIL_ToString( Type i, int digits )
+{
+	string result;
+	stringstream SS;
+	SS << std :: fixed << std :: setprecision( digits ) << i;
+	SS >> result;
+	return result;
+}
+
 string UTIL_ToHexString( uint32_t i );
 uint16_t UTIL_ToUInt16( string &s );
 uint32_t UTIL_ToUInt32( string &s );
 int16_t UTIL_ToInt16( string &s );
 int32_t UTIL_ToInt32( string &s );
 double UTIL_ToDouble( string &s );
-string UTIL_MSToString( uint32_t ms );
-string UTIL_ToBinaryString( uint32_t data);
-
+//string UTIL_MSToString( uint32_t ms );
 
 // files
 
-bool UTIL_FileExists( string file );
-string UTIL_FileRead( string file, uint32_t start, uint32_t length );
-string UTIL_FileRead( string file );
-bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length );
+bool UTIL_FileExists( const string &file );
+string UTIL_FileRead( const string &file, uint32_t start, uint32_t length );
+string UTIL_FileRead( const string &file );
+bool UTIL_FileWrite ( const string &file, unsigned char *data, uint32_t length );
 string UTIL_FileSafeName( string fileName );
-string UTIL_AddPathSeperator( string path );
+string UTIL_AddPathSeperator( const string &path );
 
 // stat strings
 
@@ -98,6 +103,8 @@ bool UTIL_IsLanIP( BYTEARRAY ip );
 bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
 void UTIL_Replace( string &Text, string Key, string Value );
 vector<string> UTIL_Tokenize( string s, char delim );
+void UTIL_ExtractStrings( string s, vector<string> &v );
+void UTIL_AddStrings( vector<string> &dest, vector<string> sourc );
 
 // math
 

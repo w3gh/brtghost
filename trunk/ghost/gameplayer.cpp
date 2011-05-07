@@ -28,6 +28,7 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "gpsprotocol.h"
+#include "pubprotocol.h"
 #include "game_base.h"
 #include "ghostdb.h"
 
@@ -35,11 +36,12 @@
 // CPotentialPlayer
 //
 
-CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket )
+CPotentialPlayer :: CPotentialPlayer( CGHost* nGHost, CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket )
 {
 	m_Protocol = nProtocol;
 	m_Game = nGame;
 	m_Socket = nSocket;
+	m_GHost = nGHost;
 	m_DeleteMe = false;
 	m_Error = false;
 	m_IncomingJoinPlayer = NULL;
@@ -249,10 +251,11 @@ void CPotentialPlayer :: Send( BYTEARRAY data )
 // CGamePlayer
 //
 
-CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket )
+CGamePlayer :: CGamePlayer( CGHost* nGHost, CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nGHost, nProtocol, nGame, nSocket )
 {
 	m_PID = nPID;
 	m_Name = nName;
+	m_GHost = nGHost;
 	m_InternalIP = nInternalIP;
 	m_JoinedRealm = nJoinedRealm;
 	m_TotalPacketsSent = 0;
@@ -307,9 +310,11 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
 	m_Switching = false;
 	m_Switchok = false;
 	m_WarnChecked = false;
+
+	m_GameKey = string();
 }
 
-CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
+CGamePlayer :: CGamePlayer(CGHost* nGHost, CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_GHost, potential->m_Protocol, potential->m_Game, potential->GetSocket( ) )
 {
 	// todotodo: properly copy queued packets to the new player, this just discards them
 	// this isn't a big problem because official Warcraft III clients don't send any packets after the join request until they receive a response
@@ -317,6 +322,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
 	// m_Packets = potential->GetPackets( );
 	m_PID = nPID;
 	m_Name = nName;
+	m_GHost = nGHost;
 	m_InternalIP = nInternalIP;
 	m_JoinedRealm = nJoinedRealm;
 	m_TotalPacketsSent = 0;
@@ -560,7 +566,7 @@ void CGamePlayer :: ExtractPackets( )
 
 	while( Bytes.size( ) >= 4 )
 	{
-		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT )
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == PUB_HEADER_CONSTANT)
 		{
 			// bytes 2 and 3 contain the length of the packet
 
@@ -717,6 +723,33 @@ void CGamePlayer :: ProcessPackets( )
 				m_Game->EventPlayerPongToHost( this, Pong );
 				break;
 			}
+		}
+		else if (Packet->GetPacketType( ) == PUB_HEADER_CONSTANT )
+		{
+			BYTEARRAY Data = Packet->GetData( );
+
+			if( Packet->GetID( ) == CPUBProtocol::PUB_BOT_GAME_KEY )
+			{
+				BYTEARRAY Data = Packet->GetData( );
+
+				int length = Data[4];
+				string key = string(Data.begin() + 5, Data.begin() + 4 + length + 1);
+
+				int length_login = Data[4 + length + 1];
+				string login = string(Data.begin() + 5 + length + 1, Data.begin() + 4 + length + 1 + length_login + 1);
+
+				if (m_GHost->m_CommandSocket && m_GHost->m_CommandSocket->GetConnected())
+				{
+					m_GHost->m_CommandSocket->PutBytes( m_GHost->m_PUBProtocol->SEND_GAME_KEY(key, login));
+				} else
+					CONSOLE_Print("[DEBUG] error m_commandsocket ");
+					; // REJECT JOIN
+
+				CONSOLE_Print("[DEBUG] Recieve new key " + key + " " + UTIL_ToString(length) + " login " + login);
+
+				m_GameKey = key;
+			}
+
 		}
 		else if( Packet->GetPacketType( ) == GPS_HEADER_CONSTANT )
 		{

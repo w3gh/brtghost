@@ -1781,7 +1781,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				if( m_GHost->m_TCPNoDelay )
 					NewSocket->SetNoDelay( true );
 
-				m_Potentials.push_back( new CPotentialPlayer( m_Protocol, this, NewSocket ) );
+				m_Potentials.push_back( new CPotentialPlayer( m_GHost, m_Protocol, this, NewSocket ) );
 			}
 			else
 			{
@@ -2387,8 +2387,8 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 	{
 		string C1 = m_Countries;
 		string C2 = m_Countries2;
-		Replace(C1, "??", string());
-		Replace(C2, "??", string());
+		UTIL_Replace(C1, "??", string());
+		UTIL_Replace(C2, "??", string());
 		if (m_CountryCheck)
 			SendChat( player, m_GHost->m_Language->GetLang("lang_1020",C1) ); // SendChat( player, "Allowed Countries = "+C1 );
 		if (m_CountryCheck2 && !m_CountryCheck)
@@ -3431,9 +3431,9 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
 //	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
-	CGamePlayer *Player = new CGamePlayer( potential, m_SaveGame ? EnforcePID : GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
+	CGamePlayer *Player = new CGamePlayer( m_GHost, potential, m_SaveGame ? EnforcePID : GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 	Player->SetSID( SID );
-
+	
 	if (ScoreChecked)
 	{
 		Player->SetScoreS(sc);
@@ -4033,7 +4033,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
-	CGamePlayer *Player = new CGamePlayer( potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
+	CGamePlayer *Player = new CGamePlayer( m_GHost, potential, GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), false );
 
 	// consider LAN players to have already spoof checked since they can't
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
@@ -5123,20 +5123,20 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 								random_shuffle(randoms.begin(), randoms.end());
 
 								while (msg.find("$VICTIM$") != string :: npos)
-									Replace( msg, "$VICTIM$", nam2 );       
+									UTIL_Replace( msg, "$VICTIM$", nam2 );       
 
 								while (msg.find("$RANDOM$") != string :: npos)
-									Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
+									UTIL_Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 								while (msg.find("$USER$") != string :: npos)
-									Replace( msg, "$USER$", nam1 );        
+									UTIL_Replace( msg, "$USER$", nam1 );        
 
 								while (msg.find("$RANDNUMBER$") != string ::npos)
 								{
 									int RandomNumber;
 									RandomNumber = (rand()%99)+1;
 
-									Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
+									UTIL_Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
 								}
 
 

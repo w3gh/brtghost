@@ -4925,20 +4925,20 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						random_shuffle(randoms.begin(), randoms.end());
 
 						while (msg.find("$VICTIM$") != string :: npos)
-							Replace( msg, "$VICTIM$", nam2 );       
+							UTIL_Replace( msg, "$VICTIM$", nam2 );       
 
 						while (msg.find("$RANDOM$") != string :: npos)
-							Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
+							UTIL_Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 						while (msg.find("$USER$") != string :: npos)
-							Replace( msg, "$USER$", nam1 );        
+							UTIL_Replace( msg, "$USER$", nam1 );        
 
 						while (msg.find("$RANDNUMBER$") != string ::npos)
 						{
 							int RandomNumber;
 							RandomNumber = (rand()%99)+1;
 
-							Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
+							UTIL_Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
 						}
 
 						QueueChatCommand( msg );

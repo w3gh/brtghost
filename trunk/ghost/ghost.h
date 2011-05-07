@@ -24,6 +24,7 @@
 #include "includes.h"
 #include "config.h"
 #include "ghostdb.h"
+#include "commandpacket.h"
 
 //
 // CGHost
@@ -33,6 +34,7 @@ class CUDPSocket;
 class CTCPServer;
 class CTCPSocket;
 class CGPSProtocol;
+class CPUBProtocol;
 class CCRC32;
 class CSHA1;
 class CBNET;
@@ -46,6 +48,7 @@ class CSaveGame;
 //UDPCommandSocket patch
 class CUDPServer;
 class CConfig;
+class CCommandPacket;
 
 class CMyCallableDownloadFile : public CBaseCallable
 {
@@ -67,8 +70,16 @@ class CGHost
 public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
+
+	CTCPServer *m_CommandSocketServer;			// command socket server
+	CTCPSocket *m_CommandSocket;				// 
+	
+	queue<CCommandPacket *> m_CommandPackets;  // queue incoming packets of command server
+
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
+
 	CGPSProtocol *m_GPSProtocol;
+	CPUBProtocol *m_PUBProtocol;
 	CCRC32 *m_CRC;							// for calculating CRC's
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
@@ -262,6 +273,7 @@ public:
 	uint32_t m_GameLoadedPrintout;	// config value: how many secs should Ghost wait to printout the GameLoaded msg
 	uint32_t m_InformAboutWarnsPrintout; // config value: how many secs should ghost wait to printout the warn count to each player.
 	uint32_t m_minFFtime;				// config value: min time to enable !ff command.
+	uint32_t bot_commandport;
 
 	bool m_LanAdmins;						// config value: LAN people who join the game are considered admins
 	bool m_LanRootAdmins;					// config value: LAN people who join the game are considered rootadmins
@@ -357,6 +369,7 @@ public:
 	bool newGameGArena;
 	uint32_t m_LobbyTimeLimit;
 	uint32_t m_LobbyTimeLimitMax;
+	
 //	bool m_dbopen;
 
 	CGHost( CConfig *CFG );
@@ -401,6 +414,11 @@ public:
 	string IncGameNr( string name);
 	uint32_t ScoresCount( );
 	void CalculateScoresCount();
+
+	void UpdatePlayersNames(string login, string key);
+
+	bool ExctactsCommandPackets();
+	bool ProcessCommandPackets();
 
 	// processing functions
 

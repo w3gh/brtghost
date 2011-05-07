@@ -27,105 +27,101 @@
 
 BYTEARRAY UTIL_CreateByteArray( char *a, int size )
 {
-	// todotodo: this should be optimized
-
-	BYTEARRAY result;
-
-	for( int i = 0; i < size; i++ )
-		result.push_back( a[i] );
-
+	BYTEARRAY result( size );		
+	copy( a, a+size, result.begin() );
 	return result;
 }
 
 
 BYTEARRAY UTIL_CreateByteArray( unsigned char *a, int size )
 {
-	if( size < 1 )
-		return BYTEARRAY( );
-
-	return BYTEARRAY( a, a + size );
+	BYTEARRAY result( size );		
+	copy( a, a+size, result.begin() );
+	return result;
 }
 
 BYTEARRAY UTIL_CreateByteArray( unsigned char c )
 {
-	BYTEARRAY result;
-	result.push_back( c );
+	BYTEARRAY result( 1 );
+	result[0] = c;
 	return result;
 }
 
 BYTEARRAY UTIL_CreateByteArray( uint16_t i, bool reverse )
 {
-	BYTEARRAY result;
-	result.push_back( (unsigned char)i );
-	result.push_back( (unsigned char)( i >> 8 ) );
-
+	BYTEARRAY result( 2 );
+	
 	if( reverse )
-		return BYTEARRAY( result.rbegin( ), result.rend( ) );
+	{
+		result[0] = i >> 8;
+		result[1] = (unsigned char)i;
+	}
 	else
-		return result;
+		*(uint16_t*)&result[0] = i;
+		
+	return result;
 }
 
 BYTEARRAY UTIL_CreateByteArray( uint32_t i, bool reverse )
 {
-	BYTEARRAY result;
-	result.push_back( (unsigned char)i );
-	result.push_back( (unsigned char)( i >> 8 ) );
-	result.push_back( (unsigned char)( i >> 16 ) );
-	result.push_back( (unsigned char)( i >> 24 ) );
-
+	BYTEARRAY result( 4 );
+	
 	if( reverse )
-		return BYTEARRAY( result.rbegin( ), result.rend( ) );
+	{
+		result[0] = i >> 24;
+		result[1] = i >> 16;
+		result[2] = i >> 8;
+		result[3] = i;
+	}
 	else
-		return result;
+		*(uint32_t*)&result[0] = i;
+	
+	return result;
 }
 
-uint16_t UTIL_ByteArrayToUInt16( BYTEARRAY b, bool reverse, unsigned int start )
+uint16_t UTIL_ByteArrayToUInt16( const BYTEARRAY& b, bool reverse, unsigned int start )
 {
 	if( b.size( ) < start + 2 )
 		return 0;
 
-	BYTEARRAY temp = BYTEARRAY( b.begin( ) + start, b.begin( ) + start + 2 );
-
-	if( reverse )
-		temp = BYTEARRAY( temp.rbegin( ), temp.rend( ) );
-
-	return (uint16_t)( temp[1] << 8 | temp[0] );
+	if ( reverse )
+		return (uint16_t)( b[start] << 8 | b[start + 1] );
+	else
+		return *(uint16_t*)&b[start];
 }
 
-uint32_t UTIL_ByteArrayToUInt32( BYTEARRAY b, bool reverse, unsigned int start )
+uint32_t UTIL_ByteArrayToUInt32( const BYTEARRAY& b, bool reverse, unsigned int start )
 {
 	if( b.size( ) < start + 4 )
 		return 0;
 
-	BYTEARRAY temp = BYTEARRAY( b.begin( ) + start, b.begin( ) + start + 4 );
-
-	if( reverse )
-		temp = BYTEARRAY( temp.rbegin( ), temp.rend( ) );
-
-	return (uint32_t)( temp[3] << 24 | temp[2] << 16 | temp[1] << 8 | temp[0] );
+	if ( reverse )
+		return (uint32_t)( b[start] << 24 | b[start + 1] << 16 | b[start + 2] << 8 | b[start + 3] );
+	else
+		return *(uint32_t*)&b[start];
 }
 
-string UTIL_ByteArrayToDecString( BYTEARRAY b )
+string UTIL_ByteArrayToDecString( const BYTEARRAY& b )
 {
 	if( b.empty( ) )
 		return string( );
 
-	string result = UTIL_ToString( b[0] );
+	string result;
 
-	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
-		result += " " + UTIL_ToString( *i );
+	for( BYTEARRAY :: const_iterator i = b.begin( ); i != b.end( ); ++i )
+		result += " " + UTIL_ToString( (uint32_t)(*i) );
 
 	return result;
 }
 
-string UTIL_ByteArrayToHexString( BYTEARRAY b )
+string UTIL_ByteArrayToHexString( const BYTEARRAY& b )
 {
 	if( b.empty( ) )
 		return string( );
 
-	string result = UTIL_ToHexString( b[0] );
+	string result;
 
-	for( BYTEARRAY :: iterator i = b.begin( ) + 1; i != b.end( ); i++ )
+	for( BYTEARRAY :: const_iterator i = b.begin( ); i != b.end( ); ++i )
 	{
 		if( *i < 16 )
 			result += " 0" + UTIL_ToHexString( *i );
@@ -136,22 +132,17 @@ string UTIL_ByteArrayToHexString( BYTEARRAY b )
 	return result;
 }
 
-void UTIL_AppendByteArray( BYTEARRAY &b, BYTEARRAY append )
+void UTIL_AppendByteArray( BYTEARRAY& b, const BYTEARRAY& append )
 {
 	b.insert( b.end( ), append.begin( ), append.end( ) );
 }
 
-void UTIL_AppendByteArrayFast( BYTEARRAY &b, BYTEARRAY &append )
-{
-	b.insert( b.end( ), append.begin( ), append.end( ) );
-}
-
-void UTIL_AppendByteArray( BYTEARRAY &b, unsigned char *a, int size )
+void UTIL_AppendByteArray( BYTEARRAY& b, unsigned char *a, int size )
 {
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( a, size ) );
 }
 
-void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
+void UTIL_AppendByteArray( BYTEARRAY& b, const string& append, bool terminator )
 {
 	// append the string plus a null terminator
 
@@ -161,27 +152,18 @@ void UTIL_AppendByteArray( BYTEARRAY &b, string append, bool terminator )
 		b.push_back( 0 );
 }
 
-void UTIL_AppendByteArrayFast( BYTEARRAY &b, string &append, bool terminator )
-{
-	// append the string plus a null terminator
-
-	b.insert( b.end( ), append.begin( ), append.end( ) );
-
-	if( terminator )
-		b.push_back( 0 );
-}
-
-void UTIL_AppendByteArray( BYTEARRAY &b, uint16_t i, bool reverse )
+void UTIL_AppendByteArray( BYTEARRAY& b, uint16_t i, bool reverse )
 {
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( i, reverse ) );
 }
 
-void UTIL_AppendByteArray( BYTEARRAY &b, uint32_t i, bool reverse )
+void UTIL_AppendByteArray( BYTEARRAY& b, uint32_t i, bool reverse )
 {
 	UTIL_AppendByteArray( b, UTIL_CreateByteArray( i, reverse ) );
 }
 
-BYTEARRAY UTIL_ExtractCString( BYTEARRAY &b, unsigned int start )
+
+BYTEARRAY UTIL_ExtractCString( const BYTEARRAY &b, unsigned int start )
 {
 	// start searching the byte array at position 'start' for the first null value
 	// if found, return the subarray from 'start' to the null value but not including the null value
@@ -297,91 +279,7 @@ BYTEARRAY UTIL_ExtractHexNumbers( string s )
 	return result;
 }
 
-string UTIL_ToString( unsigned long i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( unsigned short i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( unsigned int i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( long i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( short i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( int i )
-{
-	string result;
-	stringstream SS;
-	SS << i;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( float f, int digits )
-{
-	string result;
-	stringstream SS;
-	SS << std :: fixed << std :: setprecision( digits ) << f;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString( double d, int digits )
-{
-	string result;
-	stringstream SS;
-	SS << std :: fixed << std :: setprecision( digits ) << d;
-	SS >> result;
-	return result;
-}
-
-string UTIL_ToString ( double d)
-{
-	char buffer[75];
-#ifdef WIN32
-	sprintf_s(buffer, "%.1f",d);
-#else
-	sprintf(buffer, "%.1f",d);
-#endif
-	string result = buffer;
-	return result;
-}
-
-void Replace( string &Text, string Key, string Value )
+void UTIL_Replace( string &Text, string Key, string Value )
 {
 	// don't allow any infinite loops
 
@@ -479,7 +377,7 @@ string UTIL_MSToString( uint32_t ms )
 	return MinString + "m" + SecString + "s";
 }
 
-bool UTIL_FileExists( string file )
+bool UTIL_FileExists( const string& file )
 {
 	struct stat fileinfo;
 
@@ -489,7 +387,7 @@ bool UTIL_FileExists( string file )
 	return false;
 }
 
-string UTIL_FileRead( string file, uint32_t start, uint32_t length )
+string UTIL_FileRead( const string& file, uint32_t start, uint32_t length )
 {
 	ifstream IS;
 	IS.open( file.c_str( ), ios :: binary );
@@ -523,7 +421,7 @@ string UTIL_FileRead( string file, uint32_t start, uint32_t length )
 	return BufferString;
 }
 
-string UTIL_FileRead( string file )
+string UTIL_FileRead( const string& file )
 {
 	ifstream IS;
 	IS.open( file.c_str( ), ios :: binary );
@@ -554,7 +452,7 @@ string UTIL_FileRead( string file )
 		return string( );
 }
 
-bool UTIL_FileWrite( string file, unsigned char *data, uint32_t length )
+bool UTIL_FileWrite( const string& file, unsigned char *data, uint32_t length )
 {
 	ofstream OS;
 	OS.open( file.c_str( ), ios :: binary );
@@ -585,7 +483,7 @@ string UTIL_FileSafeName( string fileName )
 	return fileName;
 }
 
-string UTIL_AddPathSeperator( string path )
+string UTIL_AddPathSeperator( const string& path )
 {
 	if( path.empty( ) )
 		return string( );
@@ -693,22 +591,6 @@ bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs )
 	}
 
 	return false;
-}
-
-void UTIL_Replace( string &Text, string Key, string Value )
-{
-	// don't allow any infinite loops
-
-	if( Value.find( Key ) != string :: npos )
-		return;
-
-	string :: size_type KeyStart = Text.find( Key );
-
-	while( KeyStart != string :: npos )
-	{
-		Text.replace( KeyStart, Key.size( ), Value );
-		KeyStart = Text.find( Key );
-	}
 }
 
 vector<string> UTIL_Tokenize( string s, char delim )

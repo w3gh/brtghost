@@ -36,10 +36,12 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "gpsprotocol.h"
+#include "pubprotocol.h"
 #include "game_base.h"
 #include "game.h"
 #include "game_admin.h"
 #include "bnetprotocol.h"
+#include "gameplayer.h"
 
 #include <cstring>
 #include <signal.h>
@@ -55,6 +57,8 @@ using namespace boost :: filesystem;
 
 #define __STORMLIB_SELF__
 #include <stormlib/StormLib.h>
+
+//class CGamePlayer;
 
 /*
 
@@ -652,9 +656,12 @@ unsigned int TimerResolution = 0;
 	{
 		// block for 50ms on all sockets - if you intend to perform any timed actions more frequently you should change this
 		// that said it's likely we'll loop more often than this due to there being data waiting on one of the sockets but there aren't any guarantees
+		uint32_t nLastTime = GetTicks();
 
 		if( gGHost->Update( 50000 ) )
 			break;
+
+		CONSOLE_Print("LastUpdate " + UTIL_ToString( GetTicks() - nLastTime ));
 	}
 
 	// shutdown ghost
@@ -847,6 +854,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 	m_ReconnectSocket = NULL;
 	m_GPSProtocol = new CGPSProtocol( );
+	m_PUBProtocol = new CPUBProtocol( );
 
 	m_UDPConsole = CFG->GetInt( "bot_udpconsole", 1 ) == 0 ? false : true;
 	m_CRC = new CCRC32( );
@@ -944,7 +952,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.0.9 r134";
+	m_GHostVersion = "1.7.0.9 r135";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
@@ -1222,6 +1230,12 @@ CGHost :: CGHost( CConfig *CFG )
 	m_GameBroadcastersListener->Listen( string( ),Port );
 	CONSOLE_Print( "[GHOST] Listening for game broadcasters on port [" + UTIL_ToString( Port ) +"]" );
 
+	bot_commandport = CFG->GetInt( "bot_commandport", 8127);
+	m_CommandSocketServer = new CTCPServer( );
+	m_CommandSocketServer->Listen( string( ),bot_commandport );
+	m_CommandSocket = NULL;
+	CONSOLE_Print( "[GHOST] Listening remote PUB command command on port [" + UTIL_ToString( bot_commandport ) +"]" );
+
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
@@ -1241,11 +1255,14 @@ CGHost :: ~CGHost( )
 	delete m_UDPCommandSocket;
 	delete m_UDPSocket;
 	delete m_ReconnectSocket;
+	delete m_CommandSocketServer;
+	delete m_CommandSocket;
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); i++ )
 		delete *i;
 
 	delete m_GPSProtocol;
+	delete m_PUBProtocol;
 	delete m_CRC;
 	delete m_SHA;
 
@@ -1447,8 +1464,18 @@ bool CGHost :: Update( unsigned long usecBlock )
 	}
  
 	// 8. the listener for game broadcasters
-	m_GameBroadcastersListener->SetFD( &fd, &send_fd,&nfds );
+	m_GameBroadcastersListener->SetFD( &fd, &send_fd, &nfds );
 	NumFDs++;
+
+	// 9. the listener for remote PUB command
+	m_CommandSocketServer->SetFD( &fd, &send_fd, &nfds );
+	NumFDs++;
+
+	if( m_CommandSocket && m_CommandSocket->GetConnected( ) && !m_CommandSocket->HasError( ))
+	{
+		m_CommandSocket->SetFD( &fd, &send_fd, &nfds );
+		NumFDs++;
+	}
 
 	// before we call select we need to determine how long to block for
 	// previously we just blocked for a maximum of the passed usecBlock microseconds
@@ -1793,6 +1820,18 @@ bool CGHost :: Update( unsigned long usecBlock )
 			BNETExit = true;
 	}
 
+	// update remote PUB command socket
+
+	CTCPSocket *NewSocket = m_CommandSocketServer->Accept( &fd );
+
+	if (NewSocket)
+	{
+		m_CommandSocket = NewSocket;
+		m_CommandSocket->SetLogFile("socket_bot.log");
+
+		CONSOLE_Print(" [DEBUG] Command server connected to this bot. ");
+	}
+
 	// UDP COMMANDSOCKET CODE
 	sockaddr_in recvAddr;
 	string udpcommand;
@@ -1937,11 +1976,11 @@ bool CGHost :: Update( unsigned long usecBlock )
 		m_LastAutoHostTime = GetTime( );
 	}
 
-	CTCPSocket *NewSocket = m_GameBroadcastersListener->Accept( &fd );
-	if ( NewSocket )
+	CTCPSocket *cNewSocket = m_GameBroadcastersListener->Accept( &fd );
+	if ( cNewSocket )
 	{
-		m_GameBroadcasters.push_back( NewSocket );
-		CONSOLE_Print("[GHOST] Game Broadcaster [" + NewSocket->GetIPString( ) +"] connected" );
+		m_GameBroadcasters.push_back( cNewSocket );
+		CONSOLE_Print("[GHOST] Game Broadcaster [" + cNewSocket->GetIPString( ) +"] connected" );
 	}
 	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); )
 	{
@@ -1956,7 +1995,156 @@ bool CGHost :: Update( unsigned long usecBlock )
 		i++;
 	}
 
+	// Process PUB command from BOT to command server
+
+	if (m_CommandSocket && !m_CommandSocket->HasError() && m_CommandSocket->GetConnected())
+	{
+		m_CommandSocket->DoRecv( &fd );
+
+		// Excracts command packet
+		ExctactsCommandPackets();
+		ProcessCommandPackets();
+
+		m_CommandSocket->DoSend( &send_fd );
+	}
+
+
 	return m_Exiting || AdminExit || BNETExit;
+}
+
+void CGHost :: UpdatePlayersNames(string login, string key)
+{
+	if (m_CurrentGame)
+	{
+		bool need_data_update = false;
+		CGamePlayer* store_player;
+
+		for (vector<CGamePlayer *>::iterator it = m_CurrentGame->m_Players.begin(); it != m_CurrentGame->m_Players.end(); it++)
+		{
+			CONSOLE_Print( (*it)->GetGameKey() + " == " + key + " ?");
+
+			if ( (*it)->GetGameKey() == key )
+			{
+				if ((*it)->GetName() != login)
+				{
+					need_data_update = true;
+					CONSOLE_Print("[DEBUG] change nick " + (*it)->GetName()+ " to the real name "+login);
+
+					store_player = *it;
+
+					//player->SetDeleteMe( true );
+					//player->SetLeftCode( PLAYERLEAVE_LOBBY );
+					//OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+				}
+
+				(*it)->SetName(login);
+				(*it)->SetSpoofed(true);
+
+				m_CurrentGame->SendAllSlotInfo();
+
+				break;
+			}
+		}
+
+		/*if (need_data_update)
+		{
+			BYTEARRAY BlankIP;
+			BlankIP.push_back( 0 );
+			BlankIP.push_back( 0 );
+			BlankIP.push_back( 0 );
+			BlankIP.push_back( 0 );
+
+			for (vector<CGamePlayer *>::iterator it = m_CurrentGame->m_Players.begin(); it != m_CurrentGame->m_Players.end(); it++)
+			{
+				if ((*it)->GetName() != store_player->GetName())
+					(*it)->Send( m_CurrentGame->m_Protocol->SEND_W3GS_PLAYERINFO( store_player->GetPID(), store_player->GetName(), store_player->GetExternalIP(), store_player->GetInternalIP() ) );
+			}
+		}
+		*/
+	}
+}
+
+bool CGHost :: ProcessCommandPackets()
+{
+    while ( !m_CommandPackets.empty( ) )
+	{
+		CCommandPacket * packet = m_CommandPackets.front( );
+		m_CommandPackets.pop( );
+
+		switch( packet->GetID( ) )
+		{
+		    case CPUBProtocol::PUB_AUTH_NAME:
+		    {
+		        BYTEARRAY packet_data = packet->GetData();
+
+				CONSOLE_Print("[DEBUG] new packet from command server");
+
+				int length = packet_data[4];
+				string login = string(packet_data.begin() + 5, packet_data.begin() + 5 + length);
+
+				int length_login = packet_data[5 + length];
+				string key = string(packet_data.begin() + 5 + length + 1, packet_data.begin() + 5 + length + length_login + 1);
+
+				CONSOLE_Print("[DEBUG] login " + login + " key " + key + UTIL_ToString(key.size()));
+
+				UpdatePlayersNames(login, key);
+
+		        break;
+		    }
+
+		}
+
+	}
+
+    return true;
+}
+
+bool CGHost :: ExctactsCommandPackets()
+{
+	if( !m_CommandSocket )
+		return false;
+
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+
+	string *RecvBuffer = m_CommandSocket->GetBytes( );
+	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
+
+	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
+
+	while( Bytes.size( ) >= 4 )
+	{
+		if( Bytes[0] == PUB_HEADER_CONSTANT)
+		{
+			// bytes 2 and 3 contain the length of the packet
+
+			uint16_t Length = UTIL_ByteArrayToUInt16( Bytes, false, 2 );
+
+			if( Length >= 4 )
+			{
+				if( Bytes.size( ) >= Length )
+				{
+					m_CommandPackets.push( new CCommandPacket( Bytes[0], Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+
+					*RecvBuffer = RecvBuffer->substr( Length );
+					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				}
+				else
+					return false;
+			}
+			else
+			{
+				//m_ErrorString = "received invalid packet from player (bad length)";
+				return false;
+			}
+		}
+		else
+		{
+			//m_ErrorString = "received invalid packet from player (bad header constant)";
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void CGHost :: EventBNETConnecting( CBNET *bnet )
@@ -3747,6 +3935,8 @@ void CGHost :: ReloadConfig ()
 	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
 	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
 
+	bot_commandport = CFG->GetInt( "bot_commandport", 8122 );
+
 	if( BotCommandTrigger.empty( ) )
 		BotCommandTrigger = "!";
 
@@ -4356,7 +4546,7 @@ string CGHost :: CensorMessage( string msg)
 	for( vector<string> :: iterator i = m_CensoredWords.begin( ); i != m_CensoredWords.end( ); i++ )
 	{
 		boost :: ireplace_all( Msg, (*i), Censor((*i)) );
-//		Replace( Msg, (*i), Censor((*i)) );
+//		UTIL_Replace( Msg, (*i), Censor((*i)) );
 	}
 	return Msg;
 }
@@ -4883,7 +5073,7 @@ void CMyCallableDownloadFile :: operator( )( )
 	else
 		pos = pos+4;
 
-	Replace( file, "%20", " ");
+	UTIL_Replace( file, "%20", " ");
 	uint32_t totalsize=0;
 	ofstream myfile;
 	string path = m_Path;
