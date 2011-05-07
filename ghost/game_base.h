@@ -50,10 +50,11 @@ class CBaseGame
 {
 public:
 	CGHost *m_GHost;
+	CGameProtocol *m_Protocol;						// game protocol
 
 protected:
 	CTCPServer *m_Socket;							// listening socket
-	CGameProtocol *m_Protocol;						// game protocol
+	
 	CStats *m_Stats;								// class to keep track of game stats such as kills/deaths/assists in dota
 //	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
@@ -137,6 +138,7 @@ protected:
 	uint32_t m_GameLoadedTime;					// GetTime when the game was loaded
 	bool m_GameLoadedMessage;					// GameLoad message shown
 	bool m_AllPlayersWarnChecked;				// iff true, all players have been warn checked and informed already.
+	uint32_t m_SlotsOpenLastSend;				//
 	uint32_t m_EndGameTime;
 	uint32_t m_LastWarnCheck;
 	uint32_t m_DownloadInfoTime;                // GetTime when we last showed download info

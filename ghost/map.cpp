@@ -301,12 +301,12 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		// calculate map_size
 
 		MapSize = UTIL_CreateByteArray( (uint32_t)m_MapData.size( ), false );
-		CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ToString( MapSize[0] ) + " " + UTIL_ToString( MapSize[1] ) + " " + UTIL_ToString( MapSize[2] ) + " " + UTIL_ToString( MapSize[3] ) );
+		CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ToString( (uint32_t)MapSize[0] ) + " " + UTIL_ToString( (uint32_t)MapSize[1] ) + " " + UTIL_ToString( (uint32_t)MapSize[2] ) + " " + UTIL_ToString( (uint32_t)MapSize[3] ) );
 
 		// calculate map_info (this is actually the CRC)
 
 		MapInfo = UTIL_CreateByteArray( (uint32_t)m_GHost->m_CRC->FullCRC( (unsigned char *)m_MapData.c_str( ), m_MapData.size( ) ), false );
-		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( MapInfo[0] ) + " " + UTIL_ToString( MapInfo[1] ) + " " + UTIL_ToString( MapInfo[2] ) + " " + UTIL_ToString( MapInfo[3] ) );
+		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( (uint32_t)MapInfo[0] ) + " " + UTIL_ToString( (uint32_t)MapInfo[1] ) + " " + UTIL_ToString( (uint32_t)MapInfo[2] ) + " " + UTIL_ToString( (uint32_t)MapInfo[3] ) );
 
 		// calculate map_crc (this is not the CRC) and map_sha1
 		// a big thank you to Strilanc for figuring the map_crc algorithm out
@@ -465,7 +465,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 						CONSOLE_Print( "[MAP] couldn't find war3map.j or scripts\\war3map.j in MPQ file, calculated map_crc/sha1 is probably wrong" );
 
 					MapCRC = UTIL_CreateByteArray( Val, false );
-					CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ToString( MapCRC[0] ) + " " + UTIL_ToString( MapCRC[1] ) + " " + UTIL_ToString( MapCRC[2] ) + " " + UTIL_ToString( MapCRC[3] ) );
+					CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ToString( (uint32_t)MapCRC[0] ) + " " + UTIL_ToString( (uint32_t)MapCRC[1] ) + " " + UTIL_ToString( (uint32_t)MapCRC[2] ) + " " + UTIL_ToString( (uint32_t)MapCRC[3] ) );
 					m_GHost->m_SHA->Final( );
 					unsigned char SHA1[20];
 					memset( SHA1, 0, sizeof( unsigned char ) * 20 );
@@ -664,9 +664,9 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							CONSOLE_Print( "[MAP] calculated map_options = " + UTIL_ToString( MapOptions ) );
 							MapWidth = UTIL_CreateByteArray( (uint16_t)RawMapWidth, false );
-							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ToString( MapWidth[0] ) + " " + UTIL_ToString( MapWidth[1] ) );
+							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ToString( (uint32_t)MapWidth[0] ) + " " + UTIL_ToString( (uint32_t)MapWidth[1] ) );
 							MapHeight = UTIL_CreateByteArray( (uint16_t)RawMapHeight, false );
-							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ToString( MapHeight[0] ) + " " + UTIL_ToString( MapHeight[1] ) );
+							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ToString( (uint32_t)MapHeight[0] ) + " " + UTIL_ToString( (uint32_t)MapHeight[1] ) );
 							MapNumPlayers = RawMapNumPlayers - ClosedSlots;
 							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
 							MapNumTeams = RawMapNumTeams;

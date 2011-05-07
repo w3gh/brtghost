@@ -136,7 +136,7 @@ public:
 	BYTEARRAY SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Version );
 	BYTEARRAY SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter );
 	BYTEARRAY SEND_W3GS_CREATEGAME( bool TFT, unsigned char war3Version );
-	BYTEARRAY SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t playerSlots );
+	BYTEARRAY SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t playerSlots, uint32_t HostCounter );
 	BYTEARRAY SEND_W3GS_DECREATEGAME( );
 	BYTEARRAY SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 );
 	BYTEARRAY SEND_W3GS_STARTDOWNLOAD( unsigned char fromPID );

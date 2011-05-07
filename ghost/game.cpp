@@ -611,7 +611,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				if( PlayerN )
 				{
 					PlayerN->SetScore( DotAPlayerSummary->GetScore() );
-					PlayerN->SetScoreS(UTIL_ToString2( DotAPlayerSummary->GetScore()));
+					PlayerN->SetScoreS(UTIL_ToString( DotAPlayerSummary->GetScore(), 2));
 					PlayerN->SetRankS(UTIL_ToString( DotAPlayerSummary->GetRank()));
 				}
 
@@ -691,7 +691,7 @@ bool CGame :: Update( void *fd, void *send_fd )
                     "$TKPG$", UTIL_ToString( DotAPlayerSummary->GetTowerKillsPerGame( )),
 					"$RKPG$", UTIL_ToString( DotAPlayerSummary->GetRaxKillsPerGame( )),
                     "$CouKPG$", UTIL_ToString( DotAPlayerSummary->GetCourierKillsPerGame( )),
-                    "$SCORE$", UTIL_ToString2( DotAPlayerSummary->GetScore()),
+                    "$SCORE$", UTIL_ToString( DotAPlayerSummary->GetScore(), 2),
 					"$TITLE1$", player_class,
                     "$RANK$", RankS);
 
@@ -5424,20 +5424,20 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					random_shuffle(randoms.begin(), randoms.end());
 
 					while (msg.find("$VICTIM$") != string :: npos)
-						Replace( msg, "$VICTIM$", nam2 );       
+						UTIL_Replace( msg, "$VICTIM$", nam2 );       
 
 					while (msg.find("$RANDOM$") != string :: npos)
-						Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
+						UTIL_Replace( msg, "$RANDOM$", randoms[ rand() % randoms.size() ] ); 
 
 					while (msg.find("$USER$") != string :: npos)
-						Replace( msg, "$USER$", nam1 );        
+						UTIL_Replace( msg, "$USER$", nam1 );        
 
 					while (msg.find("$RANDNUMBER$") != string ::npos)
 					{
 						int RandomNumber;
 						RandomNumber = (rand()%99)+1;
 
-						Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
+						UTIL_Replace( msg, "$RANDNUMBER$", UTIL_ToString(RandomNumber));
 					}
 
 					SendAllChat( msg );
@@ -6208,7 +6208,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1208"));
 			return HideCommand;
 		}
-
+/*
+		if ( m_Stats->GetSwitchMode() )
+		{
+			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1218"));
+			return HideCommand;
+		}
+*/
 		if ( m_GHost->m_minFFtime && ((GetTime() - GetGameLoadedTime()) < m_GHost->m_minFFtime) )
 		{
 			SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1217", UTIL_ToString(m_GHost->m_minFFtime)));

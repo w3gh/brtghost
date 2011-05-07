@@ -26,6 +26,7 @@ class CCommandPacket;
 class CGameProtocol;
 class CGame;
 class CIncomingJoinPlayer;
+class CGHost;
 
 //
 // CPotentialPlayer
@@ -36,6 +37,7 @@ class CPotentialPlayer
 public:
 	CGameProtocol *m_Protocol;
 	CBaseGame *m_Game;
+	CGHost *m_GHost;
 
 protected:
 	// note: we permit m_Socket to be NULL in this class to allow for the virtual host player which doesn't really exist
@@ -51,7 +53,7 @@ protected:
 	CIncomingJoinPlayer *m_IncomingJoinPlayer;
 
 public:
-	CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
+	CPotentialPlayer( CGHost* nGHost, CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
 	virtual ~CPotentialPlayer( );
 
 	virtual CTCPSocket *GetSocket( )				{ return m_Socket; }
@@ -146,9 +148,11 @@ private:
 	string m_ScoreS;
 	string m_RankS;
 
+	string m_GameKey;
+
 public:
-	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
-	CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
+	CGamePlayer( CGHost* nGHost, CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
+	CGamePlayer( CGHost* nGHost, CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	virtual ~CGamePlayer( );
 
 	bool m_Switched;
@@ -258,6 +262,8 @@ public:
 	void SetRankS( string nRank )											{ m_RankS = nRank; m_RankSet = true; }
 	void SetProvider( string nProvider )									{ m_Provider = nProvider;}
 	void SetCountry( string nCountry )										{ m_Country = nCountry;}
+
+	string GetGameKey()														{ return m_GameKey; }
 
 	string GetNameTerminated( );
 	uint32_t GetPing( bool LCPing );

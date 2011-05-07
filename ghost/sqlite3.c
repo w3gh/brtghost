@@ -69525,7 +69525,7 @@ static void zeroblobFunc(
 }
 
 /*
-** The replace() function.  Three arguments are all strings: call
+** The UTIL_Replace() function.  Three arguments are all strings: call
 ** them A, B, and C. The result is also a string which is derived
 ** from A by replacing every occurance of B with C.  The match
 ** must be exact.  Collating sequences are not used.
@@ -94083,7 +94083,7 @@ static void dataBufferAppend2(DataBuffer *pBuffer,
   memcpy(pBuffer->pData+pBuffer->nData+nSource1, pSource2, nSource2);
   pBuffer->nData += nSource1+nSource2;
 }
-static void dataBufferReplace(DataBuffer *pBuffer,
+static void dataBufferUTIL_Replace(DataBuffer *pBuffer,
                               const char *pSource, int nSource){
   dataBufferReset(pBuffer);
   dataBufferAppend(pBuffer, pSource, nSource);
@@ -94096,7 +94096,7 @@ typedef struct StringBuffer {
 
 static void initStringBuffer(StringBuffer *sb){
   dataBufferInit(&sb->b, 100);
-  dataBufferReplace(&sb->b, "", 1);
+  dataBufferUTIL_Replace(&sb->b, "", 1);
 }
 static int stringBufferLength(StringBuffer *sb){
   return sb->b.nData-1;
@@ -97811,12 +97811,12 @@ static InteriorBlock *interiorBlockNew(int iHeight, sqlite_int64 iChildBlock,
   if( block ){
     memset(block, 0, sizeof(*block));
     dataBufferInit(&block->term, 0);
-    dataBufferReplace(&block->term, pTerm, nTerm);
+    dataBufferUTIL_Replace(&block->term, pTerm, nTerm);
 
     n = fts3PutVarint(c, iHeight);
     n += fts3PutVarint(c+n, iChildBlock);
     dataBufferInit(&block->data, INTERIOR_MAX);
-    dataBufferReplace(&block->data, c, n);
+    dataBufferUTIL_Replace(&block->data, c, n);
   }
   return block;
 }
@@ -97966,7 +97966,7 @@ static void interiorWriterAppend(InteriorWriter *pWriter,
   }else{
     dataBufferAppend2(&pWriter->last->data, c, n,
                       pTerm+nPrefix, nTerm-nPrefix);
-    dataBufferReplace(&pWriter->term, pTerm, nTerm);
+    dataBufferUTIL_Replace(&pWriter->term, pTerm, nTerm);
   }
   ASSERT_VALID_INTERIOR_BLOCK(pWriter->last);
 }
@@ -98089,7 +98089,7 @@ static void interiorReaderInit(const char *pData, int nData,
   }else{
     n = fts3GetVarint32(pReader->pData, &nTerm);
     dataBufferInit(&pReader->term, nTerm);
-    dataBufferReplace(&pReader->term, pReader->pData+n, nTerm);
+    dataBufferUTIL_Replace(&pReader->term, pReader->pData+n, nTerm);
     assert( n+nTerm<=pReader->nData );
     pReader->pData += n+nTerm;
     pReader->nData -= n+nTerm;
@@ -98450,7 +98450,7 @@ static int leafWriterEncodeTerm(LeafWriter *pWriter,
     n += fts3PutVarint(c+n, nTerm-nPrefix);
     dataBufferAppend2(&pWriter->data, c, n, pTerm+nPrefix, nTerm-nPrefix);
   }
-  dataBufferReplace(&pWriter->term, pTerm, nTerm);
+  dataBufferUTIL_Replace(&pWriter->term, pTerm, nTerm);
 
   return nPrefix+1;
 }
@@ -98679,7 +98679,7 @@ static void leafReaderInit(const char *pData, int nData,
   /* Read the first term, skipping the header byte. */
   n = fts3GetVarint32(pData+1, &nTerm);
   dataBufferInit(&pReader->term, nTerm);
-  dataBufferReplace(&pReader->term, pData+1+n, nTerm);
+  dataBufferUTIL_Replace(&pReader->term, pData+1+n, nTerm);
 
   /* Position after the first term. */
   assert( 1+n+nTerm<nData );
@@ -98815,7 +98815,7 @@ static int leavesReaderInit(fulltext_vtab *v,
   dataBufferInit(&pReader->rootData, 0);
   if( iStartBlockid==0 ){
     /* Entire leaf level fit in root data. */
-    dataBufferReplace(&pReader->rootData, pRootData, nRootData);
+    dataBufferUTIL_Replace(&pReader->rootData, pRootData, nRootData);
     leafReaderInit(pReader->rootData.pData, pReader->rootData.nData,
                    &pReader->leafReader);
   }else{
@@ -99151,7 +99151,7 @@ static int loadSegmentLeavesInt(fulltext_vtab *v, LeavesReader *pReader,
 
       /* If empty was first buffer, no need for merge logic. */
       if( iBuffer==0 ){
-        dataBufferReplace(&(pBuffers[0]), pData, nData);
+        dataBufferUTIL_Replace(&(pBuffers[0]), pData, nData);
       }else{
         /* pAcc is the empty buffer the merged data will end up in. */
         DataBuffer *pAcc = &(pBuffers[iBuffer]);
