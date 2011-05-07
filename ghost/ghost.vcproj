@@ -440,10 +440,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pubprotocol.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\replay.cpp"
 				>
 			</File>
@@ -591,10 +587,6 @@
 			</File>
 			<File
 				RelativePath=".\packed.h"
-				>
-			</File>
-			<File
-				RelativePath=".\pubprotocol.h"
 				>
 			</File>
 			<File
