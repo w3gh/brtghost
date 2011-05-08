@@ -660,7 +660,7 @@ unsigned int TimerResolution = 0;
 		if( gGHost->Update( 50000 ) )
 			break;
 
-		CONSOLE_Print("LastUpdate " + UTIL_ToString( GetTicks() - nLastTime ));
+//		CONSOLE_Print("LastUpdate " + UTIL_ToString( GetTicks() - nLastTime ));
 	}
 
 	// shutdown ghost

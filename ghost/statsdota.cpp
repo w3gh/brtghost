@@ -236,7 +236,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 4 ) == "PUI_" )
 							{
-								// Hero pick up an item.
+/*								// Hero pick up an item.
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								CGamePlayer *Player = m_Game->GetPlayerFromColour( PlayerColour );
@@ -250,11 +250,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								if ( m_SwitchOff )
 								{
 									/*debug*/
-									CDotaItem *it = m_AllItems->find(ValueInt);
+/*									CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item ["+it->name+","+item+"].");
 
 									/*end debug*/
-									m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
+/*									m_DotaItems[PlayerColour]->PickUpItem(ValueInt);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 									bool error = true;
 									for ( int i = 0; i < 6; i++ )
@@ -262,14 +262,14 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
 										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
 									}
-								}
+								}*/
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] pick up an item [" + UTIL_ToString(ValueInt) + "].");
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 4 ) == "DRI_" )
 							{
 								// Hero drop an item.
-
+/*
 								string PlayerColourString = KeyString.substr( 4 );
 								uint32_t PlayerColour = UTIL_ToUInt32( PlayerColourString );
 								string item = string( Value.rbegin( ), Value.rend( ) );
@@ -283,11 +283,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								if ( m_SwitchOff )
 								{
 									/*debug*/
-									CDotaItem *it = m_AllItems->find(ValueInt);
+/*									CDotaItem *it = m_AllItems->find(ValueInt);
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item ["+it->name+","+item+"].");
 
 									/*end debug*/
-									m_DotaItems[PlayerColour]->DropItem(ValueInt);
+/*									m_DotaItems[PlayerColour]->DropItem(ValueInt);
 									vector<string> items = m_DotaItems[PlayerColour]->GetItems();
 
 									for ( int i = 0; i < 6; i++ )
@@ -295,7 +295,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										m_Players[PlayerColour]->SetItem( i,  items[i]);
 										//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] slot ["+UTIL_ToString(i)+"] item ["+items[i]+"].");
 									}
-								}
+								}*/
 								//It spams. Don't uncomment.
 								//CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + playerName + "] drop an item [" + UTIL_ToString(ValueInt) + "].");
 							}
