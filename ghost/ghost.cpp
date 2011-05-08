@@ -1461,7 +1461,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 	// however, in an effort to make game updates happen closer to the desired latency setting we now use a dynamic block interval
 	// note: we still use the passed usecBlock as a hard maximum
 
-	if (m_newLatency)
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); i++ )
 	{
 		if( (*i)->GetNextTimedActionTicks( ) * 1000 < usecBlock )
@@ -1473,7 +1472,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 	// it's a bit ridiculous to include this check since, in theory, the bot is programmed well enough to never make this mistake
 	// however, considering who programmed it, it's worthwhile to do it anyway
 
-	if (m_newLatency)
 	if( usecBlock < 1000 )
 		usecBlock = 1000;
 
