@@ -2477,7 +2477,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				}
 				else
 				{
+					
 					m_DoAutoWarns = !m_DoAutoWarns;
+
 					if(m_DoAutoWarns)
 					{
 						SendAllChat( m_GHost->m_Language->GetLang("lang_0517") ); // AutoWarnEnabled

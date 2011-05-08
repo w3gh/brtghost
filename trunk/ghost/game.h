@@ -57,7 +57,6 @@ protected:
 	vector<PairedGPSCheck> m_PairedGPSChecks;	// vector of paired threaded database game player summary checks in progress
 	vector<PairedDPSCheck> m_PairedDPSChecks;	// vector of paired threaded database DotA player summary checks in progress
 	uint32_t m_GameOverTime;					// GetTime when the game was over as reported by the stats class
-	bool m_DoAutoWarns;							// enable automated warns for early leavers
 
 public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
