@@ -239,7 +239,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_AllSlotsAnnounced = false;
 	m_DownloadOnlyMode = false;
 	m_AutoSave = m_GHost->m_AutoSave;
-	m_DoAutoWarns = false;
+	m_DoAutoWarns = m_GHost->m_doautowarn;
 	m_MatchMaking = false;
 	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 	m_CreepSpawnTime = 0;

@@ -288,6 +288,7 @@ public:
 	bool m_nostatsdota; 
 	bool m_Refresh0Uptime;
 	bool m_dontshowsdforadmins;				// config value: Show !sd for admins or not
+	bool m_doautowarn;
 	bool m_UsersCanHost;
 	bool m_SafeCanHost;
 	bool m_Console;

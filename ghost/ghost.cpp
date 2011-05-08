@@ -3721,7 +3721,7 @@ void CGHost :: ReloadConfig ()
 {
 	CConfig CFGF;
 	CConfig *CFG;
-	CFGF.Read( "ghost.cfg");
+	CFGF.Read( gCFGFile );
 	CFG = &CFGF;
 
 	stringstream SS;
@@ -3964,6 +3964,7 @@ void CGHost :: ReloadConfig ()
 	m_TwoLinesBanAnnouncement = CFG->GetInt( "bot_twolinesbanannouncement", 1 ) == 0 ? false : true;
 	m_CustomVersionText = CFG->GetString( "bot_customversiontext", string( ) );
 	m_autoinsultlobby = CFG->GetInt( "bot_autoinsultlobby", 0 ) == 0 ? false : true;
+	m_doautowarn = CFG->GetInt("bot_doautowarn", 0 ) == 0 ? false : true;
 	m_Version += m_CustomVersionText;
 	m_norank = CFG->GetInt( "bot_norank", 0 ) == 0 ? false : true;
 	m_nostatsdota = CFG->GetInt( "bot_nostatsdota", 0 ) == 0 ? false : true;
