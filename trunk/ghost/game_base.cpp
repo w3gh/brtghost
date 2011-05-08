@@ -1421,7 +1421,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	if( !m_KickVotePlayer.empty( ) && GetTime( ) - m_StartedKickVoteTime >= 60 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] expired" );
-		SendAllChat( m_GHost->m_Language->GetLang("lang_0163") );  // VoteKickExpired( m_KickVotePlayer )
+		SendAllChat( m_GHost->m_Language->GetLang( "lang_0163", m_KickVotePlayer ) );  // VoteKickExpired( m_KickVotePlayer )
 		m_KickVotePlayer.clear( );
 		m_StartedKickVoteTime = 0;
 	}
@@ -2558,7 +2558,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	// abort the votekick
 
 	if( !m_KickVotePlayer.empty( ) )
-		SendAllChat( m_GHost->m_Language->GetLang("lang_0162") );  // VoteKickCancelled( m_KickVotePlayer )
+		SendAllChat( m_GHost->m_Language->GetLang("lang_0162", m_KickVotePlayer) );  // VoteKickCancelled( m_KickVotePlayer )
 
 	m_KickVotePlayer.clear( );
 	m_StartedKickVoteTime = 0;
