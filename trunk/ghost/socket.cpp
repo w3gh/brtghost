@@ -230,12 +230,12 @@ void CTCPSocket :: Reset( )
 	}
 }
 
-void CTCPSocket :: PutBytes( string bytes )
+void CTCPSocket :: PutBytes( const string &bytes )
 {
 	m_SendBuffer += bytes;
 }
 
-void CTCPSocket :: PutBytes( BYTEARRAY bytes )
+void CTCPSocket :: PutBytes( const BYTEARRAY &bytes )
 {
 	m_SendBuffer += string( bytes.begin( ), bytes.end( ) );
 }

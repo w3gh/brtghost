@@ -147,8 +147,8 @@ public:
 	virtual void Reset( );
 	virtual bool GetConnected( )				{ return m_Connected; }
 	virtual string *GetBytes( )					{ return &m_RecvBuffer; }
-	virtual void PutBytes( string bytes );
-	virtual void PutBytes( BYTEARRAY bytes );
+	virtual void PutBytes( const string &bytes );
+	virtual void PutBytes( const BYTEARRAY &bytes );
 	virtual void ClearRecvBuffer( )				{ m_RecvBuffer.clear( ); }
 	virtual void ClearSendBuffer( )				{ m_SendBuffer.clear( ); }
 	virtual uint32_t GetLastRecv( )				{ return m_LastRecv; }
