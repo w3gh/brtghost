@@ -1,3 +1,0 @@
-Warcraft II BNE.exe
-Storm.dll
-Battle.snp
