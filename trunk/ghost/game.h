@@ -57,12 +57,14 @@ protected:
 	vector<PairedGPSCheck> m_PairedGPSChecks;	// vector of paired threaded database game player summary checks in progress
 	vector<PairedDPSCheck> m_PairedDPSChecks;	// vector of paired threaded database DotA player summary checks in progress
 	uint32_t m_GameOverTime;					// GetTime when the game was over as reported by the stats class
+	
+	int  EventDotaGameFastFinishProcess( uint32_t &votes, uint32_t &votesmax, unsigned char playerTeam );
+	void EventDotaGameFastFinishProcess( CGamePlayer* player, const string& nLangId, bool nShowMsg = true );
 
 public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
 	vector<PairedBanRemove> m_PairedBanRemoves;	// vector of paired threaded database ban removes in progress
-
 
 	virtual ~CGame( );
 
