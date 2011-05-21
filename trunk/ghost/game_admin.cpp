@@ -1348,19 +1348,6 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		}
 
 		//
-		// !UDP
-		//
-
-		else if( Command == "udp" )
-		{
-			m_GHost->m_UDPConsole = !m_GHost->m_UDPConsole;
-			if (m_GHost->m_UDPConsole)
-				SendChat( player, "UDP Console ON" );
-			else
-				SendChat( player, "UDP Console OFF" );
-		}
-
-		//
 		// !ACCESS , !ACCLST, !ACC
 		//
 

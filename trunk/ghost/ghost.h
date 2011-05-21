@@ -90,6 +90,7 @@ public:
 	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
 	vector<PIDPlayer> m_EnforcePlayers;		// vector of pids to force players to use in the next game (used with saved games)
+
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)
 	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
 	bool m_Enabled;							// set to false to prevent new games from being created
@@ -214,7 +215,6 @@ public:
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
 	bool m_ForceAutoBalanceTeams;			// config value: force auto balance teams with score
 
-	bool m_UDPConsole;						// config value: console output redirected to UDP
 	bool m_Verbose;							// config value: show all info or just some
 	bool m_RelayChatCommands;				// config value: show/hide issued commands
 	bool m_BlueCanHCL;
@@ -370,13 +370,6 @@ public:
 	CGHost( CConfig *CFG );
 	~CGHost( );
 
-	void UDPChatDel(string ip);
-	void UDPChatAdd(string ip);
-	bool UDPChatAuth(string ip);
-	void UDPChatSendBack(string s);
-	void UDPChatSend(string s);
-	void UDPChatSend(BYTEARRAY b);
-	string UDPChatWhoIs(string c, string s);
 	string Commands(unsigned int idx);
 	bool CommandAllowedToShow( string c);
 	void ReadProviders();
@@ -387,16 +380,18 @@ public:
 	void SetTimerResolution();
 	void EndTimer();
 	void AdminGameMessage(string name, string message);
-	void UDPCommands(string Message);
+
 	bool ShouldFakePing(string name);
 	bool IsRootAdmin(string name);
 	void AddRootAdmin(string name);
 	void DelRootAdmin(string name);
 	void ReloadConfig();
+
 	uint32_t CMDAccessAddOwner (uint32_t acc);
 	uint32_t CMDAccessAllOwner ();
 	uint32_t CMDAccessAdd( uint32_t access, uint32_t acc);
 	uint32_t CMDAccessDel( uint32_t access, uint32_t acc);
+
 	void SaveHostCounter();
 	void LoadHostCounter();
 	void AddSpoofedIP (string name, string ip);
@@ -437,9 +432,7 @@ public:
 	void LoadIPToCountryData( );
 	void LoadIPToCountryDataOpt( );
 	void CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
-	// UDPCommandSocket patch
-	CUDPServer *m_UDPCommandSocket;		// a UDP socket for receiving commands
-	string m_UDPCommandSpoofTarget;     // the realm to send udp received commands to
+
 	CTCPServer *m_GameBroadcastersListener; // listening socket for game broadcasters
 	vector<CTCPSocket *> m_GameBroadcasters;// vector of sockets that broadcast the games
 		

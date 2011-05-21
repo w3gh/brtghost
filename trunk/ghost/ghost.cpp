@@ -57,45 +57,6 @@ using namespace boost :: filesystem;
 #define __STORMLIB_SELF__
 #include <stormlib/StormLib.h>
 
-//class CGamePlayer;
-
-/*
-
-#include "ghost.h"
-#include "util.h"
-#include "crc32.h"
-#include "sha1.h"
-#include "csvparser.h"
-#include "config.h"
-#include "language.h"
-#include "socket.h"
-#include "commandpacket.h"
-#include "ghostdb.h"
-#include "ghostdbsqlite.h"
-#include "ghostdbmysql.h"
-#include "bncsutilinterface.h"
-#include "warden.h"
-#include "bnlsprotocol.h"
-#include "bnlsclient.h"
-#include "bnetprotocol.h"
-#include "bnet.h"
-#include "map.h"
-#include "packed.h"
-#include "savegame.h"
-#include "replay.h"
-#include "gameslot.h"
-#include "gameplayer.h"
-#include "gameprotocol.h"
-#include "gpsprotocol.h"
-#include "game_base.h"
-#include "game.h"
-#include "game_admin.h"
-#include "stats.h"
-#include "statsdota.h"
-#include "sqlite3.h"
-
-*/
-
 #ifdef WIN32
  #include <process.h>
 #else
@@ -129,103 +90,6 @@ uint32_t gLogMethod;
 ofstream *gLog = NULL;
 CGHost *gGHost = NULL;
 
-#define WHATISMYIP "www.whatismyip.com"
-#define WHATISMYIP2 "whatismyip.oceanus.ro"
-
-string GetExternalIP()
-{
-	string ip;
-	// Create socket object
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if(sock == SOCKET_ERROR)	// bad socket?
-	{
-//		printf("failed making socket");
-		return "";
-	}
-
-	sockaddr_in sa;
-	sa.sin_family	= AF_INET;
-	sa.sin_port		= htons(80);	// HTTP service uses port 80
-
-	// Time to get the hostname of www.whatismyip.com
-
-	hostent *h = gethostbyname(WHATISMYIP);
-	if(!h)
-	{
-		//		printf("failed getting host");
-		return "";
-	}
-
-	memcpy(&sa.sin_addr.s_addr, h->h_addr_list[0], 4);
-
-	if( connect(sock, (sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR )
-	{
-		//		printf("failed connecting");
-		return "";
-	}
-
-	// This is our packet that we are going to send to the HTTP server.
-	//
-	char Packet[] =
-		"GET /automation/n09230945.asp HTTP/1.1\r\n"			// GET request fetches a page
-		"Host: " WHATISMYIP "\r\n"		// we MUST use this param as of HTTP/1.1
-		"Referrer: \r\n" // Heh... you should remove this.
-		"\r\n";							// final \r\n
-
-	int rtn = 0;
-
-	int iOptVal = 3;
-	int iOptLen = sizeof(int);
-	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&iOptVal, iOptLen);
-
-	rtn = send(sock, Packet, sizeof(Packet)-1, 0);
-	if(rtn <= 0)
-	{
-		//		printf("failed sending packet");
-		return "";
-	}
-
-	char Buffer[16384] = {0};
-
-
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOptVal, iOptLen);
-
-	rtn = recv(sock, Buffer, sizeof(Buffer), 0);
-	closesocket(sock);
-	if(rtn <= 0)
-	{
-		//		printf("failed recving packet");
-		return "";
-	}
-
-	// Did we get a valid reply back from the server?
-	if( _strnicmp(Buffer, "HTTP/1.1 200 OK", 15))
-	{
-		//		printf("Invalid response.");
-		return "";
-	}
-
-	char *p = strstr(Buffer,"Cache-control: private");
-
-	if (p==NULL)
-		return "";
-	if (strlen(p)<26)
-		return "";
-
-	if  (p[26]<0x30 || p[26]>0x39)
-		return "";
-
-	for (int i=26;p[i]!=0;i++)
-	{
-		ip+=p[i];
-	}
-
-//	ip=Buffer;
-//	ip="yahoo";
-	return ip;
-}
-
 int GetPID()
 {
 	// This is used to create an unique warden cookie number.
@@ -234,102 +98,6 @@ int GetPID()
 #else
     return getpid();
 #endif
-}
-
-string GetExternalIP2()
-{
-	string ip;
-	// Create socket object
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if(sock == SOCKET_ERROR)	// bad socket?
-	{
-		//		printf("failed making socket");
-		return "";
-	}
-
-	sockaddr_in sa;
-	sa.sin_family	= AF_INET;
-	sa.sin_port		= htons(80);	// HTTP service uses port 80
-
-	// Time to get the hostname of www.whatismyip.com
-
-	hostent *h = gethostbyname(WHATISMYIP2);
-	if(!h)
-	{
-		//		printf("failed getting host");
-		return "";
-	}
-
-	memcpy(&sa.sin_addr.s_addr, h->h_addr_list[0], 4);
-
-	if( connect(sock, (sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR )
-	{
-		//		printf("failed connecting");
-		return "";
-	}
-
-	// This is our packet that we are going to send to the HTTP server.
-	//
-	char Packet[] =
-		"GET /myip.php HTTP/1.1\r\n"			// GET request fetches a page
-		"Host: " WHATISMYIP2 "\r\n"		// we MUST use this param as of HTTP/1.1
-		"Referrer: \r\n" // Heh... you should remove this.
-		"\r\n";							// final \r\n
-
-	int rtn = 0;
-
-	int iOptVal = 3;
-	int iOptLen = sizeof(int);
-	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&iOptVal, iOptLen);
-
-	rtn = send(sock, Packet, sizeof(Packet)-1, 0);
-	if(rtn <= 0)
-	{
-		//		printf("failed sending packet");
-		return "";
-	}
-
-	char Buffer[16384] = {0};
-
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOptVal, iOptLen);
-
-
-	rtn = recv(sock, Buffer, sizeof(Buffer), 0);
-	closesocket(sock);
-	if(rtn <= 0)
-	{
-		//		printf("failed recving packet");
-		return "";
-	}
-
-	// Did we get a valid reply back from the server?
-	if( _strnicmp(Buffer, "HTTP/1.1 200 OK", 15))
-	{
-		//		printf("Invalid response.");
-		return "";
-	}
-
-//	char *p = strstr(Buffer,"Cache-control: private");
-	char *p = strstr(Buffer,"My IP is:");
-
-	if (p==NULL)
-		return "";
-	if (strlen(p)<11)
-		return "";
-
-
-	if  (p[10]<0x30 || p[10]>0x39)
-		return "";
-
-	for (int i=10;p[i]!=0 && p[i]!=0x20;i++)
-	{
-		ip+=p[i];
-	}
-
-	//	ip=Buffer;
-	//	ip="yahoo";
-	return ip;
 }
 
 uint32_t GetTime( )
@@ -395,70 +163,18 @@ void SignalCatcher( int s )
 }
 
 // initialize ghost
-#ifdef WIN32
-typedef int _stdcall _UDPInit(void);
-typedef _UDPInit* UDPInit;
-typedef int _stdcall _UDPClose(void);
-typedef _UDPClose* UDPClose;
-typedef int _stdcall _UDPSend(PCHAR s);
-typedef _UDPSend* UDPSend;
-typedef PCHAR _stdcall _UDPWhoIs(PCHAR c, PCHAR s);
-typedef _UDPWhoIs* UDPWhoIs;
 
-UDPInit myudpinit;
-UDPClose myudpclose;
-UDPSend myudpsend;
-UDPWhoIs myudpwhois;
-
-HMODULE m_UDP;					// the chat server
-#endif
 void CONSOLE_Print( string message )
 {
-	if (gGHost)
-	if (!gGHost->m_Console)
-		return;
 	string::size_type loc = message.find( "]", 0 );
-/*
-	if (loc<15)
-		message.insert(1,15-loc,' ');
-	else
-*/
-//#ifdef WIN32
+
 	if (loc<34)
 		message.insert(1,34-loc,' ');
 	else
 	if (loc<45)
 		message.insert(1,45-loc,' ');
-//#endif
 
-	if (gGHost)
-	{
-		if (!gGHost->m_inconsole)
-		if (gGHost->m_UDPConsole)
-		{
-			char  *msg;
-			msg = new char[message.length() + 1];
-			strncpy(msg,message.c_str(), message.length());
-			msg[message.length()]=0;
-			gGHost->UDPChatSend(msg);
-			string hname = gGHost->m_VirtualHostName;
-			if (hname.substr(0,2)=="|c")
-				hname = hname.substr(10,hname.length()-10);
-
-			if (message.find("]") == string :: npos)
-				gGHost->UDPChatSend("|Chate "+UTIL_ToString(hname.length())+" " +hname+" "+message);
-		}
-		else
-			cout << message << endl;
-	}
-	else
-		cout << message << endl;
-
-	// logging
-
-	if (gGHost)
-		if (!gGHost->m_Log)
-			return;
+	cout << message << endl;
 
 	if( !gLogFile.empty( ) )
 	{
@@ -665,8 +381,6 @@ unsigned int TimerResolution = 0;
 
 	// shutdown ghost
 
-	gGHost->UDPChatSend("|shutdown");
-
 	remove(ProcessFile.c_str());
 /*
 	myfile.open (ProcessFile.c_str());
@@ -744,8 +458,8 @@ void Channel_Join(string server, string name)
 			return;
 		}
 	}
+
 	m_UsersinChannel.push_back( name );
-	gGHost->UDPChatSend("|channeljoin "+name);
 
 	bool Ban = false;
 	if (gGHost->m_KickUnknownFromChannel)
@@ -784,7 +498,7 @@ void Channel_Del(string name)
 		if( *i == name )
 		{
 			m_UsersinChannel.erase(i);
-			gGHost->UDPChatSend("|channelleave "+name);
+
 			return;
 		}
 	}
@@ -836,25 +550,14 @@ CGHost :: CGHost( CConfig *CFG )
 {
 	m_Console = true;
 	m_Log = true;
-	m_UDPConsole=false;
-#ifdef WIN32
-	LPCWSTR udpl=L"udpserver.dll";
-	m_UDP = LoadLibraryW(udpl);
 
-	myudpinit=(UDPInit)::GetProcAddress(m_UDP,"UDPInit");
-	myudpclose=(UDPClose)::GetProcAddress(m_UDP,"UDPClose");
-	myudpsend=(UDPSend)::GetProcAddress(m_UDP,"UDPSend");
-	myudpwhois=(UDPWhoIs)::GetProcAddress(m_UDP,"UDPWhoIs");
-
-	myudpinit();
-#endif
 	m_UDPSocket = new CUDPSocket( );
 	m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) );
 	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
+
 	m_ReconnectSocket = NULL;
 	m_GPSProtocol = new CGPSProtocol( );
 
-	m_UDPConsole = CFG->GetInt( "bot_udpconsole", 1 ) == 0 ? false : true;
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
@@ -938,14 +641,12 @@ CGHost :: CGHost( CConfig *CFG )
 	}
 #endif
 
-	m_UDPCommandSocket = new CUDPServer();
-	m_UDPCommandSocket->Bind(CFG->GetString( "udp_cmdbindip", "0.0.0.0" ), CFG->GetInt( "udp_cmdport", 6969 ));
-	m_UDPCommandSpoofTarget = CFG->GetString( "udp_cmdspooftarget", string( ) );
 #ifdef WIN32
 	sPathEnd = "\\";
 #else
 	sPathEnd = "/";
 #endif
+
 	m_Language = NULL;
 	m_Exiting = false;
 	m_ExitingNice = false;
@@ -955,14 +656,14 @@ CGHost :: CGHost( CConfig *CFG )
 	stringstream SS;
 	string istr = string();
 	m_DisableReason = string();
-	m_RootAdmin = "dev";
+	m_RootAdmin = "root";
 	m_CookieOffset = GetPID() * 10;
 	m_CallableDownloadFile = NULL;
 	m_GameNameContainString.clear();
 	UTIL_ExtractStrings(CMD_string, m_Commands);
 	m_HostCounter = 1;
 	m_AutoHostServer = string();
-	m_AutoHostOwner = string();
+	m_AutoHostOwner = "brtGHost";
 	m_AutoHostGameName = string();
 	m_AutoHostLocal = false;
 	m_AutoHostGArena = false;
@@ -978,6 +679,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMaximumScore = 0.0;
 	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
+
 	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
 
 	if( m_TFT )
@@ -1029,13 +731,14 @@ CGHost :: CGHost( CConfig *CFG )
 		else
 			LocaleID = UTIL_ToUInt32( Locale );
 
-		string UserName = CFG->GetString( Prefix + "username", string( ) );
+		string UserName     = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
-		string RootAdmin = CFG->GetString( Prefix + "rootadmin", string( ) );
+		string RootAdmin    = CFG->GetString( Prefix + "rootadmin", string( ) );
 
 		if (!RootAdmin.empty())
 			m_RootAdmin = RootAdmin;
+
 		string BNETCommandTrigger = CFG->GetString( Prefix + "commandtrigger", "!" );
 
 		if( BNETCommandTrigger.empty( ) )
@@ -1044,12 +747,14 @@ CGHost :: CGHost( CConfig *CFG )
 		bool Whereis = false;
 		uint32_t tmp = CFG->GetInt( Prefix + "whereis", 2 );
 		Whereis = (tmp == 0 ? false : true);
+
 		if (Server == "server.eurobattle.net")
 			if (tmp == 2)
 				Whereis = true;
 			else;
 		else if (tmp ==2)
 			Whereis = false;
+
 		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
 		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
 		bool PublicCommands = CFG->GetInt( Prefix + "publiccommands", 1 ) == 0 ? false : true;
@@ -1173,43 +878,16 @@ CGHost :: CGHost( CConfig *CFG )
 
 	// external ip and country
 
-//	m_ExternalIP="";
 	if (!m_ExternalIP.empty())
 	{
-		m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
-		m_Country=m_DBLocal->FromCheck(m_ExternalIPL);
+		m_ExternalIPL = ntohl(inet_addr(m_ExternalIP.c_str()));
+		m_Country = m_DBLocal->FromCheck(m_ExternalIPL);
+
 		CONSOLE_Print( "[GHOST] External IP is " + m_ExternalIP);
 		CONSOLE_Print( "[GHOST] Country is " + m_Country);
 	}
-	if (m_FindExternalIP)
-	{
-		if (!m_AltFindIP)
-			CONSOLE_Print( "[GHOST] Finding External IP ");
-		else
-			CONSOLE_Print( "[GHOST] Finding External IP, alternate method ");
-		if (!m_AltFindIP)
-			m_ExternalIP=GetExternalIP();
-		else
-			m_ExternalIP=GetExternalIP2();
 
-		if (m_ExternalIP.empty() || m_ExternalIP.length()<3)
-			if (!m_AltFindIP)
-				m_ExternalIP=GetExternalIP2();
-			else
-				m_ExternalIP=GetExternalIP();
-		if (!m_ExternalIP.empty())
-		{
-			m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
-			m_Country=m_DBLocal->FromCheck(m_ExternalIPL);
-			CONSOLE_Print( "[GHOST] External IP is " + m_ExternalIP);
-			CONSOLE_Print( "[GHOST] Country is " + m_Country);
-	//		CONSOLE_Print( "[GHOST] Provider is " + UDPChatWhoIs(m_Country, m_ExternalIP));
-		} else
-		UDPChatSend("|ip");
-	} else
-		UDPChatSend("|ip");
 	// create the admin game
-
 	if( m_AdminGameCreate )
 	{
 		CONSOLE_Print( "[GHOST] creating admin game" );
@@ -1240,12 +918,6 @@ CGHost :: CGHost( CConfig *CFG )
 
 CGHost :: ~CGHost( )
 {
-#ifdef WIN32
-	myudpclose();
-#endif
-	m_UDPConsole = false;
-	delete m_UDPCommandSocket;
-	delete m_UDPSocket;
 	delete m_ReconnectSocket;
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); i++ )
@@ -1284,12 +956,13 @@ CGHost :: ~CGHost( )
 bool CGHost :: Update( unsigned long usecBlock )
 {
 	// todotodo: do we really want to shutdown if there's a database error? is there any way to recover from this?
-
-	if( m_DB->HasError( ) )
+/*
+	if( m_DB->HasError( ) && !nAlreadyDBErrorPrinted )
 	{
 		CONSOLE_Print( "[GHOST] database error - " + m_DB->GetError( ) );
 		return true;
 	}
+*/
 
 	if( m_DBLocal->HasError( ) )
 	{
@@ -1436,13 +1109,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 		NumFDs++;
 	}
 
-	// 6. udp command receiving socket
-
-	m_UDPCommandSocket->SetFD( &fd,  &send_fd, &nfds);
-	// SetFD of the UDPServer does not return the number of sockets belonging to it as it's obviously one
-	NumFDs++;
-
-	// 7. the Game Broadcasters
+	// 6. the Game Broadcasters
 	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); i++ )
 	{
 		if ( (*i)->GetConnected( ) && !(*i)->HasError( ) )
@@ -1452,7 +1119,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 		}
 	}
  
-	// 8. the listener for game broadcasters
+	// 7. the listener for game broadcasters
 	m_GameBroadcastersListener->SetFD( &fd, &send_fd, &nfds );
 	NumFDs++;
 
@@ -1529,7 +1196,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 					CONSOLE_Print( "[WaaaghTV] an error has occurred when trying to terminate wtvrecorder.exe (1-2)" );
 			}
 #endif
-			UDPChatSend("|unhost");
+
 			delete m_CurrentGame;
 			m_CurrentGame = NULL;
 
@@ -1592,7 +1259,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 		if( (*i)->Update( &fd, &send_fd ) )
 		{
 			CONSOLE_Print( "[GHOST] deleting game [" + (*i)->GetGameName( ) + "]" );
-			UDPChatSend("|endgame "+UTIL_ToString(GameNr)+" "+(*i)->GetGameName( ));
 
 #ifdef WIN32
 			if (m_wtv && (*i)->wtvprocessid != 0)
@@ -1644,17 +1310,12 @@ bool CGHost :: Update( unsigned long usecBlock )
 	}
 
 	if (m_Rehosted)
-	{
 		m_Rehosted = false;
-		UDPChatSend("|rehost "+m_RehostedName);
-	}
 
 	if (m_Hosted)
-	{
 		m_Hosted = false;
-		UDPChatSend("|host "+m_HostedName);
-	}
 
+	/*
 	// update mysql queue
 	if (GetTicks() - m_MySQLQueueTicks > 1000)
 	{
@@ -1668,7 +1329,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 			done = true;
 		}
 	}
-
+	*/
 	// update dynamic latency printout
 
 	if (GetTicks() - m_LastDynamicLatencyConsole > 36000)
@@ -1796,77 +1457,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 		if( (*i)->Update( &fd, &send_fd ) )
 			BNETExit = true;
 	}
-
-	// UDP COMMANDSOCKET CODE
-	sockaddr_in recvAddr;
-	string udpcommand;
-	m_UDPCommandSocket->RecvFrom( &fd, &recvAddr, &udpcommand);
-//	UDPChatAdd(recvAddr.sin_addr);
-	if ( udpcommand.size() )
-	{
-		// default server to relay the message to
-		string udptarget = m_UDPCommandSpoofTarget;
-		int pos;
-		bool relayed = false;
-
-		// special case, a udp command starting with || . ex: ||readwelcome
-		if (udpcommand.substr(0,2)=="||")
-		{
-			UDPCommands(udpcommand.substr(1,udpcommand.length()-1));
-		}
-		else
-		{
-			// has the user specified a specific target the command should be sent to?
-			// looks for "<someaddress>" at the beginning of the received command,
-			// sets the target accordingly and strips it from the command
-			if ( udpcommand.find("<") == 0 && (pos=udpcommand.find(">")) != string::npos )
-			{
-				udptarget = udpcommand.substr(1, pos - 1);
-				udpcommand.erase(0, pos + 1);
-			}
-			// we expect commands not to start with the command trigger because this is a commandsocket,
-			// we only except commands and therefore know we received one and not some chatting
-			// this way the user sending the command does not have to have knowledge of the commandtrigger
-			// set in GHost's config file
-			udpcommand = string(1, m_CommandTrigger) + udpcommand;
-
-			// loop through all connections to find the server the command should be issued on
-			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-			{
-				// is this the right one or should we just send it to the first in list?
-				if ( udptarget == (*i)->GetServer( ) || udptarget.empty() )
-				{
-					CONSOLE_Print("[UDPCMDSOCK] Relaying cmd [" + udpcommand + "] to server [" + (*i)->GetServer( ) + "]");
-					// spoof a whisper from the rootadmin belonging to this connection
-					CIncomingChatEvent *chatCommand = new CIncomingChatEvent( CBNETProtocol::EID_WHISPER, 0, (*i)->GetRootAdmin( ), udpcommand );
-					(*i)->ProcessChatEvent( chatCommand );
-					relayed = true;
-					break;
-				}
-			}
-			if (!relayed)
-				CONSOLE_Print("[UDPCMDSOCK] Could not relay cmd [" + udpcommand + "] to server [" + udptarget + "]: server unknown");
-		}
-	}
-
-	if (m_NewChannel)
-		if (GetTime() - m_ChannelJoinTime>1)
-		{
-			UDPChatSend("|channeljoined "+m_ChannelName);
-			m_NewChannel=false;
-		}
-		//dbg
-		if (false)
-		if (m_Games.size()<7 && m_BNETs[0]->GetLoggedIn())
-		{
-			CreateGame( m_Map, GAME_PUBLIC, false, "test"+UTIL_ToString(m_Games.size()+1), m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
-			m_CurrentGame->m_StartedLoadingTicks = GetTicks( );
-			m_CurrentGame->m_LastLoadInGameResetTime = GetTime( );
-			m_CurrentGame->m_StartedLoadingTime = GetTime( );
-			m_CurrentGame->m_GameLoading = true;
-			m_CurrentGame->CreateFakePlayer();
-			m_CurrentGame->EventGameStarted( );
-		}
 
 	// autohost
 
@@ -2016,10 +1606,11 @@ void CGHost :: EventBNETGameRefreshed( CBNET *bnet )
 			m_RehostedName = m_CurrentGame->GetGameName();
 			m_RehostedServer = m_CurrentGame->GetCreatorServer();
 			m_CurrentGame->m_Rehost = false;
+
 			CONSOLE_Print( "[GAME: " + m_CurrentGame->GetGameName() + "] rehost worked");
 			m_CurrentGame->m_LastPlayerJoinedTime = GetTime( );
-			m_CurrentGame->SendAllChat("Rehosted as \""+m_CurrentGame->GetGameName()+"\"");
-			UDPChatSend("|rehostw "+m_CurrentGame->GetGameName());
+
+			m_CurrentGame->SendAllChat( m_Language->GetLang("lang_1503", m_CurrentGame->GetGameName() ));
 		} else
 		{
 			m_Hosted = true;
@@ -2537,7 +2128,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	}
 
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
-	UDPChatSend("|newgame "+gameName);
 
 	m_LastGameName = gameName;
 
@@ -2724,997 +2314,6 @@ void CGHost :: AdminGameMessage(string name, string message)
 	}
 }
 
-
-void CGHost :: UDPCommands( string Message )
-{
-	string IP;
-	string Command;
-	string Payload;
-	/*string :: size_type key = Message.find("e579d5e14d8fd95ea1ef8025505cf8e2");
-
-	if (key == string :: npos)
-		return; 
-	else
-		Message.substr(key);*/
-
-	string :: size_type CommandStart = Message.find( " " );
-
-//	CONSOLE_Print( Message );
-
-	if( CommandStart != string :: npos )
-	{
-		IP = Message.substr( 1, CommandStart-1 );
-		Message = Message.substr( CommandStart + 1 );
-	}
-	else
-		Message = Message.substr( 1 );
-
-	m_LastIp = IP;
-
-	string :: size_type PayloadStart = Message.find( " " );
-
-	if( PayloadStart != string :: npos )
-	{
-		Command = Message.substr( 0, PayloadStart-0 );
-		Payload = Message.substr( PayloadStart + 1 );
-	}
-	else
-		Command = Message.substr( 0 );
-
-	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
-
-//	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
-
-
-	if (Command == "connect")
-	{
-		if (!m_UDPPassword.empty())
-		if (Payload!=m_UDPPassword)
-		{
-			UDPChatSendBack("|invalidpassword");
-			return;
-		}
-		UDPChatAdd(IP);
-		UDPChatSend("|connected "+IP);
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-			(*i)->m_LastFriendListTime = 0;
-	}
-
-	if (!UDPChatAuth(IP))
-		return;
-
-//	CONSOLE_Print( "[GHOST] received UDP command [" + Command + "] with payload [" + Payload + "]"+" from IP ["+IP+"]" );
-
-
-    if (Command == "sendgamesstatus")
-    {
-        string games; games.clear();
-
-		string separator = ",";
-		string block = "|--|";
-
-		if (m_CurrentGame)
-		{
-			string game_name;
-
-			game_name = m_CurrentGame->GetGameName();
-
-			games = "|currentgame"+ block + UTIL_ToString(game_name.size()) + separator + game_name +
-					separator +	m_CurrentGame->GetOwnerName() + 
-					separator + UTIL_ToString(m_CurrentGame->GetSlotsOccupied())+
-					separator + UTIL_ToString(m_CurrentGame->m_Slots.size());
-
-			if (!m_CurrentGame->m_Players.empty())
-			{
-			//	games += separator + "C" + UTIL_ToString(m_CurrentGame->m_Players->size());
-
-				for (uint32_t i=0; i < m_CurrentGame->m_Players.size(); i++)
-					games += separator + m_CurrentGame->m_Players[i]->GetName();
-			}
-
-		}
-
-		games += "|gamesinfo" + block;
-		
-		if (m_Games.size( )>0)
-		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
-		{
-            int iTime; // time in seconds since game loaded
-
-			if (GetTime() < (*g)->GetGameLoadedTime())
-				iTime = 0;
-			else if ((*g)->GetCreepSpawnTime() == 0)
-				iTime = (int)(GetTime() - (*g)->GetGameLoadedTime());
-			else
-				iTime = (int)(GetTime() - (*g)->GetCreepSpawnTime());
-
-            string reserv1, tower_kills, game_name;
-
-            reserv1.clear();
-
-			game_name = (*g)->GetGameName();
-
-			games += UTIL_ToString(game_name.size()) + separator + game_name + separator + (*g)->GetKilledTowers() + separator + UTIL_ToString(iTime) + separator + (*g)->GetOwnerName() + separator + reserv1;
-
-			if ((*g)->m_Players.empty())
-			{
-			//	games += separator + "C" + UTIL_ToString(m_CurrentGame->m_Players->size());
-
-				for (uint32_t i=0; i < (*g)->m_Players.size(); i++)
-					games += separator + (*g)->m_Players[i]->GetName();
-			}
-
-			games += block;
-		}
-
-		UDPChatSendBack(games);
-    }
-
-	if (Command == "readwelcome")
-	{
-		ReadWelcome();
-	}
-
-	if (Command == "ping")
-	{
-		UDPChatSendBack("|pong");
-	}
-
-	if (Command == "disconnect" && !Payload.empty())
-	{
-		UDPChatDel(Payload);
-		UDPChatSend("|disconnected "+Payload);
-	}
-
-	if (Command == "getchannel")
-	{
-		string Users="";
-
-		if (m_UsersinChannel.size())
-		{
-
-		for( vector<string> :: iterator i = m_UsersinChannel.begin( ); i != m_UsersinChannel.end( ); i++ )
-		{
-			Users += (*i)+",";
-		}
-			UDPChatSendBack("|channelusers "+Users);
-		}
-	}
-
-	if (Command == "start")
-	{
-		if (m_CurrentGame)
-		if (m_CurrentGame->GetPlayers().size()>0)
-		if (!m_CurrentGame->GetCountDownStarted( ))
-		{
-			if( Payload == "force" )
-				m_CurrentGame->StartCountDown( true );
-			else
-				m_CurrentGame->StartCountDown( false );
-		}
-	}
-
-	if (Command == "lobbychat" && !Payload.empty())
-	{
-		bool CSaid = false;
-		string hname = m_VirtualHostName;
-		if (hname.substr(0,2)=="|c")
-			hname = hname.substr(10,hname.length()-10);
-
-		// handle bot commands
-
-		if (m_CurrentGame->m_Players.size()==0)
-			return;
-
-		string CMessage = Payload;
-
-		if( !CMessage.empty( ) && CMessage[0] == m_CommandTrigger )
-		{
-			// extract the command trigger, the command, and the payload
-			// e.g. "!say hello world" -> command: "say", payload: "hello world"
-
-			CGamePlayer *Pl;
-			string CCommand;
-			string CPayload;
-			string :: size_type CPayloadStart = CMessage.find( " " );
-
-			if( CPayloadStart != string :: npos )
-			{
-				CCommand = CMessage.substr( 1, CPayloadStart - 1 );
-				CPayload = CMessage.substr( CPayloadStart + 1 );
-			}
-			else
-				CCommand = CMessage.substr( 1 );
-
-			transform( CCommand.begin( ), CCommand.end( ), CCommand.begin( ), (int(*)(int))tolower );
-
-			bool SearchPl = true;
-			if (SearchPl)
-				for( vector<CGamePlayer *> :: iterator k = m_CurrentGame->m_Players.begin( ); k != m_CurrentGame->m_Players.end( ); k++ )
-				{
-					if( (*k)->GetName( )== m_CurrentGame->GetOwnerName() && !(*k)->GetLeftMessageSent())
-					{
-						Pl = (*k);
-						SearchPl = false;
-						break;
-					}
-				}
-
-				if (SearchPl)
-					for( vector<CGamePlayer *> :: iterator k = m_CurrentGame->m_Players.begin( ); k != m_CurrentGame->m_Players.end( ); k++ )
-					{
-						if( !(*k)->GetLeftMessageSent( ) )
-						{
-							Pl = (*k);
-							break;
-						}
-					}
-
-					if (Pl)
-					{
-						CONSOLE_Print( "[GHOST] received remote command [" + CCommand + "] with payload [" + CPayload + "]" );
-						string n = m_RootAdmins;
-						string sr = Pl->GetSpoofedRealm();
-						bool sp = Pl->GetSpoofed();
-						Pl->SetSpoofedRealm(m_CurrentGame->GetCreatorServer());
-						if (!IsRootAdmin(Pl->GetName()))
-							AddRootAdmin(Pl->GetName());
-						Pl->SetSpoofed(true);
-						m_CurrentGame->EventPlayerBotCommand( Pl, CCommand, CPayload );
-						Pl->SetSpoofed(sp);
-						Pl->SetSpoofedRealm(sr);
-						m_RootAdmins = n;
-						CSaid = true;
-					}
-		}
-		if (!CSaid)
-			m_CurrentGame->SendAllChat(Payload);
-		else
-			UDPChatSend("|lobby "+hname+" "+Payload);
-
-
-	}
-
-	if (Command == "say" && !Payload.empty())
-	{
-		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-			(*i)->QueueChatCommand(Payload);
-	}
-
-	if (Command == "opendb")
-	{
-//		m_dbopen = true;
-	}
-
-	if (Command == "closedb")
-	{
-//		m_dbopen = false;
-	}
-/*
-	if (Command == "oneversion")
-	{
-		m_OneVersion = Payload;
-		m_Version = m_OneVersion+" ("+m_GHostVersion+")";
-	}
-*/
-	if (Command == "gamechat" && !Payload.empty())
-	{
-		string :: size_type msgStart;
-		string nr;
-		uint32_t i;
-		string msg;
-		string name;
-
-		msgStart = Payload.find( " " );
-		nr = Payload.substr( 0, msgStart-0 );
-		msg = Payload.substr( msgStart + 1 );
-		sscanf(nr.c_str(), "%d", &i);
-		msgStart = msg.find( " " );
-		name = msg.substr( 0, msgStart-0 );
-		msg = msg.substr( msgStart + 1 );
-
-		if (m_Games.size()>i)
-		{
-			if (m_Games[i]->m_Players.size()==0)
-				return;
-			CGamePlayer *Pl;
-			Pl = m_Games[i]->GetPlayerFromName(name, false);
-			if (Pl!=NULL)
-				m_Games[i]->SendAllChat(Pl->GetPID(), msg);
-			else m_Games[i]->SendAllChat(msg);
-			// handle bot commands
-
-			string CMessage = msg;
-
-			if( !CMessage.empty( ) && CMessage[0] == m_CommandTrigger )
-			{
-				// extract the command trigger, the command, and the payload
-				// e.g. "!say hello world" -> command: "say", payload: "hello world"
-
-				string CCommand;
-				string CPayload;
-				string :: size_type CPayloadStart = CMessage.find( " " );
-
-				if( CPayloadStart != string :: npos )
-				{
-					CCommand = CMessage.substr( 1, CPayloadStart - 1 );
-					CPayload = CMessage.substr( CPayloadStart + 1 );
-				}
-				else
-					CCommand = CMessage.substr( 1 );
-
-				transform( CCommand.begin( ), CCommand.end( ), CCommand.begin( ), (int(*)(int))tolower );
-
-				bool SearchPl = false;
-
-				if (Pl==NULL)
-					SearchPl = true;
-				else if (Pl->GetLeftMessageSent())
-					SearchPl = true;
-
-				if (SearchPl)
-				for( vector<CGamePlayer *> :: iterator k = m_Games[i]->m_Players.begin( ); k != m_Games[i]->m_Players.end( ); k++ )
-				{
-					if( (*k)->GetName( )== m_Games[i]->GetOwnerName() && !(*k)->GetLeftMessageSent())
-					{
-						Pl = (*k);
-						SearchPl = false;
-						break;
-					}
-				}
-
-				if (SearchPl)
-				for( vector<CGamePlayer *> :: iterator k = m_Games[i]->m_Players.begin( ); k != m_Games[i]->m_Players.end( ); k++ )
-				{
-					if( !(*k)->GetLeftMessageSent( ) )
-					{
-						Pl = (*k);
-						break;
-					}
-				}
-
-				if (Pl!=NULL)
-				{
-					CONSOLE_Print( "[GHOST] received remote command [" + CCommand + "] with payload [" + CPayload + "]" );
-					string n = m_RootAdmins;
-					string sr = Pl->GetSpoofedRealm();
-					bool sp = Pl->GetSpoofed();
-					Pl->SetSpoofedRealm(m_Games[i]->GetCreatorServer());
-					if (!IsRootAdmin(Pl->GetName()))
-						AddRootAdmin(Pl->GetName());
-					Pl->SetSpoofed(true);
-					m_Games[i]->EventPlayerBotCommand( Pl, CCommand, CPayload );
-					Pl->SetSpoofed(sp);
-					Pl->SetSpoofedRealm(sr);
-					m_RootAdmins = n;
-				}
-			}
-		}
-	}
-
-	if (Command == "gamechata" && !Payload.empty())
-	{
-		string :: size_type msgStart;
-		string nr;
-		uint32_t i;
-		string msg;
-		string name;
-
-		msgStart = Payload.find( " " );
-		nr = Payload.substr( 0, msgStart-0 );
-		msg = Payload.substr( msgStart + 1 );
-		sscanf(nr.c_str(), "%d", &i);
-		msgStart = msg.find( " " );
-		name = msg.substr( 0, msgStart-0 );
-		msg = msg.substr( msgStart + 1 );
-
-		if (m_Games.size()>i)
-		{
-			if (m_Games[i]->m_Players.size()==0)
-				return;
-			CGamePlayer *Pl;
-			Pl = m_Games[i]->GetPlayerFromName(name, false);
-			if (Pl!=NULL)
-				m_Games[i]->SendAllyChat(Pl->GetPID(), msg);
-			else m_Games[i]->SendAllyChat(msg);
-			// handle bot commands
-
-			string CMessage = msg;
-
-			if( !CMessage.empty( ) && CMessage[0] == m_CommandTrigger )
-			{
-				// extract the command trigger, the command, and the payload
-				// e.g. "!say hello world" -> command: "say", payload: "hello world"
-
-				string CCommand;
-				string CPayload;
-				string :: size_type CPayloadStart = CMessage.find( " " );
-
-				if( CPayloadStart != string :: npos )
-				{
-					CCommand = CMessage.substr( 1, CPayloadStart - 1 );
-					CPayload = CMessage.substr( CPayloadStart + 1 );
-				}
-				else
-					CCommand = CMessage.substr( 1 );
-
-				transform( CCommand.begin( ), CCommand.end( ), CCommand.begin( ), (int(*)(int))tolower );
-
-				bool SearchPl = false;
-
-				if (Pl==NULL)
-					SearchPl = true;
-				else if (Pl->GetLeftMessageSent())
-					SearchPl = true;
-
-				if (SearchPl)
-					for( vector<CGamePlayer *> :: iterator k = m_Games[i]->m_Players.begin( ); k != m_Games[i]->m_Players.end( ); k++ )
-					{
-						if( (*k)->GetName( )== m_Games[i]->GetOwnerName() && !(*k)->GetLeftMessageSent())
-						{
-							Pl = (*k);
-							SearchPl = false;
-							break;
-						}
-					}
-
-					if (SearchPl)
-						for( vector<CGamePlayer *> :: iterator k = m_Games[i]->m_Players.begin( ); k != m_Games[i]->m_Players.end( ); k++ )
-						{
-							if( !(*k)->GetLeftMessageSent( ) )
-							{
-								Pl = (*k);
-								break;
-							}
-						}
-
-						if (Pl!=NULL)
-						{
-							CONSOLE_Print( "[GHOST] received remote command [" + CCommand + "] with payload [" + CPayload + "]" );
-							string n = m_RootAdmins;
-							string sr = Pl->GetSpoofedRealm();
-							bool sp = Pl->GetSpoofed();
-							Pl->SetSpoofedRealm(m_Games[i]->GetCreatorServer());
-							if (!IsRootAdmin(Pl->GetName()))
-								AddRootAdmin(Pl->GetName());
-							Pl->SetSpoofed(true);
-							m_Games[i]->EventPlayerBotCommand( Pl, CCommand, CPayload );
-							Pl->SetSpoofed(sp);
-							Pl->SetSpoofedRealm(sr);
-							m_RootAdmins = n;
-						}
-			}
-		}
-	}
-
-
-	if (Command == "language")
-	{
-		delete m_Language;
-		m_Language = new CLanguage( m_LanguageFile );
-	}
-
-	if (Command == "updatefriends")
-	{
-		if (m_BNETs.size()>0)
-			m_BNETs[0]->SendGetFriendsList();
-	}
-
-	if (Command == "getfriends")
-	{
-		string friends = string();
-		if (m_BNETs.size()>0)
-		if (m_BNETs[0]->GetFriends()->size( )>0)
-		{
-			for( vector<CIncomingFriendList *> :: iterator g = m_BNETs[0]->GetFriends()->begin( ); g != m_BNETs[0]->GetFriends()->end( ); g++)
-			{
-				friends = friends + (*g)->GetAccount()+","+UTIL_ToString((*g)->GetStatus())+","+UTIL_ToString((*g)->GetArea())+",";
-			}
-			UDPChatSendBack("|friends "+friends);
-		}
-	}
-
-	if (Command == "getgames")
-	{
-		string games;
-		if( m_CurrentGame )
-			games = games + "L "+m_CurrentGame->GetGameName()+"|";
-		games = games + UTIL_ToString(m_Games.size( ));
-		games = "|games "+games+" ";
-		if (m_Games.size( )>0)
-		for( vector<CBaseGame *> :: iterator g = m_Games.begin( ); g != m_Games.end( ); g++)
-		{
-			games = games + (*g)->GetGameName()+'|';
-		}
-
-		UDPChatSendBack(games);
-	}
-
-	if (Command == "bang" && !Payload.empty())
-	{
-		uint32_t ig;
-		string name;
-		stringstream SS;
-		CBaseGame *Game;
-		SS <<Payload;
-		SS >>ig;
-		SS >>name;
-
-		if (m_Games.size()>=ig+1)
-		{
-			Game = m_Games[ig];
-			string VictimLower = name;
-			transform( VictimLower.begin( ), VictimLower.end( ), VictimLower.begin( ), (int(*)(int))tolower );
-			uint32_t Matches = 0;
-			CDBBan *LastMatch = NULL;
-
-			// try to match each player with the passed string (e.g. "Varlock" would be matched with "lock")
-			// we use the m_DBBans vector for this in case the player already left and thus isn't in the m_Players vector anymore
-
-			for( vector<CDBBan *> :: iterator i = Game->m_DBBans.begin( ); i != Game->m_DBBans.end( ); i++ )
-			{
-				string TestName = (*i)->GetName( );
-				transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
-
-				if( TestName.find( VictimLower ) != string :: npos )
-				{
-					Matches++;
-					LastMatch = *i;
-				}
-			}
-			if( Matches == 0 )
-				Game->SendAllChat( m_Language->GetLang("lang_0051", name ) ); // UnableToBanNoMatchesFound
-			else if( Matches == 1 )
-			{
-				bool isAdmin = Game->IsOwner(LastMatch->GetName());
-				for( vector<CBNET *> :: iterator j = m_BNETs.begin( ); j != m_BNETs.end( ); j++ )
-				{
-					if( (*j)->IsAdmin(LastMatch->GetName() ) || (*j)->IsRootAdmin( LastMatch->GetName() ) )
-					{
-						isAdmin = true;
-						break;
-					}
-				}
-
-				if (isAdmin)
-				{
-//					Game->SendAllChat( "You can't ban an admin!");
-					return;
-				}
-
-				uint32_t timehasleft = GetTime();
-
-				for( vector<CDBGamePlayer *> :: iterator i = Game->m_DBGamePlayers.begin( ); i != Game->m_DBGamePlayers.end( ); i++ )
-				{
-					if ((*i)->GetName() == LastMatch->GetName())
-						timehasleft = (*i)->GetLeavingTime();
-				}
-
-				string Reason = Game->CustomReason( timehasleft, string(), LastMatch->GetName() );
-
-				CGame * Game2 = dynamic_cast <CGame *>(Game);
-
-				if( !LastMatch->GetServer( ).empty( ) )
-				{
-					// the user was spoof checked, ban only on the spoofed realm
-
-					Game2->m_PairedBanAdds.push_back( PairedBanAdd( m_RootAdmin, m_DB->ThreadedBanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), Game->GetGameName(), m_RootAdmin, Reason, 0, 0 ) ) );
-					//							m_GHost->m_DB->BanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
-				}
-				else
-				{
-					// the user wasn't spoof checked, ban on every realm
-
-					for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-						Game2->m_PairedBanAdds.push_back( PairedBanAdd( m_RootAdmin, m_DB->ThreadedBanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), Game->GetGameName(), m_RootAdmin, Reason, 0, 0 ) ) );
-					//								m_GHost->m_DB->BanAdd( (*i)->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason );
-				}
-
-				uint32_t GameNr = Game->GetGameNr();
-
-				UDPChatSend("|ban "+UTIL_ToString(GameNr)+" "+LastMatch->GetName( ));
-				CONSOLE_Print( "[GAME: " + Game->GetGameName() + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + m_RootAdmin + "]" );
-
-				string sBan;
-
-				if (m_BanTime)
-					sBan = m_Language->GetLang("lang_0519", "$SERVER$", LastMatch->GetServer(),
-															"$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
-															"$USER$", m_RootAdmin,
-															"$BANDAYTIME$", UTIL_ToString(m_BanTime)); 
-				else
-					sBan = m_Language->GetLang("lang_0052", "$SERVER$", LastMatch->GetServer(),
-															"$VICTIM$", LastMatch->GetName( )+" ("+LastMatch->GetIP()+")",
-															"$USER$", m_RootAdmin); 
-
-
-				string sBReason = sBan + ", "+Reason;
-
-				if (Reason.empty())
-				{
-					Game->SendAllChat( sBan );
-				} else
-				{
-					if (sBReason.length()<220 && !m_TwoLinesBanAnnouncement)
-						Game->SendAllChat( sBReason );
-					else
-					{
-						Game->SendAllChat( sBan);
-						Game->SendAllChat( m_Language->GetLang("lang_1027", Reason)); 
-					}
-				}
-				if (m_NotifyBannedPlayers && !m_DetourAllMessagesToAdmins)
-				{
-					sBReason = m_Language->GetLang("lang_1142"); //"You have been banned";
-					if (Reason!="")
-						sBReason = sBReason+", "+Reason;
-					for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
-					{
-						if( (*i)->GetServer( ) == Game->GetCreatorServer( ) )
-							(*i)->QueueChatCommand( sBReason, LastMatch->GetName(), true );
-					}
-				}
-			}
-			else
-				Game->SendAllChat( m_Language->GetLang("lang_0053", name ) ); // UnableToBanFoundMoreThanOneMatch
-		}
-	}
-
-	if (Command == "kickg" && !Payload.empty())
-	{
-		uint32_t ig;
-		string name;
-		stringstream SS;
-		CBaseGame *Game;
-		SS <<Payload;
-		SS >>ig;
-		SS >>name;
-
-		if (m_Games.size()>=ig+1)
-		{
-			Game = m_Games[ig];
-			CGamePlayer *LastMatch = NULL;
-			uint32_t Matches = Game->GetPlayerFromNamePartial( name, &LastMatch );
-
-			if( Matches == 0 )
-				Game->SendAllChat( m_Language->GetLang("lang_0055", name ) ); // UnableToKickNoMatchesFound
-			else if( Matches == 1 )
-			{
-				LastMatch->SetDeleteMe( true );
-				LastMatch->SetLeftReason( m_Language->GetLang("lang_0078", Game->GetOwnerName() ) ); // WasKickedByPlayer
-
-				LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
-
-				Game->OpenSlot( Game->GetSIDFromPID( LastMatch->GetPID( ) ), false );
-			}
-			else
-				Game->SendAllChat( m_Language->GetLang("lang_0056", name ) ); // UnableToKickFoundMoreThanOneMatch
-		}
-	}
-
-	if (Command == "kickl" && !Payload.empty())
-	{
-		if (m_CurrentGame)
-		{
-			CGamePlayer *LastMatch = NULL;
-			uint32_t Matches = m_CurrentGame->GetPlayerFromNamePartial( Payload, &LastMatch );
-
-			if( Matches == 0 )
-				m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0055", Payload ) ); // UnableToKickNoMatchesFound
-			else if( Matches == 1 )
-			{
-				LastMatch->SetDeleteMe( true );
-				LastMatch->SetLeftReason( m_Language->GetLang("lang_0078", m_CurrentGame->GetOwnerName() ) ); // WasKickedByPlayer
-
-				LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
-
-				m_CurrentGame->OpenSlot( m_CurrentGame->GetSIDFromPID( LastMatch->GetPID( ) ), false );
-			}
-			else
-				m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0056", Payload ) ); // UnableToKickFoundMoreThanOneMatch
-		}
-	}
-
-	if (Command == "ip")
-	{
-		if (m_ExternalIP.empty())
-		{
-			m_ExternalIP = Payload;
-			m_ExternalIPL=ntohl(inet_addr(m_ExternalIP.c_str()));
-			m_Country=m_DBLocal->FromCheck(m_ExternalIPL);
-			CONSOLE_Print( "[GHOST] External IP is " + m_ExternalIP);
-			CONSOLE_Print( "[GHOST] Country is " + m_Country);
-		}
-	}
-
-	if (Command == "rehost")
-	{
-		if (m_CurrentGame)
-		if ( !Payload.empty() && !m_CurrentGame->GetCountDownStarted() && !m_CurrentGame->GetSaveGame() )
-			if (Payload.size()<31)
-			{
-				m_CurrentGame->SetExiting(true);
-				newGame = true;
-				newGameCountry2Check = m_CurrentGame->m_CountryCheck2;
-				newGameCountryCheck = m_CurrentGame->m_CountryCheck;
-				newGameCountries = m_CurrentGame->m_Countries;
-				newGameCountries2 = m_CurrentGame->m_Countries2;
-				newGameProvidersCheck = m_CurrentGame->m_ProviderCheck;
-				newGameProviders2Check = m_CurrentGame->m_ProviderCheck2;
-				newGameProviders = m_CurrentGame->m_Providers;
-				newGameProviders2 = m_CurrentGame->m_Providers2;
-				newGameGameState = m_CurrentGame->GetGameState();
-				newGameServer = m_CurrentGame->m_Server;
-				newGameUser = m_CurrentGame->GetOwnerName();
-				newGameGArena = m_CurrentGame->m_GarenaOnly;
-				newGameName = Payload;
-//				UDPChatSend("|rehost");
-			}
-	}
-
-	if (Command == "provider" || Command =="provider2")
-	{
-		if (!m_CurrentGame) return;
-		if (Payload.empty())
-		{
-			if (Command == "provider")
-				m_CurrentGame->m_ProviderCheck = false;
-			if (Command == "provider2")
-				m_CurrentGame->m_ProviderCheck2 = false;
-		}
-		if (!Payload.empty())
-		{
-			string From;
-			string Froms;
-			string s;
-			bool isAdmin = false;
-			bool allowed = false;
-
-			if (Command == "provider")
-			if (m_CurrentGame->m_ProviderCheck)
-				m_CurrentGame->m_Providers +=" "+Payload;
-			else
-			{
-				m_CurrentGame->m_Providers = Payload;
-				m_CurrentGame->m_ProviderCheck = true;
-			}
-			if (Command == "provider2")
-				if (m_CurrentGame->m_ProviderCheck2)
-					m_CurrentGame->m_Providers2 +=" "+Payload;
-				else
-				{
-					m_CurrentGame->m_Providers2 = Payload;
-					m_CurrentGame->m_ProviderCheck2 = true;
-				}
-			{
-				transform( m_CurrentGame->m_Providers.begin( ), m_CurrentGame->m_Providers.end( ), m_CurrentGame->m_Providers.begin( ), (int(*)(int))toupper );
-				transform( m_CurrentGame->m_Providers2.begin( ), m_CurrentGame->m_Providers2.end( ), m_CurrentGame->m_Providers2.begin( ), (int(*)(int))toupper );
-
-				if (m_CurrentGame->m_ProviderCheck)
-					m_CurrentGame->SendAllChat( "Provider check enabled, allowed providers: "+m_CurrentGame->m_Providers);
-				if (m_CurrentGame->m_ProviderCheck2)
-					m_CurrentGame->SendAllChat( "Provider check enabled, denied providers: "+m_CurrentGame->m_Providers2);
-
-				for( vector<CGamePlayer *> :: iterator i = m_CurrentGame->m_Players.begin( ); i != m_CurrentGame->m_Players.end( ); i++ )
-				{
-					// we reverse the byte order on the IP because it's stored in network byte order
-
-					//						From =m_GHost->UDPChatWhoIs((*i)->GetExternalIPString( ));
-					From =(*i)->GetProvider( );
-					transform( From.begin( ), From.end( ), From.begin( ), (int(*)(int))toupper );
-
-					isAdmin = false;
-					allowed = false;
-
-					for( vector<CBNET *> :: iterator j = m_BNETs.begin( ); j != m_BNETs.end( ); j++ )
-					{
-						if( (*j)->IsAdmin( (*i)->GetName( ) ) || (*j)->IsRootAdmin( (*i)->GetName( ) ) )
-						{
-							isAdmin = true;
-							break;
-						}
-					}
-
-					if (m_CurrentGame->IsReserved ((*i)->GetName()))
-						isAdmin=true;
-
-					if (m_CurrentGame->m_ProviderCheck)
-					{
-						stringstream SS;
-						SS << m_CurrentGame->m_Providers;
-
-						while( !SS.eof( ) )
-						{
-							SS >> s;
-							if (From.find(s)!=string :: npos)
-								allowed=true;
-						}
-					}
-
-					if (m_CurrentGame->m_ProviderCheck2)
-					{
-						stringstream SS;
-						SS << m_CurrentGame->m_Providers2;
-
-						while( !SS.eof( ) )
-						{
-							SS >> s;
-							if (From.find(s)!=string :: npos)
-								allowed=false;
-						}
-					}
-
-					if (!allowed)
-// 						if ((*i)->GetName( )!=RootAdmin)
-							if (isAdmin==false)
-							{
-								m_CurrentGame->SendAllChat( m_Language->GetLang("lang_0998", "$VICTIM$", (*i)->GetName( ), "$PROVIDER$", From ) ); // AutokickingPlayerForDeniedProvider
-								(*i)->SetDeleteMe( true );
-								(*i)->SetLeftReason( "was autokicked," + From + " provider "+From+" not allowed");
-								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
-								m_CurrentGame->OpenSlot( m_CurrentGame->GetSIDFromPID( (*i)->GetPID( ) ), false );
-							}
-				}
-
-			}
-
-		}
-	}
-
-	if (Command == "rootadmin" && !Payload.empty())
-	{
-		AddRootAdmin(Payload);
-	}
-
-	if (Command == "getfroms")
-	{
-		string froms;
-		string Froms;
-		string CN;
-		string PR;
-		string PG;
-		string SL;
-		string IP;
-//		string SC;
-		string sc = "0";
-		string ra = "0";
-		bool SendLobby = true;
-		uint32_t ig = 0;
-		uint32_t c;
-		uint32_t t;
-
-		if (SendLobby)
-		if (m_CurrentGame)
-		{
-			c = m_CurrentGame->m_Players.size();
-			t = m_CurrentGame->m_Slots.size();
-			bool dota = m_Map->GetMapType() == "dota";
-
-			Froms = "L "+UTIL_ToString(dota) +" "+UTIL_ToString(c)+" "+UTIL_ToString(t)+" ";
-			if (t>0)
-			for( vector<CGamePlayer *> :: iterator i = m_CurrentGame->m_Players.begin( ); i != m_CurrentGame->m_Players.end( ); i++ )
-			{
-				if (!(*i)->GetScoreSet())
-				{
-					sc = "0";
-					ra = "0";
-				} else
-				{
-					sc = (*i)->GetScoreS();
-					ra = (*i)->GetRanksS();
-				}
-				Froms += (*i)->GetName( );
-				Froms += "|";
-				CN = (*i)->GetCountry();
-//				PR = (*i)->GetProvider();
-				sc = (*i)->GetScoreS();
-				ra = (*i)->GetRanksS();
-				IP = (*i)->GetExternalIPString();
-				PG = UTIL_ToString( (*i)->GetPing( m_LCPings ) );
-				SL = UTIL_ToString( m_CurrentGame->GetSIDFromPID((*i)->GetPID()));
-				Froms += SL+"|"+PG+"|"+CN+"|"+IP+"|"+sc+ "|"+ra;
-				Froms += "|";
-			}
-			UDPChatSendBack("|froms "+Froms);
-			return;
-		}
-	}
-
-	if (Command == "getgame")
-	{
-		string froms;
-		string Froms;
-		string PG;
-		string SL;
-		string CN;
-		uint32_t ig = 0;
-		uint32_t c;
-		uint32_t t;
-		string dk = "0";
-		string dd = "0";
-		string sc = "0";
-		string ra = "0";
-		string ac = "0";
-
-		if (!Payload.empty())
-			{
-				stringstream SS;
-				SS << Payload;
-				SS >> ig;
-			}
-
-		if (m_Games.size()==0) return;
-		int j=0;
-		CBaseGame *g;
-		for( vector<CBaseGame *> :: iterator gg = m_Games.begin( ); gg != m_Games.end( ); gg++)
-		{
-			g = (*gg);
-			if (ig == -1 || ig == j)
-			{
-				c = g->m_Players.size();
-				t = g->m_Slots.size();
-				Froms = UTIL_ToString(j)+" "+UTIL_ToString(c)+" "+UTIL_ToString(t)+" ";
-				for( vector<CGamePlayer *> :: iterator jj = g->m_Players.begin( ); jj != g->m_Players.end( ); jj++ )
-				{
-					sc = "0";
-					ra = "0";
-					CGamePlayer *i = (*jj);
-					ac = "1";
-					if (!i->GetScoreSet())
-					{
-						sc = "0";
-						ra = "0";
-					} else
-					{
-						sc = i->GetScoreS();
-						ra = i->GetRanksS();
-					}
-					Froms += i->GetName( );
-					Froms += "|";
-					CN = i->GetCountry();
-					PG = UTIL_ToString( i->GetPing( m_LCPings ) );
-					SL = UTIL_ToString( g->GetSIDFromPID(i->GetPID()));
-					dk = UTIL_ToString(i->GetDOTAKills());
-					dd = UTIL_ToString(i->GetDOTADeaths());
-
-					Froms += SL+"|"+ac+"|"+PG+"|"+sc+"|"+ra+ "|"+dk+ "|"+dd+ "|"+CN;
-					if( (jj != g->m_Players.end( ) - 1) ||
-						(g->m_DBGamePlayers.size()>0) )
-					{
-						Froms += "|";
-					}
-				}
-				for( vector<CDBGamePlayer *> :: iterator ii = g->m_DBGamePlayers.begin( ); ii != g->m_DBGamePlayers.end( ); ii++ )
-				{
-					sc = "0";
-					ra = "0";
-//					CGamePlayer *i = g->GetPlayerFromName((*ii)->GetName(), false);
-//					if (!i)
-					{
-						sc = "0";
-						ra = "0";
-						ac = "0";
-						dd = "0";
-						dk = "0";
-						SL = UTIL_ToString((*ii)->GetSlot());
-						PG = "0";
-						CN = (*ii)->GetCountry();
-						Froms += (*ii)->GetName( );
-						Froms += "|";
-					}
-					Froms += SL+"|"+ac+"|"+PG+"|"+sc+"|"+ra+ "|"+dk+ "|"+dd+ "|"+CN;
-					if( ii != g->m_DBGamePlayers.end( ) - 1 )
-					{
-						Froms += "|";
-					}
-				}
-				UDPChatSendBack("|game "+Froms);
-			}
-			j++;
-		}
-	}
-}
-
 void CGHost :: ReloadConfig ()
 {
 	CConfig CFGF;
@@ -3739,13 +2338,16 @@ void CGHost :: ReloadConfig ()
 	m_wtvPath = FixPath(m_wtvPath, sPathEnd);
 	m_wtvPlayerName = CFG->GetString( "wtv_playername", "Waaagh!TV" );
 	m_wtv = CFG->GetInt( "wtv_enabled", 0 ) == 0 ? false : true;
+
 #ifndef WIN32
 	m_wtv = false;
 #endif
+
 	if (m_wtv)
 		CONSOLE_Print("[WTV] WaaaghTV is enabled.");
 	else
 		CONSOLE_Print("[WTV] WaaaghTV is not enabled.");
+
 	m_BindAddress = CFG->GetString( "bot_bindaddress", string( ) );
 	m_HostPort = CFG->GetInt( "bot_hostport", 6112 );
 	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
@@ -3814,7 +2416,7 @@ void CGHost :: ReloadConfig ()
 
 	m_ForceAutoBalanceTeams = CFG->GetInt( "bot_forceautobalanceteams" , 0 ) == 0 ? false : true;
 	m_AutoHostGameName = CFG->GetString( "bot_autohostgamename", string( ) );
-	m_AutoHostOwner = CFG->GetString( "bot_autohostowner", string( ) );
+	m_AutoHostOwner = CFG->GetString( "bot_autohostowner", "brtGHost" );
 	m_AutoHostMapCFG = CFG->GetString( "bot_autohostmapcfg", string( ) );
 	if ((m_AutoHostMapCFG.find("\\")==string::npos) && (m_AutoHostMapCFG.find("/")==string::npos))
 		m_AutoHostMapCFG = m_MapCFGPath + m_AutoHostMapCFG;
@@ -3873,6 +2475,7 @@ void CGHost :: ReloadConfig ()
 	m_ScoreFormula = CFG->GetString( "bot_scoreformula", "(((wins-losses)/totgames)+(kills-deaths+assists/2)+(creepkills/100+creepdenies/10+neutralkills/50)+(raxkills/6)+(towerkills/11))" );
 	m_ScoreMinGames = CFG->GetString( "bot_scoremingames", "3" );
 	m_ReplayTimeShift = CFG->GetInt( "bot_replaytimeshift", 0 );
+
 	if (m_ReplayTimeShift!=0)
 	{
 		char Time[17];
@@ -3882,6 +2485,7 @@ void CGHost :: ReloadConfig ()
 		strftime( Time, sizeof( char ) * 17, "%Y-%m-%d %H-%M", localtime( &times ) );
 		CONSOLE_Print("[GHOST] shifted replay time: "+ (string)Time);
 	}
+
 	m_DB->SetFormula(m_ScoreFormula);
 	m_DB->SetMinGames(UTIL_ToUInt32(m_ScoreMinGames));
 
@@ -3929,6 +2533,7 @@ void CGHost :: ReloadConfig ()
 	{
 		SetTimerResolution();
 	}
+
 	m_Refresh0Uptime = CFG->GetInt( "bot_refresh0uptime", 0 ) == 0 ? false : true;
 	m_UsersCanHost = CFG->GetInt( "bot_userscanhost", 0 ) == 0 ? false : true;
 	m_SafeCanHost = CFG->GetInt( "bot_safecanhost", 0 ) == 0 ? false : true;
@@ -4154,140 +2759,6 @@ void CGHost :: ReadMars ()
 	}
 	in.close( );
 	srand((unsigned)time(0));
-}
-
-void CGHost :: UDPChatDel(string ip)
-{
-	for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
-	{
-		if( (*i) == ip )
-		{
-			CONSOLE_Print("[UDPCMDSOCK] User "+ ip + " removed from UDP user list");
-			gGHost->m_UDPUsers.erase(i);
-			return;
-		}
-	}
-}
-
-bool CGHost :: UDPChatAuth(string ip)
-{
-	if (ip=="127.0.0.1")
-		return true;
-
-	for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
-	{
-		if( (*i) == ip )
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void CGHost :: UDPChatAdd(string ip)
-{
-	// check that the ip is not already in the list
-	for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
-	{
-		if( (*i) == ip )
-		{
-			return;
-		}
-	}
-	CONSOLE_Print("[UDPCMDSOCK] User "+ ip + " added to UDP user list");
-	gGHost->m_UDPUsers.push_back( ip );
-}
-
-void CGHost :: UDPChatSend(BYTEARRAY b)
-{
-	if (m_UDPUsers.size()>0)
-	{
-		string ip;
-		for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
-		{
-			ip = (*i);
-			m_UDPSocket->SendTo(ip,6112,b);
-		}
-	}
-
-	if (m_IPUsers.size()>0)
-	{
-		string ip;
-		for( vector<string> :: iterator i = gGHost->m_IPUsers.begin( ); i != gGHost->m_IPUsers.end( ); i++ )
-		{
-			ip = (*i);
-			m_UDPSocket->SendTo(ip,6112,b);
-		}
-	}
-}
-
-void CGHost :: UDPChatSend(string s)
-{
-//	m_inconsole = true;
-//	CONSOLE_Print("[UDP] "+s);
-	m_inconsole = false;
-	string ip;
-//	u_short port;
-	BYTEARRAY b;
-	char *c = new char[s.length()+2];
-	strncpy(c,s.c_str(), s.length());
-	c[s.length()]=0;
-	b=UTIL_CreateByteArray(c,s.length());
-
-	delete [] c;
-
-	if (m_UDPUsers.size()>0)
-	{
-		for( vector<string> :: iterator i = gGHost->m_UDPUsers.begin( ); i != gGHost->m_UDPUsers.end( ); i++ )
-		{
-			ip = (*i);
-			m_UDPSocket->SendTo(ip, m_GUIPort, b);
-		//	CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
-		}
-	}
-	m_UDPSocket->SendTo("127.0.0.1",m_GUIPort,b);
-}
-
-void CGHost :: UDPChatSendBack(string s)
-{
-	m_inconsole = true;
-//	CONSOLE_Print("[UDP] "+s);
-	m_inconsole = false;
-	if (m_LastIp.empty()) return;
-	BYTEARRAY b;
-	char *c = new char[s.length()+2];
-	strncpy(c,s.c_str(), s.length());
-	c[s.length()]=0;
-	b=UTIL_CreateByteArray(c,s.length());
-	m_UDPSocket->SendTo(m_LastIp,m_GUIPort,b);
-
-	delete [] c;
-
-	//CONSOLE_Print("[UDP] Send data to ip "+ip+" port "+UTIL_ToString(m_GUIPort));
-}
-
-string CGHost :: UDPChatWhoIs(string c, string s)
-{
-	string descr= string();
-#ifdef WIN32
-	try
-	{
-		PCHAR msg;
-		msg = new char[s.length()+1];
-		strcpy(msg,s.c_str());
-		PCHAR cn;
-		cn = new char[c.length()+1];
-		strcpy(cn,c.c_str());
-		descr=myudpwhois(cn, msg);
-
-		delete [] msg;
-		delete [] cn;
-	}
-	catch (...)
-	{
-	}
-#endif
-	return descr;
 }
 
 string CGHost :: Commands(unsigned int idx)

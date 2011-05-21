@@ -700,10 +700,10 @@ void *CGHostDBMySQL :: GetIdleConnection( )
 {
 	void *Connection = NULL;
 
-	if (m_IdleConnections.size()>m_NumConnections+10)
-		CONSOLE_Print( "[MYSQL] closing " + UTIL_ToString( m_IdleConnections.size( )-m_NumConnections ) + "/" + UTIL_ToString( m_IdleConnections.size( )) + " idle MySQL connections" );
+	if (m_IdleConnections.size() > m_NumConnections )
+		CONSOLE_Print( "[MYSQL] closing " + UTIL_ToString( m_IdleConnections.size( ) - m_NumConnections ) + "/" + UTIL_ToString( m_IdleConnections.size( )) + " idle MySQL connections" );
 
-	while( m_IdleConnections.size()>m_NumConnections )
+	while( m_IdleConnections.size() > m_NumConnections )
 	{
 		mysql_close( (MYSQL *)m_IdleConnections.front( ) );
 		m_IdleConnections.pop( );
@@ -3234,6 +3234,7 @@ bool CGHostDBMySQL :: AdminSetAccess( string server, string user, uint32_t acces
 	}
 	else
 		m_IdleConnections.push( Connection );
+
 	return result;
 }
 
@@ -3257,8 +3258,10 @@ uint32_t CGHostDBMySQL :: TodayGamesCount( )
 	}
 	else if( mysql_ping( (MYSQL *)Connection ) != 0 )
 		m_Error = mysql_error( (MYSQL *)Connection );
+	
 	if (m_Error!="")
 		return 0;
+
 	string error;
 	uint32_t result = MySQLTodayGamesCount(Connection, &error, m_BotID);
 
@@ -3272,6 +3275,7 @@ uint32_t CGHostDBMySQL :: TodayGamesCount( )
 	}
 	else
 		m_IdleConnections.push( Connection );
+
 	return result;
 }
 
@@ -3561,8 +3565,10 @@ CDBBan * CGHostDBMySQL :: BanCheck( string server, string user, string ip, uint3
 	}
 	else if( mysql_ping( (MYSQL *)Connection ) != 0 )
 		m_Error = mysql_error( (MYSQL *)Connection );
-	if (m_Error!="")
+
+	if ( m_Error.size() )
 		return false;
+	
 	string error;
 
 	CDBBan *result = NULL;
