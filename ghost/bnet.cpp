@@ -471,7 +471,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 					QueueChatCommand( m_GHost->m_Language->GetLang("lang_0512", "$SERVER$", i->second->GetServer( ), "$VICTIM$", i->second->GetUser( ), "$BANDAYTIME$", UTIL_ToString(i->second->GetExpireDayTime())), i->first, !i->first.empty( ) ); else // TempBannedUser( i->second->GetServer( ), i->second->GetUser( ), UTIL_ToString(i->second->GetExpireDayTime()) )
 					QueueChatCommand( m_GHost->m_Language->GetLang("lang_0007", "$SERVER$", i->second->GetServer( ), "$VICTIM$", i->second->GetUser( )), i->first, !i->first.empty( ) ); // TempBannedUser( i->second->GetServer( ), i->second->GetUser( ), UTIL_ToString(i->second->GetExpireDayTime())
 				}
-				m_GHost->UDPChatSend("|ban "+i->second->GetUser( ) );
 
 				if (m_GHost->m_BanBannedFromChannel)
 					ImmediateChatCommand( "/ban "+i->second->GetUser( ) );
@@ -1076,13 +1075,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		return m_Exiting;
 	}
 
-	if (m_GHost->m_NewChannel)
-		if (GetTime() - m_GHost->m_ChannelJoinTime>3)
-		{
-			m_GHost->UDPChatSend("|channeljoined "+m_CurrentChannel);
-			m_GHost->m_NewChannel=false;
-		}
-
 	return m_Exiting;
 }
 
@@ -1384,7 +1376,6 @@ void CBNET :: ProcessPackets( )
 
 				m_Friends = Friends;
 
-				m_GHost->UDPChatSend("|newfriends");
 
 				/* DEBUG_Print( "received " + UTIL_ToString( Friends.size( ) ) + " friends" );
 				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
@@ -1482,10 +1473,12 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		if( Event == CBNETProtocol :: EID_WHISPER )
 		{
 			CONSOLE_Print( "[WSPR: " + m_ServerAlias + "] [" + User + "] " + Message );
+
 			m_GHost->EventBNETWhisper( this, User, Message );
-			m_GHost->UDPChatSend("|Chatw "+UTIL_ToString(User.length())+" " +User+" "+Message);
+
 			if (Message.find("Your friend") !=string :: npos)
 				SendGetFriendsList();
+
 			string :: size_type sPos = Message.find("has entered PvPGN Realm");
 			string :: size_type sPoss = Message.find("has entered Battle.net");
 			if (sPoss != string :: npos)
@@ -1502,7 +1495,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		{
 			CONSOLE_Print( "[LOCAL: " + m_ServerAlias + "] [" + User + "] " + Message );
 			m_GHost->EventBNETChat( this, User, Message );
-			m_GHost->UDPChatSend("|Chat "+UTIL_ToString(User.length())+" " +User+" "+Message);
 		}
 
 		// handle spoof checking for current game
@@ -4944,20 +4936,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						QueueChatCommand( msg );
 					}
 				}
-
-				//
-				// !UDP
-				//
-
-				else if( Command == "udp" )
-				{
-					m_GHost->m_UDPConsole = !m_GHost->m_UDPConsole;
-					if (m_GHost->m_UDPConsole)
-						QueueChatCommand( m_GHost->m_Language->GetLang("lang_1089"), User, Whisper); // "UDP Console ON"
-					else
-						QueueChatCommand( m_GHost->m_Language->GetLang("lang_1090"), User, Whisper ); // "UDP Console OFF"
-				}
-
 				//
 				// !LS
 				//
@@ -6065,7 +6043,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	else if( Event == CBNETProtocol :: EID_INFO )
 	{
 		CONSOLE_Print( "[INFO: " + m_ServerAlias + "] " + Message );
-		m_GHost->UDPChatSend("|Chate "+UTIL_ToString(4)+" " +"INFO"+" "+Message);
 
 		// extract the first word which we hope is the username
 		// this is not necessarily true though since info messages also include channel MOTD's and such
@@ -6116,8 +6093,6 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 	{
 		CONSOLE_Print( "[EMOTE: " + m_ServerAlias + "] [" + User + "] " + Message );
 		m_GHost->EventBNETEmote( this, User, Message );
-		m_GHost->UDPChatSend("|Chate "+UTIL_ToString(User.length())+" " +User+" "+Message);
-
 	}
 }
 
@@ -6160,10 +6135,10 @@ void CBNET :: SendChatCommand( string chatCommand )
 
 		CONSOLE_Print( "[LOCAL: " + m_ServerAlias + "] " + chatCommand );
 		string hname = m_GHost->m_VirtualHostName;
+
 		if (hname.substr(0,2)=="|c")
 			hname = hname.substr(10,hname.length()-10);
-		if (m_GHost->m_Console)
-		m_GHost->UDPChatSend("|Chat "+UTIL_ToString(hname.length())+" " +hname+" "+chatCommand);
+
 		m_Socket->PutBytes( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 	}
 }
@@ -6221,10 +6196,10 @@ void CBNET :: QueueChatCommand( string chatCommand )
 				CONSOLE_Print( "[QUE: " + m_ServerAlias + "] " + msg );
 				m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( msg ) );
 				string hname = m_GHost->m_VirtualHostName;
+
 				if (hname.substr(0,2)=="|c")
 					hname = hname.substr(10,hname.length()-10);
-				if (m_GHost->m_Console)
-					m_GHost->UDPChatSend("|Chat "+UTIL_ToString(hname.length())+" " +hname+" "+msg);
+
 			} while (onemoretime);
 		}
 	}
@@ -7000,8 +6975,6 @@ void CBNET :: WarnPlayer (string Victim, string Reason, string User, bool Whispe
 		{
 			WarnCount = m_GHost->m_DB->BanCount( Victim, 1 );
 		}
-
-		m_GHost->UDPChatSend("|warn "+Victim);
 
 		if(WarnCount >= m_GHost->m_BanTheWarnedPlayerQuota)
 		{

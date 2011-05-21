@@ -725,9 +725,21 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					MapHeight.push_back( 0 );
 				}
 
-				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter );
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, 
+					m_GHost->m_LANWar3Version, 
+					UTIL_CreateByteArray( MapGameType, false ), 
+					m_Map->GetMapGameFlags( ), 
+					MapWidth, MapHeight, 
+					m_GameName, 
+					m_CreatorName, 
+					GetTime( ) - m_CreationTime, 
+					"Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), 
+					m_SaveGame->GetMagicNumber( ), 
+					slotstotal, slotsopen, 
+					m_HostPort, FixedHostCounter );
 
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
+
 				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
 				{
 					(*i)->PutBytes( data );
@@ -765,7 +777,18 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					MapHeight = m_Map->GetMapHeight( );
 				}
 
-				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter );
+				BYTEARRAY data = m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, 
+					m_GHost->m_LANWar3Version, 
+					UTIL_CreateByteArray( MapGameType, false ), 
+					m_Map->GetMapGameFlags( ), 
+					MapWidth, MapHeight, m_GameName, 
+					m_CreatorName, 
+					GetTime( ) - m_CreationTime, 
+					m_Map->GetMapPath( ), 
+					m_Map->GetMapCRC( ), 
+					slotstotal, slotsopen, 
+					m_HostPort, FixedHostCounter );
+
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
 				for(vector<CTCPSocket * >::iterator i = m_GHost->m_GameBroadcasters.begin( ); i!= m_GHost->m_GameBroadcasters.end( ); i++ )
 				{
@@ -975,14 +998,6 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		m_LastCountDownTicks = GetTicks( );
 	}
-
-	// update pings in the GUI
-	if (GetTime()>m_CreationTime+5 && !m_PingsUpdated)
-		if (GetTime()>m_LastPlayerJoinedTime+3 && !m_GameLoading && !m_GameLoaded)
-		{
-			m_PingsUpdated = true;
-			m_GHost->UDPChatSend("|lobbyupdate");
-		}
 
 	// check if no one has joined the game for a long time (25 sec default) and rehost
 	bool LoggedIn = false;
@@ -1456,15 +1471,16 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// show game start text
 	// read from gameloaded.txt if available
 
-	if (m_GameLoadedTime!=0 && !m_GameLoadedMessage)
-	if (GetTime()>=m_GameLoadedTime+m_GHost->m_GameLoadedPrintout)
+	if ( m_GameLoadedTime && !m_GameLoadedMessage)
+	if ( GetTime() >= m_GameLoadedTime + m_GHost->m_GameLoadedPrintout)
 	{
 		CONSOLE_Print("[GAME: " + m_GameName + "] loading gameloaded.txt");
 		m_GameLoadedMessage = true;
+
 		ifstream inn;
 		inn.open( "gameloaded.txt" );
 
-		if( !inn.fail( ) )
+		if( !inn.fail( ) && UTIL_FileExists("gameloaded.txt") )
 		{
 			// don't print more than 8 lines
 
@@ -1960,7 +1976,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 				string hname = m_VirtualHostName;
 				if (hname.substr(0,2)=="|c")
 					hname = hname.substr(10,hname.length()-10);
-				m_GHost->UDPChatSend("|lobby "+hname+" "+msg);
+
 				if (m_DetourAllMessagesToAdmins)
 					SendAdmin( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetAdminPIDs( ), 16, BYTEARRAY( ), msg ) );
 				else
@@ -1993,10 +2009,9 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 			uint32_t GameNr = GetGameNr();
 
 			string hname = m_VirtualHostName;
+
 			if (hname.substr(0,2)=="|c")
 				hname = hname.substr(10,hname.length()-10);
-
-			m_GHost->UDPChatSend("|gamechat "+UTIL_ToString(GameNr) + " 0 1 "+hname+" "+message);
 
 			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
 
@@ -2030,9 +2045,10 @@ void CBaseGame :: SendAllyChat( unsigned char fromPID, string message )
 				// this is a lobby ghost chat message
 				unsigned char ExtraFlags[] = { 1, 0, 0, 0 };
 				string hname = m_VirtualHostName;
+
 				if (hname.substr(0,2)=="|c")
 					hname = hname.substr(10,hname.length()-10);
-				m_GHost->UDPChatSend("|lobby "+hname+" "+msg);
+
 				unsigned char fteam = m_Slots[GetSIDFromPID(fromPID)].GetTeam();
 				SendAlly( fromPID, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetAllyPIDs( fromPID ), 16, UTIL_CreateByteArray( ExtraFlags, 4 ), msg ) );
 			} while (onemoretime);
@@ -2066,7 +2082,6 @@ void CBaseGame :: SendAllyChat( unsigned char fromPID, string message )
 				hname = hname.substr(10,hname.length()-10);
 
 			unsigned char fteam = m_Slots[GetSIDFromPID(fromPID)].GetTeam();
-			m_GHost->UDPChatSend("|gamechat "+UTIL_ToString(GameNr) + " "+UTIL_ToString(fteam)+" 1 "+hname+" "+message);
 
 			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
 
@@ -2100,9 +2115,10 @@ void CBaseGame :: SendAdminChat( unsigned char fromPID, string message )
 				// this is a lobby ghost chat message
 				unsigned char ExtraFlags[] = { 1, 0, 0, 0 };
 				string hname = m_VirtualHostName;
+
 				if (hname.substr(0,2)=="|c")
 					hname = hname.substr(10,hname.length()-10);
-				m_GHost->UDPChatSend("|lobby "+hname+" "+msg);
+
 				SendAdmin( fromPID, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetAdminPIDs( ), 16, UTIL_CreateByteArray( ExtraFlags, 4 ), msg ) );
 			} while (onemoretime);
 		}
@@ -2134,7 +2150,6 @@ void CBaseGame :: SendAdminChat( unsigned char fromPID, string message )
 				hname = hname.substr(10,hname.length()-10);
 
 			unsigned char fteam = m_Slots[GetSIDFromPID(fromPID)].GetTeam();
-			m_GHost->UDPChatSend("|gamechat "+UTIL_ToString(GameNr) + " "+UTIL_ToString(fteam)+" 1 "+hname+" "+message);
 
 			CONSOLE_Print( "[GAME: " + m_GameName + "] [Local]: " + message );
 
@@ -2381,7 +2396,7 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		SendChat( player, (*i));
 	}
 
-	SendChat( player, " " );
+//	SendChat( player, " " );
 //	SendChat( player, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" );
 	if (m_CountryCheck || m_CountryCheck2 || m_ProviderCheck || m_ProviderCheck2)
 	{
@@ -2412,7 +2427,7 @@ void CBaseGame :: SendEndMessage( )
 	ifstream in;
 	in.open( "gameover.txt" );
 
-	if( !in.fail( ) )
+	if( !in.fail( ) && UTIL_FileExists("gameover.txt") )
 	{
 		// don't print more than 8 lines
 
@@ -2470,8 +2485,6 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 	if (m_GHost->m_CurrentGame)
 		if (m_GHost->m_CurrentGame->GetCreationTime()==GetCreationTime())
 			GameNr = 255;
-
-	m_GHost->UDPChatSend("|playerleft "+UTIL_ToString(GameNr)+" "+UTIL_ToString(GetSlotsOpen())+" "+player->GetName( ));
 
 	// in some cases we're forced to send the left message early so don't send it again
 
@@ -2826,6 +2839,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 					return;
 				}
 			}
+
 			potential->GetExternalIPString();
 
 			// check if the country or provider is not allowed
@@ -2874,9 +2888,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 							if (!bad)
 								if (m_ProviderCheck || m_ProviderCheck2)
 								{
-									if (From!="??" && From!="Ga")
-										P=m_GHost->UDPChatWhoIs(From, potential->GetExternalIPString( ));
-
 									transform( P.begin( ), P.end( ), P.begin( ), (int(*)(int))toupper );
 									From = From + " "+ P;
 								}
@@ -3049,10 +3060,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 		// check if the player is an admin or root admin on any connected realm for determining reserved status
 		// we can't just use the spoof checked realm like in EventPlayerBotCommand because the player hasn't spoof checked yet
-
-
-		if (AdminCheck)
-			m_GHost->UDPChatSend("|vip "+joinPlayer->GetName());
 
 		if( SID == 255 && Reserved )
 		{
@@ -3326,8 +3333,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 								m_Slots[l] = Slot1;
 							}
 							
-
-							m_GHost->UDPChatSend("|swap "+UTIL_ToString(k)+" "+UTIL_ToString(l));
 //							SendAllSlotInfo( );
 
 //							SwapSlots(l, k);
@@ -3534,7 +3539,6 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Player->GetName( ) + "] [" + Player->GetExternalIPString() + "] joined the game" );
-	m_GHost->UDPChatSend("|newplayer "+UTIL_ToString(GetSlotsOpen()) + " " + Player->GetName());
 
 // recalculate nr of players in each team + difference in players nr.
 
@@ -3562,91 +3566,95 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
 		}
 	}
+
 	// join message from diff realms
-	SendAllChat( "Player [" + joinPlayer->GetName( ) + "] has joined from [" + ( JoinedRealm == string( ) ? "garena" : JoinedRealm ) + "]" );
+	SendAllChat( m_GHost->m_Language->GetLang("lang_1504", "$NAME$", joinPlayer->GetName( ), "$FROM$", JoinedRealm == string( ) ? "garena\\lan" : JoinedRealm ));
 
-	// check for multiple ip usage.
-	vector<string>IPs;
-	bool sayit = false;
-	vector<string>Players;
-	string IP1, IP2;
-	bool pp1, pp2;
-	bool IPfound;
-	string :: size_type pfound;
-	vector<string> :: iterator p;
-	if (Player->GetExternalIPString()!="127.0.0.1")
+	if ( m_GHost->m_CheckMultipleIPUsage )
 	{
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		// check for multiple ip usage.
+		vector<string>IPs;
+		bool sayit = false;
+		vector<string>Players;
+		string IP1, IP2;
+		bool pp1, pp2;
+		bool IPfound;
+		string :: size_type pfound;
+		vector<string> :: iterator p;
+		if (Player->GetExternalIPString()!="127.0.0.1")
 		{
-			IP1 = (*i)->GetExternalIPString();
-		// ignore host' LAN
-			if (IP1!=m_GHost->m_ExternalIP)
-			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
-				// compare with all the other players except himself.
-				if ((*i)!=(*j))
+				IP1 = (*i)->GetExternalIPString();
+			// ignore host' LAN
+				if (IP1!=m_GHost->m_ExternalIP)
+				for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
 				{
-					IP2 = (*j)->GetExternalIPString();
-					// matching IP
-					if (IP1==IP2)
+					// compare with all the other players except himself.
+					if ((*i)!=(*j))
 					{
-
-						if (Player->GetName( )==(*i)->GetName() || Player->GetName( )==(*j)->GetName())
-							sayit = true;
-						pp1 = false;
-						pp2 = false;
-						// already in the list of matching IPs?
-						IPfound = false;
-						p = Players.begin();
-						if (IPs.size()>0)
-						for (vector<string> :: iterator s = IPs.begin(); s != IPs.end(); s++)
+						IP2 = (*j)->GetExternalIPString();
+						// matching IP
+						if (IP1==IP2)
 						{
-							if ((*s)==IP1)
+
+							if (Player->GetName( )==(*i)->GetName() || Player->GetName( )==(*j)->GetName())
+								sayit = true;
+							pp1 = false;
+							pp2 = false;
+							// already in the list of matching IPs?
+							IPfound = false;
+							p = Players.begin();
+							if (IPs.size()>0)
+							for (vector<string> :: iterator s = IPs.begin(); s != IPs.end(); s++)
 							{
-								IPfound = true;
-								// already in the list, check too see if the players are in it
-								pfound = (*p).find( (*j)->GetName() );
-								if( pfound != string :: npos )
-									pp2 = true;
-								pfound = (*p).find( (*i)->GetName() );
-								if( pfound != string :: npos )
-									pp1 = true;
+								if ((*s)==IP1)
+								{
+									IPfound = true;
+									// already in the list, check too see if the players are in it
+									pfound = (*p).find( (*j)->GetName() );
+									if( pfound != string :: npos )
+										pp2 = true;
+									pfound = (*p).find( (*i)->GetName() );
+									if( pfound != string :: npos )
+										pp1 = true;
 
-								if (!pp1)
-									(*p)+="="+(*i)->GetName();
-								if (!pp2)
-									(*p)+="="+(*j)->GetName();
+									if (!pp1)
+										(*p)+="="+(*i)->GetName();
+									if (!pp2)
+										(*p)+="="+(*j)->GetName();
+								}
+								p++;
 							}
-							p++;
+							// the IP is not yet in the list, add it together with the two player names
+							if (!IPfound)
+							{
+								IPs.push_back(IP1);
+								Players.push_back((*i)->GetName()+"="+(*j)->GetName());
+							}
 						}
-						// the IP is not yet in the list, add it together with the two player names
-						if (!IPfound)
-						{
-							IPs.push_back(IP1);
-							Players.push_back((*i)->GetName()+"="+(*j)->GetName());
-						}
-					}
 
+					}
 				}
 			}
 		}
-	}
-	// multiple IP usage was found, list it if last player who joined is part of them
-	if (Player->GetExternalIPString()!="127.0.0.1")
-	if (IPs.size()>0 && sayit)
-	{
-		string IPString;
-		p = Players.begin();
-		IPString = m_GHost->m_Language->GetLang("lang_1029"); //"Same IPs: ";
-		for (vector<string> :: iterator s = IPs.begin(); s != IPs.end(); s++)
+		// multiple IP usage was found, list it if last player who joined is part of them
+		if (Player->GetExternalIPString()!="127.0.0.1")
+		if (IPs.size() > 0 && sayit)
 		{
-			IPString += (*p);
-			if (s!=IPs.end()-1)
-				IPString +=", ";
-			p++;
+			string IPString;
+			p = Players.begin();
+			IPString = m_GHost->m_Language->GetLang("lang_1029"); //"Same IPs: ";
+			for (vector<string> :: iterator s = IPs.begin(); s != IPs.end(); s++)
+			{
+				IPString += (*p);
+				if (s!=IPs.end()-1)
+					IPString +=", ";
+				p++;
+			}
+
+			SendAllChat(IPString);
 		}
-		SendAllChat(IPString);
-		m_GHost->UDPChatSend("|sameip");
 	}
 
 	// show country and pings when every slot has been occupied.
@@ -4233,7 +4241,6 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	}
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Player->GetName( ) + "] [" + Player->GetExternalIPString() + "] joined the game" );																
-	m_GHost->UDPChatSend("|newplayer "+Player->GetName());
 
 // recalculate nr of players in each team + difference in players nr.
 
@@ -4343,7 +4350,6 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 			p++;
 		}
 		SendAllChat(IPString);
-		m_GHost->UDPChatSend("|sameip");
 	}
 
 	// show country and pings when every slot has been occupied.
@@ -4480,9 +4486,6 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
 	if (m_GHost->m_CurrentGame)
 		if	(m_GHost->m_CurrentGame->GetCreationTime()==GetCreationTime())
 			show = false;
-	if (show && !m_GameEnded)
-		m_GHost->UDPChatSend("|leaver "+UTIL_ToString(GameNr)+" "+player->GetName());
-
 
 	m_LastLeaverTicks = GetTicks();
 	player->SetDeleteMe( true );
@@ -4897,8 +4900,6 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					if (ExtraFlags[0]==0)
 						All="1";
 
-					m_GHost->UDPChatSend("|gamechat "+UTIL_ToString(GameNr) + " "+UTIL_ToString(fteam)+" "+All+" "+player->GetName()+" "+chatPlayer->GetMessage());
-
 					if( ExtraFlags[0] != 0 )
 					CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") "+"[Team: "+UTIL_ToString(fteam+1)+"] [Allies] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
 
@@ -5035,7 +5036,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					}
 
 					CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
-					m_GHost->UDPChatSend("|lobby "+player->GetName()+" "+chatPlayer->GetMessage());
+
 					if( m_MuteLobby )
 						Relay = false;
 				}
@@ -5604,7 +5605,6 @@ void CBaseGame :: EventGameStarted( )
 
 				SendAllSlotInfo( );
 
-				m_GHost->UDPChatSend("|hclsent "+UTIL_ToString(GameNr)+" " + m_GameName);
 				HCL = true;
 				m_HCL = true;
 
@@ -5616,8 +5616,6 @@ void CBaseGame :: EventGameStarted( )
 		else
 			CONSOLE_Print( "[GAME: " + m_GameName + "] encoding HCL command string [" + m_HCLCommandString + "] failed because there aren't enough occupied slots" );
 	}
-	if (!HCL)
-		m_GHost->UDPChatSend("|hclnotsent "+UTIL_ToString(GameNr)+" " + m_GameName);
 
 	m_StartedLoadingTime = GetTime( );
 
@@ -5642,8 +5640,6 @@ void CBaseGame :: EventGameStarted( )
 	// disable load in game feature if on garena
 	if (m_GarenaOnly)
 		m_LoadInGame = false;
-
-	m_GHost->UDPChatSend("|startgame "+UTIL_ToString(GameNr)+" " + m_GameName);
 
 	// since we use a fake countdown to deal with leavers during countdown the COUNTDOWN_START and COUNTDOWN_END packets are sent in quick succession
 	// send a start countdown packet
@@ -5801,7 +5797,6 @@ void CBaseGame :: EventGameLoaded( )
 	uint32_t GameNr = GetGameNr();
 
 	sGameNr = UTIL_ToString(GameNr);
-	m_GHost->UDPChatSend("|loadedgame "+sGameNr+"|"+sSlotNr+"|"+sName+"|"+ m_GetMapType+"|"+m_GetMapPath+"|"+m_GameName);
 
 	// remember how many players were at game start
 	m_PlayersatStart = m_Players.size();
@@ -6495,15 +6490,6 @@ void CBaseGame :: SwapSlots( unsigned char SID1, unsigned char SID2 )
 		if (p2)
 			p2->SetSID(SID1);
 
-		if (!m_GameLoaded && !m_GameLoading)
-			m_GHost->UDPChatSend("|swap "+UTIL_ToString(SID1)+" "+UTIL_ToString(SID2));
-		else
-		{
-			uint32_t GameNr = GetGameNr();
-
-			m_GHost->UDPChatSend("|swapg "+UTIL_ToString(GameNr)+" "+UTIL_ToString(SID1)+" "+UTIL_ToString(SID2));
-		}
-
 		if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		{
 			// don't swap the team, colour, or race
@@ -6520,7 +6506,6 @@ void CBaseGame :: SwapSlots( unsigned char SID1, unsigned char SID2 )
 		}
 
 		SendAllSlotInfo( );
-		m_GHost->UDPChatSend("|lobbyupdate");
 	}
 }
 
@@ -6530,8 +6515,6 @@ void CBaseGame :: SwapSlotsS( unsigned char SID1, unsigned char SID2 )
 	{
 		CGameSlot Slot1 = m_Slots[SID1];
 		CGameSlot Slot2 = m_Slots[SID2];
-
-		m_GHost->UDPChatSend("|swap "+UTIL_ToString(SID1)+" "+UTIL_ToString(SID2));
 
 		if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		{
@@ -6571,8 +6554,6 @@ void CBaseGame :: OpenSlot( unsigned char SID, bool kick )
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ) );
 		SendAllSlotInfo( );
-
-		m_GHost->UDPChatSend("|lobbyupdate");
 	}
 }
 
@@ -6595,8 +6576,6 @@ void CBaseGame :: CloseSlot( unsigned char SID, bool kick )
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 255, SLOTSTATUS_CLOSED, 0, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ) );
 		SendAllSlotInfo( );
-
-		m_GHost->UDPChatSend("|lobbyupdate");
 	}
 }
 
@@ -6619,8 +6598,6 @@ void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kic
 		CGameSlot Slot = m_Slots[SID];
 		m_Slots[SID] = CGameSlot( 0, 100, SLOTSTATUS_OCCUPIED, 1, Slot.GetTeam( ), Slot.GetColour( ), Slot.GetRace( ), skill );
 		SendAllSlotInfo( );
-
-		m_GHost->UDPChatSend("|lobbyupdate");
 	}
 }
 
@@ -6678,7 +6655,6 @@ void CBaseGame :: OpenAllSlots( )
 
 	if( Changed )
 		SendAllSlotInfo( );
-	m_GHost->UDPChatSend("|lobbyupdate");
 }
 
 void CBaseGame :: CloseAllSlots( )
@@ -6696,7 +6672,6 @@ void CBaseGame :: CloseAllSlots( )
 
 	if( Changed )
 		SendAllSlotInfo( );
-	m_GHost->UDPChatSend("|lobbyupdate");
 }
 
 void CBaseGame :: ShuffleSlots( )
@@ -6779,7 +6754,6 @@ void CBaseGame :: ShuffleSlots( )
 			p->SetSID(s);
 	}
 
-	m_GHost->UDPChatSend("|lobbyupdate");
 }
 
 vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> PlayerIDs, unsigned char *TeamSizes, double *PlayerScores, unsigned char StartTeam )
@@ -7029,7 +7003,7 @@ void CBaseGame :: BalanceSlots( )
 		if( TeamHasPlayers )
 			SendAllChat( m_GHost->m_Language->GetLang("lang_0197", "$TEAM$", UTIL_ToString( i + 1 ), "$SCORE$", UTIL_ToString( TeamScore, 2 ) ) ); // TeamCombinedScore
 	}
-	m_GHost->UDPChatSend("|lobbyupdate");
+
 }
 
 void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )
@@ -7150,11 +7124,9 @@ void CBaseGame :: SwitchAccept ( unsigned char PID)
 
 			string message = "Switch completed: "+UTIL_ToString(m_SwitchS+1)+" <-> "+UTIL_ToString(m_SwitchT+1);
 			string hname = m_VirtualHostName;
+
 			if (hname.substr(0,2)=="|c")
 				hname = hname.substr(10,hname.length()-10);
-
-			m_GHost->UDPChatSend("|gamechat "+UTIL_ToString(GameNr) + " 0 1 "+hname+" "+message);
-
 		}
 	}
 }

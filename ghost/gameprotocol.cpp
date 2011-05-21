@@ -684,6 +684,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 
 	BYTEARRAY packet;
 
+	if ( hostName.empty() )
+		hostName = "brtGHost"; // hackhack
+
 	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
 	{
 		// make the stat string

@@ -263,8 +263,6 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 {
 	m_Valid = true;
 	m_CFGFile = nCFGFile;
-	m_GHost->UDPChatSend("|cfg "+nCFGFile);
-
 	// load the map data
 
 	m_MapLocalPath = CFG->GetString( "map_localpath", string( ) );

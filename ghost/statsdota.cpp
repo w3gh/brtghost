@@ -128,10 +128,9 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 								uint32_t GameNr = m_Game->GetGameNr();
 
-								m_Game->m_GHost->UDPChatSend("|gameupdate "+UTIL_ToString(GameNr));
 								if (Victim)
 								{
-									Victim->SetDOTADeaths(Victim->GetDOTADeaths()+1);
+									Victim->SetDOTADeaths( Victim->GetDOTADeaths() + 1 );
 									if(m_SwitchOff) m_Players[VictimColour]->SetDeaths(m_Players[VictimColour]->GetDeaths() + 1);
 								}
 								

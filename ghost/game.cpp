@@ -1762,7 +1762,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						uint32_t GameNr = GetGameNr();
 
-						m_GHost->UDPChatSend("|ban "+UTIL_ToString(GameNr)+" "+LastMatch->GetName( ));
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
 
                         string sBan;
@@ -1848,7 +1847,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						else
 							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, BanPlayer, "", m_GameName, User, Reason, BanTime, 0 ) ) );
 
-						m_GHost->UDPChatSend("|ban "+Victim);
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
 
 
@@ -2041,9 +2039,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						}
 						uint32_t GameNr = GetGameNr();
 
-						m_GHost->UDPChatSend("|ban "+UTIL_ToString(GameNr)+" "+LastMatch->GetName( ));
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
-
 
                         string sBan;
 						
@@ -2171,9 +2167,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 //							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, "", m_GameName, User, Reason, BanTime, 0 ) ) );
 //						m_GHost->m_DB->BanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason );
 
-						m_GHost->UDPChatSend("|ban "+Victim);
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
-
 
 						string sBan = "";
 
@@ -2549,7 +2543,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				else
 					m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, m_DBBanLast->GetName( ), "", m_GameName, User, Reason, BanTime, 0 ) ) );
 
-				m_GHost->UDPChatSend("|ban "+m_DBBanLast->GetName( ));
 				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + m_DBBanLast->GetName( ) + "] was banned by player [" + User + "]" );
 
                 string sBan = "";
@@ -2652,7 +2645,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				else
 					m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, m_DBBanLast->GetName( ), "", m_GameName, User, Reason, BanTime, 0 ) ) );
 
-				m_GHost->UDPChatSend("|ban "+m_DBBanLast->GetName( ));
 				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + m_DBBanLast->GetName( ) + "] was banned by player [" + User + "]" );
 
 				string sBan = "";
@@ -4929,8 +4921,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				SendAllChat( Pings );
 
-				m_GHost->UDPChatSend("|lobbyupdate");
-
 				if( Kicked > 0 )
 					SendAllChat( m_GHost->m_Language->GetLang("lang_0060", "$TOTAL$", UTIL_ToString( Kicked ), "$PING$", UTIL_ToString( KickPing ) ) ); // KickingPlayersWithPingsGreaterThan
 				return HideCommand;
@@ -5335,6 +5325,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						BYTEARRAY MapHeight;
 						MapHeight.push_back( 0 );
 						MapHeight.push_back( 0 );
+
 						m_GHost->m_UDPSocket->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, m_HostCounter ) );
 					}
 					else
@@ -6507,7 +6498,6 @@ void CGame :: WarnPlayer( CDBBan *LastMatch, string Reason, string User)
 	}
 	uint32_t GameNr = GetGameNr();
 
-	m_GHost->UDPChatSend("|warn "+UTIL_ToString(GameNr)+" "+LastMatch->GetName( ));
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was warned by player [" + User + "]" );
 
 	uint32_t WarnCount = 0;
@@ -6648,7 +6638,6 @@ void CGame :: WarnPlayer( string Victim, string Reason, string User)
 			m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string(), m_GameName, User, Reason, m_GHost->m_WarnTimeOfWarnedPlayer, 1 ) ) );
 		//						m_GHost->m_DB->BanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason );
 
-		m_GHost->UDPChatSend("|warn "+BanPlayer);
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + BanPlayer + "] was warned by player [" + User + "]" );
 
 		uint32_t WarnCount = 0;
