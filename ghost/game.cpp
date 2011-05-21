@@ -862,6 +862,12 @@ void CGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason  )
 
 void CGame :: EventPlayerDeleted( CGamePlayer *player )
 {
+	if ( !player->GetFFVote() )
+	{
+		player->SetFFVote( true );
+		EventDotaGameFastFinishProcess( player, false );
+	}
+
 	CBaseGame :: EventPlayerDeleted( player );
 
 	// record everything we need to know about the player for storing in the database later
@@ -6215,56 +6221,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 		
 		player->SetFFVote( true );
-		
-		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+		EventDotaGameFastFinishProcess( player, "lang_1211" );
 
-		uint32_t count1 = 0;
-		uint32_t count2 = 0; //count of players in the team.
-		uint32_t votes1 = 0;
-		uint32_t votes2 = 0; //count of votes in the team.
-		string teamname = (playerTeam == 0 ? "SENTINEL" : "SCOURGE");
-		
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		{
-			if( !(*i)->GetLeftMessageSent( ) )
-			if(m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam() == (unsigned char)0)
-			{
-				count1++;
-				if( (*i)->GetFFVote( ) )
-					votes1++;
-			}
-			else
-			{
-				count2++;
-				if( (*i)->GetFFVote( ) )
-					votes2++;
-			}
-		}
-		
-		bool end1 = (votes1 == count1); 
-		bool end2 = (votes2 == count2);
-
-		if( end1 || end2 )
-		{
-			if( end1 )
-				m_Stats->SetWinner(2);
-			else
-				m_Stats->SetWinner(1);
-				
-			SendAllChat(m_GHost->m_Language->GetLang("lang_1213", end1 ? "SENTINEL" : "SCOURGE" ));
-
-			SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
-			m_GameEndCountDownStarted = true;
-			m_GameEndCountDownCounter = 5;
-			m_GameEndLastCountDownTicks = GetTicks();
-		}
-		else
-		{
-			SendAllChat( m_GHost->m_Language->GetLang("lang_1211", "$USER$", User, "$TEAMNAME$", teamname, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$COUNT$", UTIL_ToString(playerTeam == 0 ? count1 : count2)));
-		}
-	
 		SendChat(player->GetPID(), m_GHost->m_Language->GetLang("lang_1210", "$TRIGGER$", string(1, m_GHost->m_CommandTrigger)));
-		return HideCommand;
 	}
 	
 	//
@@ -6274,36 +6233,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	else if( Command == "noff" && player->GetFFVote( ) && m_GameLoaded)
 	{
 		player->SetFFVote( false );
-		
-		unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
-		uint32_t count1 = 0, count2 = 0; //count of players in the team.
-		uint32_t votes1 = 0, votes2 = 0; //count of votes in the team.
-		string teamname = (playerTeam == 0 ? "SENTINEL" : "SCOURGE");
-
-		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
-		{
-			if( !(*i)->GetLeftMessageSent( ) )
-			if(m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam() == (unsigned char)0)
-			{
-				count1++;
-				if( (*i)->GetFFVote( ) )
-					votes1++;
-			}else{
-				count2++;
-				if( (*i)->GetFFVote( ) )
-					votes2++;
-			}
-		}
-
-		if ((votes1 != count1) && (votes2 != count2))
-		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] canceled end game" );
-			m_GameEndCountDownStarted = false;
-		}
-
-		SendAllChat( m_GHost->m_Language->GetLang("lang_1212", "$USER$", User, "$TEAMNAME$", teamname, "$VOTES$", UTIL_ToString(playerTeam == 0 ? votes1 : votes2), "$COUNT$", UTIL_ToString(playerTeam == 0 ? count1 : count2)));
-
-		return HideCommand;
+		EventDotaGameFastFinishProcess( player, "lang_1212" );
 	}
 	
 	
@@ -6457,6 +6387,84 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	return HideCommand;
 }
+
+void CGame :: EventDotaGameFastFinishProcess( CGamePlayer* player, const string& nLangId, bool nShowMsg )
+{
+	uint32_t votes = 0;
+	uint32_t votesmax = 0;
+	unsigned char playerTeam = m_Slots[GetSIDFromPID(player->GetPID())].GetTeam();
+
+	if ( !EventDotaGameFastFinishProcess(votes, votesmax, playerTeam) && nShowMsg )
+		SendAllChat( m_GHost->m_Language->GetLang(nLangId, "$USER$", player->GetName(), "$TEAMNAME$", (playerTeam == 0 ? "SENTINEL" : "SCOURGE"), "$VOTES$", UTIL_ToString(votes), "$COUNT$", UTIL_ToString(votesmax) ));
+}
+
+int CGame :: EventDotaGameFastFinishProcess( uint32_t &votes, uint32_t &votesmax, unsigned char playerTeam )
+{
+	int count1 = 0;
+	int count2 = 0; //count of players in the team.
+	int votes1 = 0;
+	int votes2 = 0; //count of votes in the team.
+		
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+	{
+		if( !(*i)->GetLeftMessageSent( ) )
+		if( m_Slots[GetSIDFromPID((*i)->GetPID())].GetTeam() == (unsigned char)0)
+		{
+			count1++;
+			if( (*i)->GetFFVote( ) )
+				votes1++;
+		}
+		else
+		{
+			count2++;
+			if( (*i)->GetFFVote( ) )
+				votes2++;
+		}
+	}
+
+	if ( count1 == 0 )
+		count1 = -1;
+	
+	if ( count2 == 0 )
+		count2 = -1;
+		
+	bool end1 = (votes1 == count1); 
+	bool end2 = (votes2 == count2);
+
+	if ( playerTeam == 0 )
+	{
+		votes = votes1;
+		votesmax = count1;
+	} else if ( playerTeam == 1 )
+	{
+		votes = votes2;
+		votesmax = count2;
+	}
+
+	if( end1 || end2 )
+	{
+		if( end1 )
+			m_Stats->SetWinner(2);
+		else
+			m_Stats->SetWinner(1);
+			
+		SendAllChat(m_GHost->m_Language->GetLang("lang_1213", end1 ? "SENTINEL" : "SCOURGE" ));
+
+		SendAllChat(m_GHost->m_Language->GetLang("lang_1053")); // "Game will end in 5 seconds"
+		m_GameEndCountDownStarted = true;
+		m_GameEndCountDownCounter = 5;
+		m_GameEndLastCountDownTicks = GetTicks();
+
+		return end1 ? 2 : 1;
+	}
+	else
+	{
+		m_GameEndCountDownStarted = false;
+		m_GameOverTime = 0;
+		return 0;
+	}
+}
+
 
 void CGame :: EventGameStarted( )
 {
