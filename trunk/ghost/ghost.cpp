@@ -1,6 +1,6 @@
 /*
 
-   Copyright [2008] [Trevor Hogan]
+   Copyright [2011] [Igor Bygaev]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+   CODE PORTED FROM THE ORIGINAL GHOST++ PROJECT: http://codelain.com/
 
 */
 
@@ -84,11 +84,39 @@ using namespace boost :: filesystem;
  LARGE_INTEGER gHighPerfFrequency;
 #endif
 
-string gCFGFile;
-string gLogFile;
-uint32_t gLogMethod;
-ofstream *gLog = NULL;
-CGHost *gGHost = NULL;
+string	   gCFGFile;
+string	   gLogFile;
+uint32_t   gLogMethod;
+ofstream  *gLog = NULL;
+CGHost	  *gGHost = NULL;
+CLanguage *m_Language = NULL;	// todotodo - Use singelton			
+										
+
+string tr(const string& lang_id)					{ return m_Language->GetLang(lang_id);	   } 
+string tr(const string& lang_id, const string& v1)  { return m_Language->GetLang(lang_id, v1); }
+
+string tr(const string& lang_id,  const string& v1, const string& s1,
+										string v2, string s2,
+										string v3, string s3,
+										string v4, string s4,
+										string v5, string s5,
+										string v6, string s6,
+										string v7, string s7,
+										string v8, string s8,
+										string v9, string s9,
+										string v10, string s10,
+										string v11, string s11,
+										string v12, string s12,
+										string v13, string s13,
+										string v14, string s14,
+										string v15, string s15,
+										string v16, string s16,
+										string v17, string s17,
+										string v18, string s18,
+										string v19, string s19)
+{
+	return m_Language->GetLang(lang_id, v1, s1, v2, s2, v3, s3, v4, s4, v5, s5, v6, s6, v7, s7, v8, s8, v9, s9, v10, s10, v11, s11, v12, s12, v13, s13, v14, s14, v15, s15, v16, s16, v17, s17, v18, s18, v19, s19);
+}
 
 int GetPID()
 {
@@ -2289,7 +2317,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		string wtvRecorderEXE = m_wtvPath + "wtvRecorder.exe";
 
-		//hProcess = CreateProcess( _T("D:\\Programme\\wc3tv\\wtvRecorder.exe"), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, _T("D:\\Programme\\wc3tv\\" ), &si, &pi );
+		//hProcess = CreateProcess( tr("D:\\Programme\\wc3tv\\wtvRecorder.exe"), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, tr("D:\\Programme\\wc3tv\\" ), &si, &pi );
 		//HANDLE hProcess = CreateProcess( wtvRecorderEXE, NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_wtvPath, &si, &pi );
 		int hProcess = CreateProcessA( wtvRecorderEXE.c_str( ), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_wtvPath.c_str( ), LPSTARTUPINFOA(&si), &pi );
 

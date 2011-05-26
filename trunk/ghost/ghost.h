@@ -50,6 +50,7 @@ class CUDPServer;
 class CConfig;
 class CCommandPacket;
 
+
 class CMyCallableDownloadFile : public CBaseCallable
 {
 protected:
@@ -65,6 +66,7 @@ public:
 	virtual uint32_t GetResult( )				{ return m_Result; }
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };
+
 class CGHost
 {
 public:
@@ -84,7 +86,7 @@ public:
 	CGHostDB *m_DBLocal;					// local database (for temporary data)
 	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	vector<BYTEARRAY> m_LocalAddresses;		// vector of local IP addresses
-	CLanguage *m_Language;					// language
+	
 	CMap *m_Map;							// the currently loaded map
 	CMap *m_AdminMap;						// the map to use in the admin game
 	CMap *m_AutoHostMap;					// the map to use when autohosting

@@ -25,7 +25,7 @@
 //
 // CLanguage
 //
-// brtGhost team, freed, avon.dn.ua@gmail.com
+// brtGhost team, freed@gmail.com
 
 class CLanguage
 {
@@ -33,15 +33,15 @@ private:
 	CConfig *m_CFG;
 
 public:
-	CLanguage( string nCFGFile );
+	CLanguage( const string& nCFGFile );
 	~CLanguage( );
 
-    string GetLang(string lang_id) { return m_CFG -> GetString(lang_id,"Error find "+lang_id+" in language config."); }; // Get Lang string from config
+    string GetLang(const string& lang_id) { return m_CFG -> GetString(lang_id,"Error find "+lang_id+" in language config."); }; // Get Lang string from config
 
-    string GetLang(string lang_id, string v1);
+    string GetLang(const string& lang_id, const string& v1);
 
-    string GetLang(string lang_id, string v1, string s1,
-                                    string v2 = "", string s2 = "",
+    string GetLang(const string& lang_id, const string& v1, const string& s1,
+									string v2 = "", string s2 = "",
                                     string v3 = "", string s3 = "",
                                     string v4 = "", string s4 = "",
                                     string v5 = "", string s5 = "",

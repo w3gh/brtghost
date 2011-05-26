@@ -41,20 +41,15 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
 typedef vector<unsigned char> BYTEARRAY;
 typedef pair<unsigned char,string> PIDPlayer;
-
-
-/*
-#ifdef WIN32
-#include <windows.h>
-#include <wininet.h>
-#include <winsock.h>
-#endif
-*/
+class CLanguage;
+extern CLanguage *m_Language;			// language
+										// todotodo - Use singelton
 
 // time
 
@@ -116,5 +111,27 @@ string FixPath(string Path, string End);
 // patch 21
 
 bool Patch21();
+
+string tr(const string& lang_id);
+string tr(const string& lang_id, const string& v1);
+string tr(const string& lang_id, const string& v1, const string& s1,
+									string v2 = "", string s2 = "",
+                                    string v3 = "", string s3 = "",
+                                    string v4 = "", string s4 = "",
+                                    string v5 = "", string s5 = "",
+                                    string v6 = "", string s6 = "",
+                                    string v7 = "", string s7 = "",
+                                    string v8 = "", string s8 = "",
+                                    string v9 = "", string s9 = "",
+                                    string v10 = "", string s10 = "",
+                                    string v11 = "", string s11 = "",
+                                    string v12 = "", string s12 = "",
+                                    string v13 = "", string s13 = "",
+                                    string v14 = "", string s14 = "",
+                                    string v15 = "", string s15 = "",
+                                    string v16 = "", string s16 = "",
+                                    string v17 = "", string s17 = "",
+                                    string v18 = "", string s18 = "",
+                                    string v19 = "", string s19 = "");
 
 #endif

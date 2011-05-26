@@ -31,7 +31,7 @@
 // CLanguage
 //
 
-CLanguage :: CLanguage( string nCFGFile )
+CLanguage :: CLanguage( const string& nCFGFile )
 {
 	m_CFG = new CConfig( );
 	m_CFG->Read( nCFGFile );
@@ -44,7 +44,7 @@ CLanguage :: ~CLanguage( )
 }
 
 
-string CLanguage :: GetLang(string lang_id, string v1, string s1,
+string CLanguage :: GetLang(const string& lang_id, const string& v1, const string& s1,
                                              string v2, string s2,
                                              string v3, string s3,
                                              string v4, string s4,
@@ -190,7 +190,7 @@ string CLanguage :: GetLang(string lang_id, string v1, string s1,
     return out;
 }
 
-string CLanguage :: GetLang(string lang_id, string v1)
+string CLanguage :: GetLang(const string& lang_id, const string& v1)
 {
     string out = GetLang(lang_id);
 
