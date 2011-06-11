@@ -7735,7 +7735,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 				EnoughPlayers = true;
 
 			if (m_GHost->m_AutoHostAllowStart && EnoughPlayers)
-				s = s+" "+string(1, m_GHost->m_CommandTrigger)+"start что-бы начать игру!";
+				s = s+" "+string(1, m_GHost->m_CommandTrigger)+"start " + tr("lang_1505");
 
 			if (!s.empty())
 				SendAllChat(s);
