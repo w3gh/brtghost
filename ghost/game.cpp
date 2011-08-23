@@ -865,7 +865,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 	if ( m_GameLoaded && !player->GetFFVote() )
 	{
 		player->SetFFVote( true );
-		EventDotaGameFastFinishProcess( player, false );
+		EventDotaGameFastFinishProcess( player, "lang_1212", false );
 	}
 
 	CBaseGame :: EventPlayerDeleted( player );
