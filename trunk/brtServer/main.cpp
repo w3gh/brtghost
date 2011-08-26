@@ -59,7 +59,7 @@ string client_updater_directory;
 string client_updater_download_httppath;
 string client_download_localpath;
 
-const string defaultCFGFile = "cserver.cfg";
+const string defaultCFGFile = "default.cfg";
 
 int Port;
 MYSQL *Connection = NULL;
@@ -313,7 +313,7 @@ int UpdateUsersList()
 
 	cout << "[SERVER] Checking datatable" << endl;
 
-	string QAdminsList = "SELECT member_name, passwd FROM smf_members;";
+        string QAdminsList = "SELECT name, password FROM users;";
 
 	if( mysql_real_query( Connection, QAdminsList.c_str( ), QAdminsList.size( ) ) != 0 )
 	{
