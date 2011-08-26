@@ -12,12 +12,12 @@ CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I/usr/local/include -Izlib
 OBJS = updater.o commandpacket.o server.o pubprotocol.o socket.o md5.o sha1.o util.o user.o main.o
 LIBS = zlib/libz.a
 COBJS = anet.o
-PROGS = ./main
+PROGS = ./server
 
 all: $(OBJS) $(COBJS) $(PROGS)
 
-./main: $(OBJS) $(COBJS)
-	$(C++) -o ./main $(COBJS) $(OBJS) $(LFLAGS) $(LIBS)
+./server: $(OBJS) $(COBJS)
+	$(C++) -o ./server $(COBJS) $(OBJS) $(LFLAGS) $(LIBS)
 
 clean:
 	rm -f $(OBJS) $(COBJS) $(PROGS)
@@ -28,7 +28,7 @@ $(OBJS): %.o: %.cpp
 $(COBJS): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -c $<
 
-./main: $(COBJS) $(OBJS)
+./server: $(COBJS) $(OBJS)
 
 all: $(PROGS)
 
