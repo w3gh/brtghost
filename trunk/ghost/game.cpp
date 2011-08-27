@@ -862,7 +862,7 @@ void CGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason  )
 
 void CGame :: EventPlayerDeleted( CGamePlayer *player )
 {
-	if ( m_GameLoaded && !player->GetFFVote() )
+	if ( !m_GameEnded && m_GameLoaded && !player->GetFFVote() )
 	{
 		player->SetFFVote( true );
 		EventDotaGameFastFinishProcess( player, "lang_1212", false );
