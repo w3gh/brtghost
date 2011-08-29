@@ -27,7 +27,9 @@
 #ifndef MUTIL_H
 #define MUTIL_H
 
+#ifndef LITTLEENDIAN
 #define LITTLEENDIAN 1
+#endif
 
 
 #ifdef HAVE_CONFIG_H
