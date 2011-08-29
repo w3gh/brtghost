@@ -576,6 +576,8 @@ uint32_t CMDAccessAll ()
 
 CGHost :: CGHost( CConfig *CFG )
 {
+	srand( (unsigned int)time(0) );
+
 	m_Console = true;
 	m_Log = true;
 
@@ -927,13 +929,6 @@ CGHost :: CGHost( CConfig *CFG )
 	else
 		m_AdminGame = NULL;
 
-	// create the listening socket for broadcasters;
-	
-	int Port = CFG->GetInt("bot_broadcasters_port", 6969 );
-	m_GameBroadcastersListener = new CTCPServer( );
-	m_GameBroadcastersListener->Listen( string( ),Port );
-	CONSOLE_Print( "[GHOST] Listening for game broadcasters on port [" + UTIL_ToString( Port ) +"]" );
-
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
@@ -1136,20 +1131,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 		(*i)->SetFD( &fd, &send_fd, &nfds );
 		NumFDs++;
 	}
-
-	// 6. the Game Broadcasters
-	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); i++ )
-	{
-		if ( (*i)->GetConnected( ) && !(*i)->HasError( ) )
-		{
-			(*i)->SetFD( &fd, &send_fd, &nfds );
-			NumFDs++;
-		}
-	}
- 
-	// 7. the listener for game broadcasters
-	m_GameBroadcastersListener->SetFD( &fd, &send_fd, &nfds );
-	NumFDs++;
 
 	// before we call select we need to determine how long to block for
 	// previously we just blocked for a maximum of the passed usecBlock microseconds
@@ -1557,25 +1538,6 @@ bool CGHost :: Update( unsigned long usecBlock )
 		}
 
 		m_LastAutoHostTime = GetTime( );
-	}
-
-	CTCPSocket *cNewSocket = m_GameBroadcastersListener->Accept( &fd );
-	if ( cNewSocket )
-	{
-		m_GameBroadcasters.push_back( cNewSocket );
-		CONSOLE_Print("[GHOST] Game Broadcaster [" + cNewSocket->GetIPString( ) +"] connected" );
-	}
-	for(vector<CTCPSocket * >::iterator i = m_GameBroadcasters.begin( ); i!= m_GameBroadcasters.end( ); )
-	{
-		if ( (*i)->HasError( ) || !(*i)->GetConnected( ) )
-		{
-			CONSOLE_Print("[GHOST] Game Broadcaster [" + (*i)->GetIPString( ) +"] disconnected");
-			delete *i;
-			i = m_GameBroadcasters.erase( i );
-			continue;
-		}
-		(*i)->DoSend( &send_fd );
-		i++;
 	}
 
 	return m_Exiting || AdminExit || BNETExit;

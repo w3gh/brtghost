@@ -172,6 +172,7 @@ protected:
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
 	bool m_DoAutoWarns;								// enable automated warns for early leavers
 	uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
+	uint32_t m_EntryKey;							// entry key for LAN games
 
 public:
 	vector<CGamePlayer *> m_Players;			// vector of players

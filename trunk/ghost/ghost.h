@@ -435,9 +435,6 @@ public:
 	void LoadIPToCountryDataOpt( );
 	void CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
 
-	CTCPServer *m_GameBroadcastersListener; // listening socket for game broadcasters
-	vector<CTCPSocket *> m_GameBroadcasters;// vector of sockets that broadcast the games
-		
 	// Metal_Koola's attempts
 	bool m_dropifdesync;				// config value: Drop desynced players
 	int m_CookieOffset;					// System used to remove need for bnet_bnlswardencookie. May need further optimization.

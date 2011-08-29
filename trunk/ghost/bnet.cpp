@@ -4843,7 +4843,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 				// !Marsauto
 				//
-
+/*
 				else if( Command == "marsauto")
 				{
 					string msg = tr("lang_1086"); // Auto insult
@@ -4860,7 +4860,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				//
 				// !Mars
 				//
-
+/*
 				else if( Command == "mars" && (GetTime()-m_LastMars>=10))
 				{
 					if (m_GHost->m_Mars.size()==0)
@@ -4935,6 +4935,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						QueueChatCommand( msg );
 					}
 				}
+				*/
 				//
 				// !LS
 				//
