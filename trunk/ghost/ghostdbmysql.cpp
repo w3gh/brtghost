@@ -700,7 +700,7 @@ void *CGHostDBMySQL :: GetIdleConnection( )
 {
 	void *Connection = NULL;
 
-	if (m_IdleConnections.size() > m_NumConnections + 10)
+	if (m_IdleConnections.size() > m_NumConnections )
 		CONSOLE_Print( "[MYSQL] closing " + UTIL_ToString( m_IdleConnections.size( ) - m_NumConnections ) + "/" + UTIL_ToString( m_IdleConnections.size( )) + " idle MySQL connections" );
 
 	while( m_IdleConnections.size() > m_NumConnections )
