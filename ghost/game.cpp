@@ -5614,81 +5614,85 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
-			// !SWAP (swap slots)
+			// !SWAP (swap slots for admin)
 			//
 
 			else if( Command == "swap" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
 			{
-				if (!CMDCheck(CMD_swap, AdminAccess))
-				{
-					SendChat(player->GetPID(), tr("lang_0005"));
-					return HideCommand;
-				}
 				uint32_t SID1;
 				uint32_t SID2;
 				stringstream SS;
 				SS << Payload;
 				SS >> SID1;
 
-				if( SS.fail( ) )
-					CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to swap command" );
-				else
+				if ( !SS.fail( ) && !SS.eof() )
 				{
-					if( SS.eof( ) )
-						CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to swap command" );
+					if (!CMDCheck(CMD_swap, AdminAccess))
+					{
+						SendChat(player->GetPID(), tr("lang_0005"));
+						return HideCommand;
+					}
+
+					if( SS.fail( ) )
+						CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to swap command" );
 					else
 					{
-						SS >> SID2;
-
-						if( SS.fail( ) )
-							CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to swap command" );
+						if( SS.eof( ) )
+							CONSOLE_Print( "[GAME: " + m_GameName + "] missing input #2 to swap command" );
 						else
 						{
-							bool isAdmin = false;
-							bool isRootAdmin = false;
-							bool sameteam = false;
-							if (SID1-1<m_Slots.size() && SID2-1<m_Slots.size())
-								sameteam = m_Slots[SID1-1].GetTeam() == m_Slots[SID2-1].GetTeam();
-							CGamePlayer *Player = GetPlayerFromSID( SID1 - 1 );
-							CGamePlayer *Player2 = GetPlayerFromSID( SID2 - 1 );
-							if (Player)
-								if (Player->GetName()!=User)
-									if (IsRootAdmin(Player->GetName()))
-										isRootAdmin = true;
-							if (Player2)
-								if (Player2->GetName()!=User)
-									if (IsRootAdmin(Player2->GetName()))
-										isRootAdmin = true;
-							if (m_GHost->m_onlyownerscanswapadmins && !sameteam)
+							SS >> SID2;
+
+							if( SS.fail( ) )
+								CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #2 to swap command" );
+							else
 							{
+								bool isAdmin = false;
+								bool isRootAdmin = false;
+								bool sameteam = false;
+								if (SID1-1<m_Slots.size() && SID2-1<m_Slots.size())
+									sameteam = m_Slots[SID1-1].GetTeam() == m_Slots[SID2-1].GetTeam();
 								CGamePlayer *Player = GetPlayerFromSID( SID1 - 1 );
 								CGamePlayer *Player2 = GetPlayerFromSID( SID2 - 1 );
 								if (Player)
-								{
-									if (IsAdmin(Player->GetName()) || IsRootAdmin(Player->GetName()))
 									if (Player->GetName()!=User)
-										isAdmin = true;
-								}
+										if (IsRootAdmin(Player->GetName()))
+											isRootAdmin = true;
 								if (Player2)
-								{
-									if (IsAdmin(Player2->GetName()) || IsRootAdmin(Player2->GetName()))
 									if (Player2->GetName()!=User)
-										isAdmin = true;
+										if (IsRootAdmin(Player2->GetName()))
+											isRootAdmin = true;
+								if (m_GHost->m_onlyownerscanswapadmins && !sameteam)
+								{
+									CGamePlayer *Player = GetPlayerFromSID( SID1 - 1 );
+									CGamePlayer *Player2 = GetPlayerFromSID( SID2 - 1 );
+									if (Player)
+									{
+										if (IsAdmin(Player->GetName()) || IsRootAdmin(Player->GetName()))
+										if (Player->GetName()!=User)
+											isAdmin = true;
+									}
+									if (Player2)
+									{
+										if (IsAdmin(Player2->GetName()) || IsRootAdmin(Player2->GetName()))
+										if (Player2->GetName()!=User)
+											isAdmin = true;
+									}
 								}
-							}
 
-							if (isRootAdmin)
-							{
-								SendChat( player->GetPID(), tr("lang_1199"));  // "You can't swap a rootadmin!"
-								return HideCommand;
-							}
+								if (isRootAdmin)
+								{
+									SendChat( player->GetPID(), tr("lang_1199"));  // "You can't swap a rootadmin!"
+									return HideCommand;
+								}
 
-							if (isAdmin && !(IsOwner(User) || RootAdminCheck))
-							{
-								SendChat( player->GetPID(), tr("lang_1200") ); // "You can't swap an admin!"
-								return HideCommand;
-							} else
-							SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
+								if (isAdmin && !(IsOwner(User) || RootAdminCheck))
+								{
+									SendChat( player->GetPID(), tr("lang_1200") ); // "You can't swap an admin!"
+									return HideCommand;
+								} else
+								SwapSlots( (unsigned char)( SID1 - 1 ), (unsigned char)( SID2 - 1 ) );
+							}
 						}
 					}
 				}
@@ -6033,6 +6037,190 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
+	//	!SWAP
+	//
+
+	else if ( Command == "swap" && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+	{
+			uint32_t SID1;
+			stringstream SS;
+			SS << Payload;
+			SS >> SID1;
+
+			if( SS.fail( ) )
+				CONSOLE_Print( "[GAME: " + m_GameName + "] bad input #1 to swap command" );
+			else
+			{ 
+				if ( player->GetSID() != ( SID1 - 1 ) && SID1 < 11 && SID1 > 0 )
+				{
+					player->SetSwapTo( SID1 ); 
+
+					CGamePlayer *Player2 = GetPlayerFromSID( SID1 - 1 );
+
+					if ( !Player2 && m_Slots[ SID1 - 1 ].GetSlotStatus() == 0 )
+						SwapSlots( (unsigned char)( player->GetSID() ), (unsigned char)( SID1 - 1 ) );
+
+					else if ( Player2 && player-> GetSID() == ( Player2->GetSwapTo() - 1 ) && 
+										 Player2->GetSID() == ( player->GetSwapTo() - 1 )
+									  && GetTime() - player ->GetSwapToTime() < 30 
+									  && GetTime() - Player2->GetSwapToTime() < 30)
+					{
+						SwapSlots( (unsigned char)( player->GetSID() ), (unsigned char)( Player2->GetSID() ) );
+
+						CONSOLE_Print( "[GAME: " + m_GameName + "] swap accepted from " + player->GetName() + " to "+ Player2->GetName() );
+					} else if (Player2)
+						SendChat(Player2, tr("1506", "$PLAYER$", player->GetName(), "$COMMAND$", string( 1, m_GHost->m_CommandTrigger ) + "swap " + UTIL_ToString( player->GetSID() + 1 ) ));
+				}
+			}
+		
+		}
+
+		//
+		//	!POINTS
+		//
+
+		else if ( Command == "points" && Payload.empty( ) )
+		{
+			string msg = string();
+
+			map<int, int> team_points;
+			team_points[0] = 0;
+			team_points[1] = 0;
+
+			for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); ++i)
+			{
+				team_points[ m_Slots[ (*i)->GetSID() ].GetTeam() ] += (int)(*i)->GetScore();
+
+				msg += (*i)->GetName() + " (" + (*i)->GetScoreS() + ") ";
+			}
+
+			if (!msg.empty())
+				SendAllChat( msg );
+
+			msg = string();
+
+			for (map<int, int>::iterator i = team_points.begin(); i != team_points.end(); ++i)
+				msg += tr( "1507", "$TEAM$", UTIL_ToString( (*i).first + 1), "$SCORE$", UTIL_ToString((*i).second) ) + " ";
+
+			if (!msg.empty())
+				SendAllChat( msg );
+		}
+
+	//
+	// !VOTEMODE or VOTEMOD
+	//
+
+	else if ( (Command == "votemode" || Command == "votemod") && !Payload.empty( ) && !m_GameLoaded && m_Map->GetMapType( ) == "dota")
+	{
+		if (Payload[0] == '-')
+			Payload.erase(Payload.begin());
+
+		if ( Payload == "ap" ||
+			 Payload == "ar" ||
+			 Payload == "rd" ||
+			 Payload == "sd" ||
+			 Payload == "cm"
+		   )
+			{
+				player->SetVoteDotaMode(Payload);
+
+				SendAllChat( tr("1508", "$USER$", player->GetName(), "$MOD$", Payload ) );
+
+				map<string, int> votes;
+
+				votes["ap"] = 0;
+				votes["ar"] = 0;
+				votes["rd"] = 0;
+				votes["sd"] = 0;
+				votes["cm"] = 0;
+
+				for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); ++i)
+					if ( !(*i)->GetVoteDotaMode().empty() )
+						++votes[ (*i)->GetVoteDotaMode() ];
+			
+				string new_mode = string();
+				int votes_need = 1;
+
+				for (map<string, int>::iterator i = votes.begin(); i != votes.end(); ++i)
+					if ( (*i).second > votes_need )
+					{
+						votes_need = (*i).second;
+						new_mode = (*i).first;
+					}
+
+			if (votes_need > 5)
+				SetHCL(new_mode);
+
+		}
+
+	}
+
+	//
+	// !VOTEABC !BALANCE
+	//
+
+	else if ( (Command == "voteabc" || Command == "balance") && !Payload.empty() && !m_GameLoading && !m_GameLoaded)
+	{
+		player->SetABCVote(true);
+
+		int ABCvote_count = 0;
+
+		for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); i++)
+			if ((*i)->GetABCVote())
+				++ABCvote_count;
+
+		if ( m_Players.size() > 2 && ABCvote_count > (int)(m_Players.size() / 2) )
+		{
+			for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); i++)
+				(*i)->SetABCVote(false);
+
+			BalanceSlots();
+		} else
+			SendAllChat( tr("1509", "$USER$", player->GetName(), "$VOTES$", UTIL_ToString( (int)(m_Players.size() / 2) -  ABCvote_count) ));
+	}
+
+	//
+	// !VOTESTART
+	//
+
+	else if ( Command == "votestart" && !player->GetStartVote() && Payload.empty( ) )
+	{
+		player->SetStartVote( true );
+
+		SendAllChat( tr("1510", player->GetName()));
+
+		int start_voted = 0;
+
+		for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); ++i)
+			if ((*i)->GetStartVote())
+				++start_voted;
+
+		if (start_voted == m_Players.size() && !m_CountDownStarted)
+			StartCountDown( false );
+	}
+
+	//
+	// !NOTVOTED for start !NV
+	//
+
+	else if ( Command == "notvoted" || Command == "nv" && Payload.empty( ) )
+	{
+		string not_voted_players;
+
+		for (vector<CGamePlayer*>::iterator i = m_Players.begin(); i != m_Players.end(); ++i)
+			if (!(*i)->GetStartVote())
+			{
+				not_voted_players += (*i)->GetName();
+
+				if (i != m_Players.end() - 1)
+					not_voted_players += ",";
+			}
+
+		if (!not_voted_players.empty())
+			SendAllChat( tr("lang_1220", not_voted_players));
+	}
+
+	//
 	// !STATS
 	//
 
@@ -6201,7 +6389,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FF
 	//
 
-	else if( Command == "ff" && !player->GetFFVote( ) && m_GameLoaded)
+	else if( Command == "ff" && !player->GetFFVote( ) && m_GameLoaded && m_Map->GetMapType( ) == "dota" )
 	{
 		if ( !m_Stats )
 		{
@@ -6231,7 +6419,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !NOFF
 	//
 
-	else if( Command == "noff" && player->GetFFVote( ) && m_GameLoaded)
+	else if( Command == "noff" && player->GetFFVote( ) && m_GameLoaded && m_Map->GetMapType( ) == "dota" )
 	{
 		player->SetFFVote( false );
 		EventDotaGameFastFinishProcess( player, "lang_1212" );

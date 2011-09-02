@@ -309,6 +309,11 @@ CGamePlayer :: CGamePlayer( CGHost* nGHost, CGameProtocol *nProtocol, CBaseGame 
 	m_Switching = false;
 	m_Switchok = false;
 	m_WarnChecked = false;
+	m_SwapTo = -1;
+	m_SwapToTime = 0;
+	m_ABCVote = false;
+	m_VoteDotaMode = string ();
+	m_StartVote = false;
 
 	m_GameKey = string();
 }

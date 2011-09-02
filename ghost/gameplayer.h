@@ -147,6 +147,11 @@ private:
 	bool m_RankSet;
 	string m_ScoreS;
 	string m_RankS;
+	string m_VoteDotaMode;
+	bool m_ABCVote;
+	int m_SwapTo;
+	uint32_t m_SwapToTime;
+	bool m_StartVote;							// if the player voted to start game
 
 	string m_GameKey;
 
@@ -167,6 +172,8 @@ public:
 	unsigned int GetNumCheckSums( )				{ return m_CheckSums.size( ); }
 	queue<uint32_t> *GetCheckSums( )			{ return &m_CheckSums; }
 	string GetLeftReason( )						{ return m_LeftReason; }
+	int GetSwapTo()								{ return m_SwapTo; }
+	uint32_t GetSwapToTime( )					{ return m_SwapToTime; }
 	string GetSpoofedRealm( )					{ return m_SpoofedRealm; }
 	string GetJoinedRealm( )					{ return m_JoinedRealm; }
 	uint32_t GetLeftCode( )						{ return m_LeftCode; }
@@ -184,6 +191,8 @@ public:
 	uint32_t GetLastGProxyWaitNoticeSentTime( )	{ return m_LastGProxyWaitNoticeSentTime; }
 	queue<BYTEARRAY> *GetLoadInGameData( )		{ return &m_LoadInGameData; }
 	bool GetWarnChecked( )						{ return m_WarnChecked; }
+	bool GetABCVote( )							{ return m_ABCVote; }
+	string GetVoteDotaMode ( )					{ return m_VoteDotaMode; }
 	string GetDownloadInfo ( )					{ return m_DownloadInfo; }
 	double GetScore( )							{ return m_Score; }
 	uint32_t GetLeaveCount ( )					{ return m_LeaveCount; }
@@ -201,6 +210,7 @@ public:
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetRmkVote( )							{ return m_RmkVote; }
 	bool GetFFVote( )							{ return m_FFVote; }
+	bool GetStartVote( )						{ return m_StartVote; }
 	bool GetMuted( )							{ return m_Muted; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetScoreSet( )						{ return m_ScoreSet; }
@@ -238,12 +248,15 @@ public:
 	void SetDownloadAllowed( bool nDownloadAllowed )								{ m_DownloadAllowed = nDownloadAllowed; }
 	void SetDownloadStarted( bool nDownloadStarted )								{ m_DownloadStarted = nDownloadStarted; }
 	void SetDownloadFinished( bool nDownloadFinished )								{ m_DownloadFinished = nDownloadFinished; }
-	void SetDownloadInfo( string nDownloadInfo )							{ m_DownloadInfo = nDownloadInfo; }
+	void SetDownloadInfo( string nDownloadInfo )									{ m_DownloadInfo = nDownloadInfo; }
 	void SetLagging( bool nLagging )												{ m_Lagging = nLagging; }
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
-	void SetRmkVote( bool nRmkVote )										{ m_RmkVote = nRmkVote; }
-	void SetFFVote( bool nFFVote )										{ m_FFVote = nFFVote; }
+	void SetRmkVote( bool nRmkVote )												{ m_RmkVote = nRmkVote; }
+	void SetFFVote( bool nFFVote )													{ m_FFVote = nFFVote; }
+	void SetStartVote ( bool nStartVote )											{ m_StartVote = nStartVote; }
+	void SetABCVote( bool nABCVote )												{ m_ABCVote = nABCVote; }
+	void SetVoteDotaMode ( string nVoteDotaMode )									{ m_VoteDotaMode = nVoteDotaMode; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
@@ -262,6 +275,7 @@ public:
 	void SetRankS( string nRank )											{ m_RankS = nRank; m_RankSet = true; }
 	void SetProvider( string nProvider )									{ m_Provider = nProvider;}
 	void SetCountry( string nCountry )										{ m_Country = nCountry;}
+	void SetSwapTo( int nSwapTo )											{ m_SwapTo = nSwapTo; m_SwapToTime = GetTime(); }
 
 	string GetGameKey()														{ return m_GameKey; }
 
