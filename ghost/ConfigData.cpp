@@ -19,7 +19,7 @@
 
 #include "includes.h"
 #include "util.h"
-#include "ConfigData.h"
+#include "configdata.h"
 
 using boost::property_tree::ptree;
 
