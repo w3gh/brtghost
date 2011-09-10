@@ -22,6 +22,7 @@
 #define GHOST_H
 
 #include "includes.h"
+#include "configdata.h"
 #include "config.h"
 #include "ghostdb.h"
 #include "commandpacket.h"
@@ -67,6 +68,30 @@ public:
 	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };
 
+class CbrtServer
+{
+private:
+	CTCPServer *m_CommandSocketServer;			// command socket server
+	CTCPSocket *m_CommandSocket;				// 
+	bool nExiting;
+
+	uint32_t m_Port;
+
+public:
+	queue<CCommandPacket *> m_CommandPackets;  // queue incoming packets of command server
+	queue<BYTEARRAY> m_PacketsToServer;		   // Packet who be sent to the main server
+
+public:
+	CbrtServer(uint32_t nPort);
+	~CbrtServer();
+
+	bool isExiting() { return nExiting; }
+
+	void Update(int usecBlock);
+
+	bool ExctactsCommandPackets();
+};
+
 class CGHost
 {
 public:
@@ -92,6 +117,7 @@ public:
 	CMap *m_AutoHostMap;					// the map to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
 	vector<PIDPlayer> m_EnforcePlayers;		// vector of pids to force players to use in the next game (used with saved games)
+	CConfigData* m_Config;
 
 	bool m_Exiting;							// set to true to force ghost to shutdown next update (used by SignalCatcher)
 	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
@@ -369,7 +395,7 @@ public:
 	
 //	bool m_dbopen;
 
-	CGHost( CConfig *CFG );
+	CGHost( CConfig *CFG, CConfigData* nConfig );
 	~CGHost( );
 
 	string Commands(unsigned int idx);
@@ -410,6 +436,8 @@ public:
 	// processing functions
 
 	bool Update( unsigned long usecBlock );
+
+	bool ProcessCommandPackets();
 
 	// events
 

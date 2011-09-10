@@ -1051,22 +1051,12 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		if( !m_GHost->m_BindAddress.empty( ) )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
 
-		if( m_ServerIP.empty( ) )
-		{
-			m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
+		m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
 
-			if( !m_Socket->HasError( ) )
-			{
-				m_ServerIP = m_Socket->GetIPString( );
-				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] resolved and cached server IP address " + m_ServerIP );
-			}
-		}
-		else
+		if( !m_Socket->HasError( ) )
 		{
-			// use cached server IP address since resolving takes time and is blocking
-
-			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP );
-			m_Socket->Connect( m_GHost->m_BindAddress, m_ServerIP, 6112 );
+			m_ServerIP = m_Socket->GetIPString( );
+			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] resolved and cached server IP address " + m_ServerIP );
 		}
 
 		m_WaitingToConnect = false;
@@ -5293,8 +5283,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !GET
 				//
 
-				else if( Command == "get" && !Payload.empty())
-				{
+//				else if( Command == "get" && !Payload.empty())
+//				{
 /*
 					CConfig CFGF;
 					CConfig *CFG;
@@ -5307,7 +5297,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					else
 						QueueChatCommand(Payload+" is not a config variable!");
 */
-					string line;
+/*					string line;
 					uint32_t idx = 0;
 					uint32_t commidx = 0;
 					vector<string> newcfg;
@@ -5444,7 +5434,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 */
 //					QueueChatCommand(Payload+"="+var);
-
+/*
 					string line;
 					uint32_t idx = 0;
 					uint32_t commidx = 0;
@@ -5572,7 +5562,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					*/
 					//					QueueChatCommand(Payload+"="+var);
 
-					string line;
+/*					string line;
 					uint32_t idx = 0;
 					uint32_t commidx = 0;
 					vector<string> newcfg;
@@ -5650,7 +5640,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						m_GHost->ReloadConfig();
 
 				}
-
+*/
 				//
 				// !UNHOST
 				// !UH

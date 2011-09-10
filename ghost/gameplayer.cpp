@@ -475,7 +475,7 @@ bool CGamePlayer :: Update( void *fd )
 	if( m_WhoisShouldBeSent && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) - m_JoinTime >= 4 )
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
-
+/*
 		// check if we have this ip in our spoofed cached ip list
 		bool isspoofed = m_Game->m_GHost->IsSpoofedIP(GetName(), GetExternalIPString());
 
@@ -486,6 +486,7 @@ bool CGamePlayer :: Update( void *fd )
 		}
 
 		if (!isspoofed && GetExternalIPString()!="127.0.0.1")
+*/
 		for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); i++ )
 		{
 			if( (*i)->GetServer( ) == m_JoinedRealm )
