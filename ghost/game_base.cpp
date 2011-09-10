@@ -4651,7 +4651,23 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
 		SendAllChat( tr("lang_0149", player->GetName( ) ));  //  PlayerIsSavingTheGame( player->GetName( ) )
+
+		string nSaveGameFileName = string( action->GetAction()->begin() + 1, action->GetAction()->end() - 1 );
+
+		CSaveGame nSaveGame( m_GHost->m_SaveGamePath + nSaveGameFileName, nSaveGameFileName, m_Map->GetMapPath(), GetGameName(), m_Slots.size(), m_Slots, GetPlayers(), 0, m_Map->GetMapCRC() );
+		
+		nSaveGame.PrepareForSave();
+
+/*
+		TODO
+
+		m_GHost->m_PacketsToServer.push( m_GHost->m_PUBProtocol->RedisHSet("SAVEGAME:" + GetGameName() + ":" + nSaveGameFileName, "savedata", nSaveGame.GetCompressed( true )) );
+		m_GHost->m_PacketsToServer.push( m_GHost->m_PUBProtocol->RedisHSet("SAVEGAME:" + GetGameName() + ":" + nSaveGameFileName, "savefilename", nSaveGameFileName ) );
+		m_GHost->m_PacketsToServer.push( m_GHost->m_PUBProtocol->RedisHSet("SAVEGAME:" + GetGameName() + ":" + nSaveGameFileName, "botip", GetExternalIP() ));
+		m_GHost->m_PacketsToServer.push( m_GHost->m_PUBProtocol->RedisHSet("SAVEGAME:" + GetGameName() + ":" + nSaveGameFileName, "botgameport", UTIL_ToString(m_GHost->m_HostPort) ) );
+*/
 	}
+
 }
 
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )

@@ -22,6 +22,7 @@
 #define SAVEGAME_H
 
 #include "gameslot.h"
+#include "gameplayer.h"
 
 //
 // CSaveGame
@@ -36,26 +37,32 @@ private:
 	string m_GameName;
 	unsigned char m_NumSlots;
 	vector<CGameSlot> m_Slots;
+	vector<CGamePlayer*> m_PIDs;
+	vector<PIDPlayer> m_EnforcePlayers;
 	uint32_t m_RandomSeed;
-	BYTEARRAY m_MagicNumber;
+	BYTEARRAY m_MagicNumber;	// Map CRC
 
 public:
 	CSaveGame( );
+	CSaveGame( string nFileName, string nFileNameNoPath, string nMapPath, string nGameName, unsigned char nNumSlots, vector<CGameSlot> nSlots, vector<CGamePlayer*> nPIDs, uint32_t nRandomSeed, BYTEARRAY nCRC );
 	virtual ~CSaveGame( );
 
-	string GetFileName( )				{ return m_FileName; }
-	string GetFileNameNoPath( )			{ return m_FileNameNoPath; }
-	string GetMapPath( )				{ return m_MapPath; }
-	string GetGameName( )				{ return m_GameName; }
-	unsigned char GetNumSlots( )		{ return m_NumSlots; }
-	vector<CGameSlot> GetSlots( )		{ return m_Slots; }
-	uint32_t GetRandomSeed( )			{ return m_RandomSeed; }
-	BYTEARRAY GetMagicNumber( )			{ return m_MagicNumber; }
+	string GetFileName( )					{ return m_FileName; }
+	string GetFileNameNoPath( )				{ return m_FileNameNoPath; }
+	string GetMapPath( )					{ return m_MapPath; }
+	string GetGameName( )					{ return m_GameName; }
+	unsigned char GetNumSlots( )			{ return m_NumSlots; }
+	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
+	vector<PIDPlayer> GetEnforcePlayers()	{ return m_EnforcePlayers; }
+	uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
+	BYTEARRAY GetMagicNumber( )				{ return m_MagicNumber; }
 
 	void SetFileName( string nFileName )				{ m_FileName = nFileName; }
 	void SetFileNameNoPath( string nFileNameNoPath )	{ m_FileNameNoPath = nFileNameNoPath; }
+	void SetMagicNumber( BYTEARRAY nMagicNumber )		{ m_MagicNumber = nMagicNumber; }
 
 	void ParseSaveGame( );
+	void PrepareForSave();
 };
 
 #endif

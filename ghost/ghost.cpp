@@ -202,16 +202,18 @@ void SignalCatcher( int s )
 void CONSOLE_PrintThread( const string& message )
 {
 	printMutex.lock();
-/*
-	string::size_type loc = message.find( "]", 0 );
 
-	if (loc<34)
-		message.insert(1,34-loc,' ');
+	string format_message = message;
+
+	string::size_type length = message.find( "]", 0 );
+
+	if ( length < 34 )
+		format_message.insert(1, 34 - length, ' ');
 	else
-	if (loc<45)
-		message.insert(1,45-loc,' ');
-*/
-	cout << message << endl;
+	if ( length < 45 )
+		format_message.insert(1, 45 - length, ' ');
+
+	cout << format_message << endl;
 
 	if( !gConfig->logfile.empty( ) )
 	{
@@ -253,7 +255,10 @@ void CONSOLE_PrintThread( const string& message )
 
 void CONSOLE_Print( const string& message )
 {
-	boost::thread PrintThread( boost::bind(CONSOLE_PrintThread, message) );
+	if ( gConfig->logmethod && !gConfig->logfile.empty( ) )
+		boost::thread PrintThread( CONSOLE_PrintThread, boost::ref( message ) );
+	else
+		CONSOLE_PrintThread( message );
 }
 
 void DEBUG_Print( string message )
