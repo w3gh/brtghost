@@ -1,5 +1,5 @@
-#ifndef CONFIGDATA_H
-#define CONFIGDATA_H
+#ifndef _CONFIGDATA_H_
+#define _CONFIGDATA_H_
 
 class CConfigData
 {
