@@ -40,12 +40,13 @@ CSocket :: CSocket( )
 	m_Error = 0;
 }
 
-CSocket :: CSocket( SOCKET nSocket, struct sockaddr_in nSIN )
+CSocket :: CSocket( SOCKET nSocket, struct sockaddr_in nSIN, bool isConsolePrint )
 {
 	m_Socket = nSocket;
 	m_SIN = nSIN;
 	m_HasError = false;
 	m_Error = 0;
+	m_isConsolePrint = isConsolePrint;
 }
 
 CSocket :: ~CSocket( )
@@ -139,7 +140,10 @@ void CSocket :: Allocate( int type )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );
-		CONSOLE_Print( "[SOCKET] error (socket) - " + GetErrorString( ) );
+		
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[SOCKET] error (socket) - " + GetErrorString( ) );
+
 		return;
 	}
 }
@@ -258,14 +262,19 @@ void CTCPSocket :: DoRecv( fd_set *fd )
 
 			m_HasError = true;
 			m_Error = GetLastError( );
-			CONSOLE_Print( "[TCPSOCKET] error (recv) - " + GetErrorString( ) );
+
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[TCPSOCKET] error (recv) - " + GetErrorString( ) );
+
 			return;
 		}
 		else if( c == 0 )
 		{
 			// the other end closed the connection
 
-			CONSOLE_Print( "[TCPSOCKET] closed by remote host" );
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[TCPSOCKET] closed by remote host" );
+
 			m_Connected = false;
 		}
 		else if( c > 0 )
@@ -307,7 +316,10 @@ void CTCPSocket :: DoSend( fd_set *send_fd )
 
 			m_HasError = true;
 			m_Error = GetLastError( );
-			CONSOLE_Print( "[TCPSOCKET] error (send) - " + GetErrorString( ) );
+
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[TCPSOCKET] error (send) - " + GetErrorString( ) );
+
 			return;
 		}
 		else if( s > 0 )
@@ -396,7 +408,10 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 		{
 			m_HasError = true;
 			m_Error = GetLastError( );
-			CONSOLE_Print( "[TCPCLIENT] error (bind) - " + GetErrorString( ) );
+
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[TCPCLIENT] error (bind) - " + GetErrorString( ) );
+
 			return;
 		}
 	}
@@ -411,7 +426,9 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 	{
 		m_HasError = true;
 		// m_Error = h_error;
-		CONSOLE_Print( "[TCPCLIENT] error (gethostbyname)" );
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[TCPCLIENT] error (gethostbyname)" );
+
 		return;
 	}
 
@@ -431,7 +448,10 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 
 			m_HasError = true;
 			m_Error = GetLastError( );
-			CONSOLE_Print( "[TCPCLIENT] error (connect) - " + GetErrorString( ) );
+
+			if (m_isConsolePrint)			
+				CONSOLE_Print( "[TCPCLIENT] error (connect) - " + GetErrorString( ) );
+
 			return;
 		}
 	}
@@ -518,7 +538,10 @@ bool CTCPServer :: Listen( string address, uint16_t port )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );
-		CONSOLE_Print( "[TCPSERVER] error (bind) - " + GetErrorString( ) );
+
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[TCPSERVER] error (bind) - " + GetErrorString( ) );
+
 		return false;
 	}
 
@@ -528,7 +551,10 @@ bool CTCPServer :: Listen( string address, uint16_t port )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );
-		CONSOLE_Print( "[TCPSERVER] error (listen) - " + GetErrorString( ) );
+
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[TCPSERVER] error (listen) - " + GetErrorString( ) );
+
 		return false;
 	}
 
@@ -617,7 +643,9 @@ bool CUDPSocket :: SendTo( string address, uint16_t port, BYTEARRAY message )
 	{
 		m_HasError = true;
 		// m_Error = h_error;
-		CONSOLE_Print( "[UDPSOCKET] error (gethostbyname)" );
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[UDPSOCKET] error (gethostbyname)" );
+
 		return false;
 	}
 
@@ -644,7 +672,8 @@ bool CUDPSocket :: Broadcast( uint16_t port, BYTEARRAY message )
 
 	if( sendto( m_Socket, MessageString.c_str( ), MessageString.size( ), 0, (struct sockaddr *)&sin, sizeof( sin ) ) == -1 )
 	{
-		CONSOLE_Print( "[UDPSOCKET] failed to broadcast packet (port " + UTIL_ToString( port ) + ", size " + UTIL_ToString( MessageString.size( ) ) + " bytes)" );
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[UDPSOCKET] failed to broadcast packet (port " + UTIL_ToString( port ) + ", size " + UTIL_ToString( MessageString.size( ) ) + " bytes)" );
 		return false;
 	}
 
@@ -655,7 +684,9 @@ void CUDPSocket :: SetBroadcastTarget( string subnet )
 {
 	if( subnet.empty( ) )
 	{
-		CONSOLE_Print( "[UDPSOCKET] using default broadcast target" );
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[UDPSOCKET] using default broadcast target" );
+
 		m_BroadcastTarget.s_addr = INADDR_BROADCAST;
 	}
 	else
@@ -663,14 +694,18 @@ void CUDPSocket :: SetBroadcastTarget( string subnet )
 		// this function does not check whether the given subnet is a valid subnet the user is on
 		// convert string representation of ip/subnet to in_addr
 
-		CONSOLE_Print( "[UDPSOCKET] using broadcast target [" + subnet + "]" );
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[UDPSOCKET] using broadcast target [" + subnet + "]" );
+
 		m_BroadcastTarget.s_addr = inet_addr( subnet.c_str( ) );
 
 		// if conversion fails, inet_addr( ) returns INADDR_NONE
 
 		if( m_BroadcastTarget.s_addr == INADDR_NONE )
 		{
-			CONSOLE_Print( "[UDPSOCKET] invalid broadcast target, using default broadcast target" );
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[UDPSOCKET] invalid broadcast target, using default broadcast target" );
+
 			m_BroadcastTarget.s_addr = INADDR_BROADCAST;
 		}
 	}
@@ -732,7 +767,10 @@ bool CUDPServer :: Bind( struct sockaddr_in sin )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );
-		CONSOLE_Print( "[UDPSERVER] error (bind) - " + GetErrorString( ) );
+
+		if (m_isConsolePrint)
+			CONSOLE_Print( "[UDPSERVER] error (bind) - " + GetErrorString( ) );
+
 		return false;
 	}
 
@@ -785,7 +823,9 @@ void CUDPServer :: RecvFrom( fd_set *fd, struct sockaddr_in *sin, string *messag
 
 			m_HasError = true;
 			m_Error = GetLastError( );
-			CONSOLE_Print( "[UDPSERVER] error (recvfrom) - " + GetErrorString( ) );
+
+			if (m_isConsolePrint)
+				CONSOLE_Print( "[UDPSERVER] error (recvfrom) - " + GetErrorString( ) );
 		}
 		else if( c > 0 )
 		{

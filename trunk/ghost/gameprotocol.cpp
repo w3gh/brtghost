@@ -780,21 +780,20 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_REFRESHGAME( uint32_t players, uint32_t pla
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_DECREATEGAME( )
+BYTEARRAY CGameProtocol :: SEND_W3GS_DECREATEGAME( uint32_t HostCounter )
 {
-	unsigned char HostCounter[]	= { 1, 0, 0, 0 };
-
 	BYTEARRAY packet;
 	packet.push_back( W3GS_HEADER_CONSTANT );			// W3GS header constant
 	packet.push_back( W3GS_DECREATEGAME );				// W3GS_DECREATEGAME
 	packet.push_back( 0 );								// packet length will be assigned later
 	packet.push_back( 0 );								// packet length will be assigned later
-	UTIL_AppendByteArray( packet, HostCounter, 4 );		// Host Counter
+	UTIL_AppendByteArray( packet, HostCounter, false );		// Host Counter
 	AssignLength( packet );
 	// DEBUG_Print( "SENT W3GS_DECREATEGAME" );
 	// DEBUG_Print( packet );
 	return packet;
 }
+
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 )
 {

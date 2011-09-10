@@ -51,13 +51,16 @@ class CBaseGame
 public:
 	CGHost *m_GHost;
 	CGameProtocol *m_Protocol;						// game protocol
+	CPUBProtocol *m_PUBProtocol;
+
+	queue<BYTEARRAY> m_packetsToServer;
 
 protected:
 	CTCPServer *m_Socket;							// listening socket
 	
 	CStats *m_Stats;								// class to keep track of game stats such as kills/deaths/assists in dota
 //	vector<CGameSlot> m_Slots;						// vector of slots
-	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
+
 //	vector<CGamePlayer *> m_Players;				// vector of players
 	vector<CCallableRunQuery *> m_RunQueries;
 	vector<CCallableBanUpdate *> m_BanUpdates;
@@ -131,10 +134,9 @@ protected:
 	uint32_t m_StartedKickVoteTime;					// GetTime when the kick vote was started
 	uint32_t m_GameOverTime;						// GetTime when the game was over
 	uint32_t m_LastPlayerLeaveTicks;				// GetTicks when the most recent player left the game
-	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
-	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
+
 	bool m_SlotInfoChanged;							// if the slot info has changed and hasn't been sent to the players yet (optimization)
-	bool m_DisableStats;
+
 	uint32_t m_GameLoadedTime;					// GetTime when the game was loaded
 	bool m_GameLoadedMessage;					// GameLoad message shown
 	bool m_AllPlayersWarnChecked;				// iff true, all players have been warn checked and informed already.
@@ -173,6 +175,16 @@ protected:
 	bool m_DoAutoWarns;								// enable automated warns for early leavers
 	uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 	uint32_t m_EntryKey;							// entry key for LAN games
+
+public:
+	bool m_isLadderGame;
+	bool m_isBalanceGame;
+	bool m_DisableStats;
+
+	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
+	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
+
+	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 
 public:
 	vector<CGamePlayer *> m_Players;			// vector of players
@@ -363,6 +375,8 @@ public:
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void SendEndMessage( );
 
+	void SendDecreateGame();
+
 	// events
 	// note: these are only called while iterating through the m_Potentials or m_Players vectors
 	// therefore you can't modify those vectors and must use the player's m_DeleteMe member to flag for deletion
@@ -481,6 +495,7 @@ public:
 	virtual string GetGameInfo( );
 	virtual void SetDynamicLatency( );
 
+//	void SaveReplay( CReplay* nReplay, bool nTFT, string nReplayPath, time_t m_ReplayTimeShift, uint16_t m_ReplayBuildNumber, uint32_t m_ReplayWar3Version, string m_GameName, uint32_t m_DatabaseID );
 };
 
 #endif

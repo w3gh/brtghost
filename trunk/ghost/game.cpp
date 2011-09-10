@@ -6159,7 +6159,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !VOTEABC !BALANCE
 	//
 
-	else if ( (Command == "voteabc" || Command == "balance") && !Payload.empty() && !m_GameLoading && !m_GameLoaded)
+	else if ( (Command == "voteabc" || Command == "balance") && Payload.empty() && !m_GameLoading && !m_GameLoaded)
 	{
 		player->SetABCVote(true);
 
@@ -6195,7 +6195,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			if ((*i)->GetStartVote())
 				++start_voted;
 
-		if (start_voted == m_Players.size() && !m_CountDownStarted)
+		if ( m_Players.size() > 2 && start_voted == m_Players.size() && !m_CountDownStarted )
 			StartCountDown( false );
 	}
 

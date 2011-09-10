@@ -106,10 +106,11 @@ protected:
 	struct sockaddr_in m_SIN;
 	bool m_HasError;
 	int m_Error;
+	bool m_isConsolePrint;
 
 public:
 	CSocket( );
-	CSocket( SOCKET nSocket, struct sockaddr_in nSIN );
+	CSocket( SOCKET nSocket, struct sockaddr_in nSIN, bool isConsolePrint = true );
 	~CSocket( );
 
 	virtual BYTEARRAY GetPort( );

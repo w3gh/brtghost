@@ -39,8 +39,10 @@
 #include "game_base.h"
 #include "game.h"
 #include "game_admin.h"
-#include "bnetprotocol.h"
 #include "gameplayer.h"
+
+#include "bnetprotocol.h"
+#include "pubprotocol.h"
 
 #include <cstring>
 #include <signal.h>
@@ -52,6 +54,8 @@
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/signals2/mutex.hpp>
+
 using namespace boost :: filesystem;
 
 #define __STORMLIB_SELF__
@@ -85,12 +89,15 @@ using namespace boost :: filesystem;
 #endif
 
 string	   gCFGFile;
-string	   gLogFile;
-uint32_t   gLogMethod;
+//string	   gLogFile;
+//uint32_t   gLogMethod;
 ofstream  *gLog = NULL;
 CGHost	  *gGHost = NULL;
+CConfigData* gConfig = NULL;
 CLanguage *m_Language = NULL;	// todotodo - Use singelton			
-										
+CbrtServer* brtServer;					// Class for listen remote commands from brtServer			
+
+boost::mutex printMutex;
 
 string tr(const string& lang_id)					{ return m_Language->GetLang(lang_id);	   } 
 string tr(const string& lang_id, const string& v1)  { return m_Language->GetLang(lang_id, v1); }
@@ -192,8 +199,10 @@ void SignalCatcher( int s )
 
 // initialize ghost
 
-void CONSOLE_Print( string message )
+void CONSOLE_PrintThread( const string& message )
 {
+	printMutex.lock();
+/*
 	string::size_type loc = message.find( "]", 0 );
 
 	if (loc<34)
@@ -201,15 +210,15 @@ void CONSOLE_Print( string message )
 	else
 	if (loc<45)
 		message.insert(1,45-loc,' ');
-
+*/
 	cout << message << endl;
 
-	if( !gLogFile.empty( ) )
+	if( !gConfig->logfile.empty( ) )
 	{
-		if( gLogMethod == 1 )
+		if( gConfig->logmethod == 1 )
 		{
 			ofstream Log;
-			Log.open( gLogFile.c_str( ), ios :: app );
+			Log.open( gConfig->logfile.c_str( ), ios :: app );
 
 			if( !Log.fail( ) )
 			{
@@ -223,7 +232,7 @@ void CONSOLE_Print( string message )
 				Log.close( );
 			}
 		}
-		else if( gLogMethod == 2 )
+		else if( gConfig->logmethod == 2 )
 		{
 			if( gLog && !gLog->fail( ) )
 			{
@@ -238,6 +247,13 @@ void CONSOLE_Print( string message )
 			}
 		}
 	}
+
+	printMutex.unlock();
+}
+
+void CONSOLE_Print( const string& message )
+{
+	boost::thread PrintThread( boost::bind(CONSOLE_PrintThread, message) );
 }
 
 void DEBUG_Print( string message )
@@ -255,6 +271,14 @@ void DEBUG_Print( BYTEARRAY b )
 	cout << "}" << endl;
 }
 
+void brtUpdateThread()
+{
+	while ( !brtServer->isExiting() )
+	{
+		brtServer->Update(40000);
+	}
+}
+
 //
 // main
 //
@@ -268,13 +292,7 @@ int main( int argc, char **argv )
 	string ProcessID = UTIL_ToString(getpid( ));
 	string ProcessFile = "data/process.ini";
 #endif
-	ofstream myfile;
-	myfile.open (ProcessFile.c_str());
-	myfile << "[GHOST]" << endl;
-	myfile << "ProcessID = " << ProcessID << endl;
-	myfile << "ProcessStatus = Online";
-	myfile.close();
-	CONSOLE_Print(ProcessID);
+
 	gCFGFile = "ghost.cfg";
 
 	if( argc > 1 && argv[1] )
@@ -282,42 +300,46 @@ int main( int argc, char **argv )
 
 	// read config file
 
+	gConfig = new CConfigData();
+
+	if (gConfig->Parse("default_new.cfg"))
+		return 0;
+	
 	CConfig CFG;
 	CFG.Read( "default.cfg" );
 	CFG.Read( gCFGFile );
-	gLogFile = CFG.GetString( "bot_log", string( ) );
-	gLogMethod = CFG.GetInt( "bot_logmethod", 1 );
 
-	if( !gLogFile.empty( ) )
+
+	if( !gConfig->logfile.empty( ) )
 	{
-		if( gLogMethod == 1 )
+		if( gConfig->logmethod == 1 )
 		{
 			// log method 1: open, append, and close the log for every message
 			// this works well on Linux but poorly on Windows, particularly as the log file grows in size
 			// the log file can be edited/moved/deleted while GHost++ is running
 		}
-		else if( gLogMethod == 2 )
+		else if( gConfig->logmethod == 2 )
 		{
 			// log method 2: open the log on startup, flush the log for every message, close the log on shutdown
 			// the log file CANNOT be edited/moved/deleted while GHost++ is running
 
 			gLog = new ofstream( );
-			gLog->open( gLogFile.c_str( ), ios :: app );
+			gLog->open( gConfig->logfile.c_str( ), ios :: app );
 		}
 	}
 
 	CONSOLE_Print( "[GHOST] starting up" );
 
-	if( !gLogFile.empty( ) )
+	if( !gConfig->logfile.empty( ) )
 	{
-		if( gLogMethod == 1 )
-			CONSOLE_Print( "[GHOST] using log method 1, logging is enabled and [" + gLogFile + "] will not be locked" );
-		else if( gLogMethod == 2 )
+		if( gConfig->logmethod == 1 )
+			CONSOLE_Print( "[GHOST] using log method 1, logging is enabled and [" + gConfig->logfile + "] will not be locked" );
+		else if( gConfig->logmethod == 2 )
 		{
 			if( gLog->fail( ) )
-				CONSOLE_Print( "[GHOST] using log method 2 but unable to open [" + gLogFile + "] for appending, logging is disabled" );
+				CONSOLE_Print( "[GHOST] using log method 2 but unable to open [" + gConfig->logfile + "] for appending, logging is disabled" );
 			else
-				CONSOLE_Print( "[GHOST] using log method 2, logging is enabled and [" + gLogFile + "] is now locked" );
+				CONSOLE_Print( "[GHOST] using log method 2, logging is enabled and [" + gConfig->logfile + "] is now locked" );
 		}
 	}
 	else
@@ -393,13 +415,13 @@ unsigned int TimerResolution = 0;
 
 	// initialize ghost
 
-	gGHost = new CGHost( &CFG );
+	gGHost = new CGHost( &CFG, gConfig );
 
 	while( 1 )
 	{
 		// block for 50ms on all sockets - if you intend to perform any timed actions more frequently you should change this
 		// that said it's likely we'll loop more often than this due to there being data waiting on one of the sockets but there aren't any guarantees
-		uint32_t nLastTime = GetTicks();
+//		uint32_t nLastTime = GetTicks();
 
 		if( gGHost->Update( 50000 ) )
 			break;
@@ -408,15 +430,6 @@ unsigned int TimerResolution = 0;
 	}
 
 	// shutdown ghost
-
-	remove(ProcessFile.c_str());
-/*
-	myfile.open (ProcessFile.c_str());
-	myfile << "[GHOST]" << endl;
-	myfile << "ProcessID = 0" << endl;
-	myfile << "ProcessStatus = Offline";
-	myfile.close();
-*/
 
 	CONSOLE_Print( "[GHOST] shutting down" );
 
@@ -444,6 +457,8 @@ if (TimerStarted)
 
 		delete gLog;
 	}
+
+	delete gConfig;
 
 	return 0;
 }
@@ -574,9 +589,11 @@ uint32_t CMDAccessAll ()
 // CGHost
 //
 
-CGHost :: CGHost( CConfig *CFG )
+CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 {
 	srand( (unsigned int)time(0) );
+
+	m_Config = nConfig;
 
 	m_Console = true;
 	m_Log = true;
@@ -681,12 +698,12 @@ CGHost :: CGHost( CConfig *CFG )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.0.9 r151";
+	m_GHostVersion = "1.7.1 r170";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
 	m_DisableReason = string();
-	m_RootAdmin = "root";
+	m_RootAdmin = string();
 	m_CookieOffset = GetPID() * 10;
 	m_CallableDownloadFile = NULL;
 	m_GameNameContainString.clear();
@@ -932,6 +949,8 @@ CGHost :: CGHost( CConfig *CFG )
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
+	brtServer = new CbrtServer( m_Config->port_command );
+
 #ifdef GHOST_MYSQL
 	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (with MySQL support)" );
 #else
@@ -941,6 +960,8 @@ CGHost :: CGHost( CConfig *CFG )
 
 CGHost :: ~CGHost( )
 {
+	delete brtServer;
+
 	delete m_ReconnectSocket;
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); i++ )
@@ -975,6 +996,421 @@ CGHost :: ~CGHost( )
 	delete m_AutoHostMap;
 	delete m_SaveGame;
 }
+
+CbrtServer :: CbrtServer( uint32_t nPort )
+{
+	nExiting = false;
+
+	m_Port = nPort;
+
+	m_CommandSocketServer = new CTCPServer( );
+	m_CommandSocketServer->Listen( string( ), m_Port );
+	m_CommandSocket = NULL;
+
+	boost :: thread Thread( brtUpdateThread );
+
+	CONSOLE_Print( "[GHOST] Listening brtServer on port [" + UTIL_ToString( m_Port ) +"]");
+
+}
+
+CbrtServer::~CbrtServer()
+{
+	nExiting = true;
+
+	delete m_CommandSocketServer;
+	m_CommandSocketServer = NULL;
+}
+
+void CbrtServer::Update( int usecBlock )
+{
+	int nfds = 0;
+	fd_set fd;
+	fd_set send_fd;
+	FD_ZERO( &fd );
+	FD_ZERO( &send_fd );
+
+	if (m_CommandSocketServer)
+		m_CommandSocketServer->SetFD( &fd, &send_fd, &nfds );
+
+	if( m_CommandSocket && m_CommandSocket->GetConnected( ) && !m_CommandSocket->HasError( ))
+		m_CommandSocket->SetFD( &fd, &send_fd, &nfds );
+
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = usecBlock;
+
+	struct timeval send_tv;
+	send_tv.tv_sec = 0;
+	send_tv.tv_usec = 0;
+
+	#ifdef WIN32
+		select( 1, &fd, NULL, NULL, &tv );
+		select( 1, NULL, &send_fd, NULL, &send_tv );
+	#else
+		select( nfds + 1, &fd, NULL, NULL, &tv );
+		select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
+	#endif
+
+	// update remote PUB command socket
+
+	CTCPSocket *NewSocket = m_CommandSocketServer->Accept( &fd );
+
+	if (NewSocket && ( !m_CommandSocket || m_CommandSocket->HasError() || !m_CommandSocket->GetConnected()))
+	{
+		m_CommandSocket = NewSocket;
+//		getNextGameID();
+
+		CONSOLE_Print("[GHOST] brtServer connected to this bot. ");
+	}
+
+	if ( m_CommandSocket && m_CommandSocket->HasError() )
+	{
+		CONSOLE_Print ("[GHOST] Disconnected from brtServer, error " + m_CommandSocket->GetErrorString() );
+
+		delete m_CommandSocket;
+		m_CommandSocket = NULL;
+	}
+
+	// Process PUB command from BOT to command server
+ 
+	if ( m_CommandSocket && !m_CommandSocket->HasError() && m_CommandSocket->GetConnected() )
+	{
+		m_CommandSocket->DoRecv( &fd );
+
+		// Excracts command packet
+		ExctactsCommandPackets();
+
+		m_CommandSocket->DoSend( &send_fd );
+
+		if ( m_CommandSocket->GetBytes()->size() == 0 )
+		{
+			if ( !m_PacketsToServer.empty() )
+			{
+				BYTEARRAY nBytes = m_PacketsToServer.front();
+
+				m_CommandSocket->PutBytes( nBytes );
+
+				m_PacketsToServer.pop();
+			}
+		}
+
+	}
+}
+
+bool CbrtServer :: ExctactsCommandPackets()
+{
+	if( !m_CommandSocket )
+		return false;
+
+	// extract as many packets as possible from the socket's receive buffer and put them in the m_Packets queue
+
+	string *RecvBuffer = m_CommandSocket->GetBytes( );
+	BYTEARRAY Bytes = UTIL_CreateByteArray( (unsigned char *)RecvBuffer->c_str( ), RecvBuffer->size( ) );
+
+	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
+
+	while( Bytes.size( ) >= 4 )
+	{
+		if( Bytes[0] == PUB_HEADER_CONSTANT )
+		{
+			// bytes 2 and 3 contain the length of the packet
+
+			uint16_t Length = UTIL_ByteArrayToUInt16( Bytes, false, 2 );
+
+			if( Length >= 4 )
+			{
+				if( Bytes.size( ) >= Length )
+				{
+					m_CommandPackets.push( new CCommandPacket( Bytes[0], Bytes[1], BYTEARRAY( Bytes.begin( ), Bytes.begin( ) + Length ) ) );
+
+					*RecvBuffer = RecvBuffer->substr( Length );
+					Bytes = BYTEARRAY( Bytes.begin( ) + Length, Bytes.end( ) );
+				}
+				else
+					return false;
+			}
+			else
+			{
+				//m_ErrorString = "received invalid packet from player (bad length)";
+				return true;
+			}
+		}
+		else
+		{
+			//m_ErrorString = "received invalid packet from player (bad header constant)";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool CGHost :: ProcessCommandPackets()
+{
+    while ( !brtServer->m_CommandPackets.empty( ) )
+	{
+		CCommandPacket * packet = brtServer->m_CommandPackets.front( );
+		brtServer->m_CommandPackets.pop( );
+
+		switch( packet->GetID( ) )
+		{
+			/*
+			case CPUBProtocol::PUB_CREATE_SAVEDGAME:
+			{
+				BYTEARRAY data = packet->GetData();
+
+		        BYTEARRAY nGameName = UTIL_ExtractCString( data, 4 );
+		        BYTEARRAY nSaveFile = UTIL_ExtractCString( data, nGameName.size() + 5 );
+
+		        if ( data.size() < nGameName.size() + nSaveFile.size() + 10)
+		        {
+                    CONSOLE_Print("[PACKET] size error PUB_CREATE_SAVEDGAME" );
+
+                    break;  // packet size error
+		        }
+
+		        BYTEARRAY nMagicNumber = BYTEARRAY( data.begin() + nGameName.size() + nSaveFile.size() + 6, data.begin() + nGameName.size() + nSaveFile.size() + 10);
+				BYTEARRAY nOwner = UTIL_ExtractCString( data, nGameName.size() + nSaveFile.size() + 10 );
+				BYTEARRAY nSaveData = BYTEARRAY(data.begin() + nGameName.size() + nSaveFile.size() + nOwner.size() + 11, data.end() );
+
+				CONSOLE_Print("[SAVEdata] size = " + UTIL_ToString(nSaveData.size()));
+
+				string FileNoPath = string( nSaveFile.begin(), nSaveFile.end() );
+
+				string sGameName = string( nGameName.begin(), nGameName.end() );
+				string sOwner = string( nOwner.begin(), nOwner.end() );
+				string File = m_SaveGamePath + sOwner + sGameName + FileNoPath;
+
+				CONSOLE_Print( "[GHOST] Creating new game" );
+
+				m_SaveGame->LoadFromMemory( string(nSaveData.begin(), nSaveData.end()), false );
+				m_SaveGame->ParseSaveGame( );
+				m_SaveGame->SetFileName( File );
+				m_SaveGame->SetFileNameNoPath( FileNoPath );
+				m_SaveGame->SetMagicNumber( nMagicNumber );
+
+				if ( m_SaveGame->GetEnforcePlayers().size() )
+					m_EnforcePlayers = m_SaveGame->GetEnforcePlayers();
+
+				CreateGame( m_Map, GAME_PRIVATE, true, sGameName, getNextGameID(), sOwner, sOwner, string( ), false );
+				m_CurrentGame->m_isLadderGame = true;
+				m_CurrentGame->m_isBalanceGame = false;
+				m_CurrentGame->SetMinimumScore( 0 );
+				m_CurrentGame->SetMaximumScore( 15000 );
+
+				break;
+			}
+*/
+			case CPUBProtocol::PUB_BOTCREATEGAME:
+			{
+				BYTEARRAY data = packet->GetData();
+
+				bool isLadder = data[4] > 0 ? true : false;
+				bool isBalance = data[5] > 0 ? true : false;
+                uint16_t nHoldListSize = data[6];
+				bool nReserve = data[7] > 0 ? true : false;
+
+                uint16_t nMinScore = UTIL_ByteArrayToUInt16( BYTEARRAY( data.begin() + 8, data.begin() + 10), false );
+                uint16_t nMaxScore = UTIL_ByteArrayToUInt16( BYTEARRAY( data.begin() + 10, data.begin() + 12), false );
+
+                BYTEARRAY bGameMode = UTIL_ExtractCString( data, 12 );
+                string nGameMode = string( bGameMode.begin(), bGameMode.end() );
+
+                BYTEARRAY bGameName = UTIL_ExtractCString( data, nGameMode.size() + 13 );
+                string nGameName = string( bGameName.begin(), bGameName.end() );
+
+				BYTEARRAY bCreatorName = UTIL_ExtractCString( data, nGameMode.size() + nGameName.size() + 14 );
+				string nCreatorName = string( bCreatorName.begin(), bCreatorName.end() );
+
+                vector<string> nHoldList;
+                uint16_t mark = 15 + nGameMode.size() + nGameName.size() + nCreatorName.size();
+
+                for ( uint16_t i = 0; i < nHoldListSize; ++i)
+                {
+                    BYTEARRAY bName = UTIL_ExtractCString( data, mark );
+                    string nName = string( bName.begin(), bName.end() );
+
+                    nHoldList.push_back( nName );
+
+                    mark += bName.size() + 1;
+					CONSOLE_Print("[HOLD] " + nName );
+                }
+
+				CONSOLE_Print("[GAME] Create " + nGameName + " " + nGameMode + " " + nCreatorName + " " + UTIL_ToString( nMinScore ) + " " +  UTIL_ToString( nMaxScore ) );
+
+				if (!m_CurrentGame)
+				{
+					CreateGame( m_Map, newGameGameState, false, nGameName, /*getNextGameID()*/ nCreatorName, nCreatorName, newGameServer, true );
+//							  ( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
+					m_CurrentGame->m_isLadderGame = isLadder;
+					m_CurrentGame->m_isBalanceGame = isBalance;
+
+					for ( uint16_t i = 0; i < nHoldList.size(); ++i)
+						m_CurrentGame->AddToReserved( nHoldList[i], 255 );
+
+					m_CurrentGame->SetMinimumScore( nMinScore );
+					m_CurrentGame->SetMaximumScore( nMaxScore );
+					m_CurrentGame->SetHCL( nGameMode );
+
+					if (!isLadder)
+					{
+						m_CurrentGame->m_DisableStats = false;
+					}
+				}
+				
+
+				break;
+			}
+
+			case CPUBProtocol::PUB_GETSCOREANS:
+			{
+				BYTEARRAY packet_data = packet->GetData();
+
+				BYTEARRAY bLogin =  UTIL_ExtractCString( packet_data, 4);
+				BYTEARRAY bScore = UTIL_ExtractCString( packet_data, 5 + bLogin.size() );
+
+				string login = string(bLogin.begin(), bLogin.end());
+				string sScore = string(bScore.begin(), bScore.end());
+				double score = UTIL_ToDouble( sScore );
+
+				if (m_CurrentGame)
+				{
+					CGamePlayer * Player = m_CurrentGame->GetPlayerFromName( login, false);
+
+					if (Player)
+					{
+						Player->SetScoreS( UTIL_ToString( score, 2) );
+						Player->SetRankS( "0" );
+						Player->SetScore( score );
+						Player->SetLeaveCount( 0 );
+
+						if ( score < m_CurrentGame->m_MinimumScore  || score > m_CurrentGame->m_MaximumScore )
+						{
+							Player->SetDeleteMe( true );
+							m_CurrentGame->EventPlayerDeleted( Player );
+
+						} else
+						{
+							m_CurrentGame->SendAllChat( m_Language->GetLang("lang_1226", "$USER$", login, "$SCORE$", UTIL_ToString( score, 2) ));
+							
+							if (m_CurrentGame->m_isBalanceGame)
+								m_CurrentGame->BalanceSlots();
+						}
+					}
+
+					for( vector<CPotentialPlayer *> :: iterator j = m_CurrentGame->m_Potentials.begin( ); j != m_CurrentGame->m_Potentials.end( ); j++ )
+					{
+						if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == login )
+						{
+							//if ( m_CurrentGame->m_MatchMakingMethod )
+								m_CurrentGame->EventPlayerJoinedWithScore( *j, (*j)->GetJoinPlayer( ), score );
+
+								CONSOLE_Print("EventPlayerJoinedWithScore");
+
+								break;
+						}
+
+					}
+
+
+				}
+
+//				CONSOLE_Print("[SERVER] " + string(bLogin.begin(), bLogin.end()) + " score " + string(bScore.begin(), bScore.end()));
+
+				break;
+			}
+
+			case CPUBProtocol::PUB_CHAT_TO_GAME:
+			{
+				BYTEARRAY packet_data = packet->GetData();
+
+				BYTEARRAY blogin = UTIL_ExtractCString( packet_data, 4);
+				BYTEARRAY bmsg = UTIL_ExtractCString( packet_data, blogin.size() + 5 );
+
+				string login = string( blogin.begin(), blogin.end() );
+				string msg = string( bmsg.begin(), bmsg.end() );
+
+				if (m_CurrentGame && !m_CurrentGame->GetGameLoaded() && !m_CurrentGame->GetGameLoading() )
+					m_CurrentGame->SendAllChat( login + ": " + msg );
+
+				break;
+			}
+
+		    case CPUBProtocol::PUB_AUTH_NAME:
+		    {
+		        BYTEARRAY packet_data = packet->GetData();
+
+				int length = packet_data[4];
+				string login = string(packet_data.begin() + 5, packet_data.begin() + 5 + length);
+
+				int length_login = packet_data[5 + length];
+				string key = string(packet_data.begin() + 5 + length + 1, packet_data.begin() + 5 + length + length_login + 1);
+
+//				UpdatePlayersNames(login, key);
+
+		        break;
+		    }
+
+		}
+
+	}
+
+    return true;
+
+}
+/*
+void CbrtServer :: brtServerThread()
+{
+	while (!nExiting)
+	{
+		int nfds = 0;
+		fd_set fd;
+		fd_set send_fd;
+		FD_ZERO( &fd );
+		FD_ZERO( &send_fd );
+
+		m_CommandSocketServer->SetFD( &fd, &send_fd, &nfds );
+
+		if( m_CommandSocket && m_CommandSocket->GetConnected( ) && !m_CommandSocket->HasError( ))
+			m_CommandSocket->SetFD( &fd, &send_fd, &nfds );
+
+		struct timeval tv;
+		tv.tv_sec = 0;
+		tv.tv_usec = 40000;
+
+		struct timeval send_tv;
+		send_tv.tv_sec = 0;
+		send_tv.tv_usec = 0;
+
+	#ifdef WIN32
+		select( 1, &fd, NULL, NULL, &tv );
+		select( 1, NULL, &send_fd, NULL, &send_tv );
+	#else
+		select( nfds + 1, &fd, NULL, NULL, &tv );
+		select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
+	#endif
+
+	// update remote PUB command socket
+
+		CTCPSocket *NewSocket = m_CommandSocketServer->Accept( &fd );
+
+		if (NewSocket && ( !m_CommandSocket || m_CommandSocket->HasError() || !m_CommandSocket->GetConnected()))
+		{
+			m_CommandSocket = NewSocket;
+	//		getNextGameID();
+
+			CONSOLE_Print("[GHOST] brtServer connected to this bot. ");
+		}
+
+	}
+
+	delete m_CommandSocketServer;
+	m_CommandSocketServer = NULL;
+
+	delete m_CommandSocket;
+	m_CommandSocket = NULL;
+}
+*/
 
 bool CGHost :: Update( unsigned long usecBlock )
 {
@@ -1539,6 +1975,10 @@ bool CGHost :: Update( unsigned long usecBlock )
 
 		m_LastAutoHostTime = GetTime( );
 	}
+
+	// process packets from brtServer
+
+	ProcessCommandPackets();
 
 	return m_Exiting || AdminExit || BNETExit;
 }
@@ -2500,16 +2940,7 @@ void CGHost :: ReloadConfig ()
 	m_LobbyTimeLimitMax = CFG->GetInt( "bot_lobbytimelimitmax", 15 );
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 24 );
 	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
-	if (m_LANWar3Version == 23)
-	{
-		m_ReplayWar3Version = 23;
-		m_ReplayBuildNumber = 6058;
-	}
-	if (m_LANWar3Version == 24)
-	{
-		m_ReplayWar3Version = 24;
-		m_ReplayBuildNumber = 6059;
-	}
+	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 26 );
 	m_AutoStartDotaGames = CFG->GetInt( "bot_autostartdotagames", 0 ) == 0 ? false : true;
 	m_AllowedScores = CFG->GetInt( "bot_allowedscores", 0 );
 	m_AutoHostAllowedScores = CFG->GetInt( "bot_autohostallowedscores", 0 );

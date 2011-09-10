@@ -33,6 +33,7 @@
 #include "statsdota.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
+#include "pubprotocol.h"
 #include "game_base.h"
 
 
@@ -64,6 +65,8 @@ public:
 	}
 };
 
+ bool nTFT;	// TODO - REMOVE THIS !!!
+
 //
 // CBaseGame
 //
@@ -71,8 +74,10 @@ public:
 CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer )
 {
 	m_GHost = nGHost;
+
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
+	m_PUBProtocol = new CPUBProtocol();
 	//m_Map = new CMap( *nMap );
 	m_Map.reset(new CMap(*nMap));
 	//auto_ptr<CMap> map( new CMap(*nMap)); 
@@ -341,39 +346,60 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		m_AutoStartPlayers = 10;
 }
 
+void SaveReplay( CReplay* nReplay, uint32_t m_GameTicks, string m_StatString, string nReplayPath, time_t m_ReplayTimeShift, uint16_t m_ReplayBuildNumber, uint32_t m_ReplayWar3Version, string m_GameName, uint32_t m_DatabaseID )
+{
+	time_t Now = time( NULL );
+	char Time[17];
+	memset( Time, 0, sizeof( char ) * 17 );
+	time_t times = Now + m_ReplayTimeShift;
+	strftime( Time, sizeof( char ) * 17, "%Y-%m-%d %H-%M", localtime( &times ) );
+	string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+	string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
+
+	if( MinString.size( ) == 1 )
+		MinString.insert( 0, "0" );
+
+	if( SecString.size( ) == 1 )
+		SecString.insert( 0, "0" );
+
+	nReplay->BuildReplay( m_GameName, m_StatString, m_ReplayWar3Version, m_ReplayBuildNumber );
+	if(m_DatabaseID == 0)
+	    nReplay->Save( nTFT, nReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
+	else 
+	    nReplay->Save( nTFT, nReplayPath + UTIL_FileSafeName( "GHost++ " + UTIL_ToString( m_DatabaseID ) + ".w3g" ) );
+
+	delete nReplay;
+}
+
 CBaseGame :: ~CBaseGame( )
 {
-	// save replay
-	// todotodo: put this in a thread
+	m_packetsToServer.push( m_PUBProtocol->SendGameEnded( m_GameName ) );
 
-	if( m_Replay && ( m_GameLoading || m_GameLoaded ) )
+	SendDecreateGame();
+
+	if (m_Replay)
 	{
-		time_t Now = time( NULL );
-		char Time[17];
-		memset( Time, 0, sizeof( char ) * 17 );
-		time_t times = Now+ m_GHost->m_ReplayTimeShift;
-		strftime( Time, sizeof( char ) * 17, "%Y-%m-%d %H-%M", localtime( &times ) );
-		string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
-		string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
-
-		if( MinString.size( ) == 1 )
-			MinString.insert( 0, "0" );
-
-		if( SecString.size( ) == 1 )
-			SecString.insert( 0, "0" );
-
-		m_Replay->BuildReplay( m_GameName, m_StatString, m_GHost->m_ReplayWar3Version, m_GHost->m_ReplayBuildNumber );
-		if(m_DatabaseID == 0)
-		    m_Replay->Save( m_GHost->m_TFT, m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + string( Time ) + " " + m_GameName + " (" + MinString + "m" + SecString + "s).w3g" ) );
-		else 
-		    m_Replay->Save( m_GHost->m_TFT, m_GHost->m_ReplayPath + UTIL_FileSafeName( "GHost++ " + UTIL_ToString( m_DatabaseID ) + ".w3g" ) );
-		
+		if ( ( m_GameLoading || m_GameLoaded ) )
+		{
+			nTFT = m_GHost->m_TFT;
+			boost::thread nReplayThread( SaveReplay, 
+										m_Replay,
+										m_GameTicks,
+										m_StatString,
+										m_GHost->m_ReplayPath, 
+										m_GHost->m_ReplayTimeShift, 
+										m_GHost->m_ReplayBuildNumber,
+										m_GHost->m_ReplayWar3Version,
+										m_GameName,
+										m_DatabaseID );
+		} else
+			delete m_Replay;
 	}
 
 	delete m_Socket;
 	delete m_Protocol;
 //	delete m_Map;
-	delete m_Replay;
+//	delete m_Replay;
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); i++ )
 		delete *i;
@@ -400,6 +426,13 @@ CBaseGame :: ~CBaseGame( )
 	}
 
 	m_GameNames.clear();
+
+	delete m_PUBProtocol;
+}
+
+void CBaseGame :: SendDecreateGame()
+{
+	m_packetsToServer.push( m_Protocol->SEND_W3GS_DECREATEGAME(GetHostCounter()) );
 }
 
 uint32_t CBaseGame :: GetNextTimedActionTicks( )
@@ -652,7 +685,31 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		CreateVirtualHost( );
 
 	// unlock the game
+	if (!m_CountDownStarted)
+	{
+			// construct the correct W3GS_GAMEREFRESH packet
 
+			uint32_t slotsopen = GetSlotsOpen();
+
+			if (m_SlotsOpenLastSend != slotsopen)
+			{
+				m_SlotsOpenLastSend = slotsopen;
+				
+				uint32_t slotstotal = m_Slots.size( );
+				uint32_t num_players = slotstotal - slotsopen;
+
+				BYTEARRAY data = m_Protocol->SEND_W3GS_REFRESHGAME(num_players, slotstotal, m_HostCounter);
+
+				m_packetsToServer.push( data );
+
+				if (m_GHost->m_broadcastinlan)
+				{
+					m_GHost->m_UDPSocket->SendTo("127.0.0.1", 6112, data );
+				}
+
+			}
+
+	}
 
 	if( m_Locked && !GetPlayerFromName( m_OwnerName, false ) )
 	{
@@ -2772,184 +2829,178 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// test if player is reserved/admin/safelisted
 
 	bool RootAdminCheck = false;
-	for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); j++ )
-	{
-		if( (*j)->IsRootAdmin( joinPlayer->GetName( ) ) )
-		{
-			RootAdminCheck = true;
-			break;
-		}
-	}
-
 	bool AdminCheck = false;
-
-	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-	{
-		if( (*i)->IsAdmin( joinPlayer->GetName( ) ) || (*i)->IsRootAdmin( joinPlayer->GetName( ) ) )
-		{
-			AdminCheck = true;
-			break;
-		}
-	}
-
-	// test if player is safelisted
-
 	bool SafeCheck = false;
+
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 	{
-		if( (*i)->IsSafe( joinPlayer->GetName( ) ) )
+		if( JoinedRealm == (*i)->GetServer( ) )
 		{
-			SafeCheck = true;
-			break;
+			if( (*i)->IsRootAdmin( joinPlayer->GetName( ) ) )
+			{
+					AdminCheck = true;
+					RootAdminCheck = true;
+			}
+
+			if( (*i)->IsAdmin( joinPlayer->GetName( ) ) )
+					AdminCheck = true;
+
+			if( (*i)->IsSafe( joinPlayer->GetName( ) ) )
+					SafeCheck = true;
+
+					break;
 		}
-	}
+	}	
 
 	bool Reserved = IsReserved( joinPlayer->GetName( ) ) || AdminCheck || IsOwner( joinPlayer->GetName( )) || SafeCheck;
 
-			// check if we only allow garena
+	// anything below -	FACEPALM
+	// todo - to fix			
 
-			if (!m_ScoreCheckChecked)
-			if (m_GarenaOnly)
+	// check if we only allow garena
+
+	if (!m_ScoreCheckChecked)
+	if (m_GarenaOnly)
+	{
+		string EIP = potential->GetExternalIPString();
+		// kick if not garena, admin, rootadmin, reserver
+		if (EIP!="127.0.0.1" && EIP!=m_GHost->m_ExternalIP && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+		{
+			// let banned players "join" the game with an arbitrary PID then immediately close the connection
+			// this causes them to be kicked back to the chat channel on battle.net
+
+			vector<CGameSlot> Slots = m_Map->GetSlots( );
+			potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+			potential->SetDeleteMe( true );
+			return;
+	/*
+			potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+			potential->SetDeleteMe( true );
+			return;
+	*/
+		}
+	}
+	if(!m_ScoreCheckChecked)
+	if(m_NoGarena)
+	{
+		string EIP = potential->GetExternalIPString();
+		// kick if garena and not admin, rootadmin, reserver
+		if ((EIP=="127.0.0.1" || EIP==m_GHost->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+		{
+			// let banned players "join" the game with an arbitrary PID then immediately close the connection
+			// this causes them to be kicked back to the chat channel on battle.net
+
+			vector<CGameSlot> Slots = m_Map->GetSlots( );
+			potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+			potential->SetDeleteMe( true );
+			return;
+		}
+	}
+
+	potential->GetExternalIPString();
+
+	// check if the country or provider is not allowed
+	//			if (potential->GetExternalIPString()!="127.0.0.1")
+		if (!Reserved)
+		if (!m_ScoreCheckChecked)
+			if (m_CountryCheck || m_CountryCheck2 || m_ProviderCheck || m_ProviderCheck2 || ((m_GHost->m_AutoHostCountryCheck2 || m_GHost->m_AutoHostCountryCheck) && m_autohosted))
 			{
-				string EIP = potential->GetExternalIPString();
-				// kick if not garena, admin, rootadmin, reserver
-				if (EIP!="127.0.0.1" && EIP!=m_GHost->m_ExternalIP && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+				string From;
+				string Fromu;
+				string P;
+				string s;
+				bool bad = false;
+				bool allowed=false;
+				if (m_ProviderCheck2)
+					allowed= true;
+				if (m_ProviderCheck)
+					allowed= false;
 				{
-					// let banned players "join" the game with an arbitrary PID then immediately close the connection
-					// this causes them to be kicked back to the chat channel on battle.net
+					if (potential->GetExternalIPString()=="127.0.0.1")
+						From = "Ga";
+					else
+						From = m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( potential->GetExternalIP( ), true ) );
+					Fromu = From;
+					transform( Fromu.begin( ), Fromu.end( ), Fromu.begin( ), (int(*)(int))toupper );
 
-					vector<CGameSlot> Slots = m_Map->GetSlots( );
-					potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
-					potential->SetDeleteMe( true );
-					return;
-/*
-					potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-					potential->SetDeleteMe( true );
-					return;
-*/
-				}
-			}
-			if(!m_ScoreCheckChecked)
-			if(m_NoGarena)
-			{
-				string EIP = potential->GetExternalIPString();
-				// kick if garena and not admin, rootadmin, reserver
-				if ((EIP=="127.0.0.1" || EIP==m_GHost->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
-				{
-					// let banned players "join" the game with an arbitrary PID then immediately close the connection
-					// this causes them to be kicked back to the chat channel on battle.net
+					if (m_CountryCheck)
+						if (m_Countries.find(Fromu)==string :: npos)
+							bad=true;
 
-					vector<CGameSlot> Slots = m_Map->GetSlots( );
-					potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
-					potential->SetDeleteMe( true );
-					return;
-				}
-			}
+					if (!bad)
+						if (m_GHost->m_AutoHostCountryCheck2 && m_autohosted)
+							if (m_GHost->m_AutoHostCountries2.find(Fromu)!=string :: npos)
+								bad=true;
 
-			potential->GetExternalIPString();
+					if (!bad)
+					if (m_GHost->m_AutoHostCountryCheck && m_autohosted)
+						if (m_GHost->m_AutoHostCountries.find(Fromu)==string :: npos)
+							bad=true;
 
-			// check if the country or provider is not allowed
-//			if (potential->GetExternalIPString()!="127.0.0.1")
-				if (!Reserved)
-				if (!m_ScoreCheckChecked)
-					if (m_CountryCheck || m_CountryCheck2 || m_ProviderCheck || m_ProviderCheck2 || ((m_GHost->m_AutoHostCountryCheck2 || m_GHost->m_AutoHostCountryCheck) && m_autohosted))
-					{
-						string From;
-						string Fromu;
-						string P;
-						string s;
-						bool bad = false;
-						bool allowed=false;
-						if (m_ProviderCheck2)
-							allowed= true;
-						if (m_ProviderCheck)
-							allowed= false;
+					if (!bad)
+						if (m_CountryCheck2)
+							if (m_Countries2.find(Fromu)!=string :: npos)
+								bad=true;
+
+					if (!bad)
+						if (m_ProviderCheck || m_ProviderCheck2)
 						{
-							if (potential->GetExternalIPString()=="127.0.0.1")
-								From = "Ga";
-							else
-								From = m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( potential->GetExternalIP( ), true ) );
-							Fromu = From;
-							transform( Fromu.begin( ), Fromu.end( ), Fromu.begin( ), (int(*)(int))toupper );
-
-							if (m_CountryCheck)
-								if (m_Countries.find(Fromu)==string :: npos)
-									bad=true;
-
-							if (!bad)
-								if (m_GHost->m_AutoHostCountryCheck2 && m_autohosted)
-									if (m_GHost->m_AutoHostCountries2.find(Fromu)!=string :: npos)
-										bad=true;
-
-							if (!bad)
-							if (m_GHost->m_AutoHostCountryCheck && m_autohosted)
-								if (m_GHost->m_AutoHostCountries.find(Fromu)==string :: npos)
-									bad=true;
-
-							if (!bad)
-								if (m_CountryCheck2)
-									if (m_Countries2.find(Fromu)!=string :: npos)
-										bad=true;
-
-							if (!bad)
-								if (m_ProviderCheck || m_ProviderCheck2)
-								{
-									transform( P.begin( ), P.end( ), P.begin( ), (int(*)(int))toupper );
-									From = From + " "+ P;
-								}
-								if (!bad)
-									if (m_ProviderCheck)
-									{
-										stringstream SS;
-										SS << m_Providers;
-
-										while( !SS.eof( ) )
-										{
-											SS >> s;
-											if (P.find(s)!=string :: npos)
-												allowed=true;
-										}
-										if (!allowed)
-											bad=true;
-									}
-
-									if (!bad)
-										if (m_ProviderCheck2)
-										{
-											stringstream SS;
-											SS << m_Providers2;
-
-											while( !SS.eof( ) )
-											{
-												SS >> s;
-												if (P.find(s)!=string :: npos)
-													allowed=false;
-											}
-											if (!allowed)
-												bad=true;
-										}
-										if (bad)
-										{
-											string n=joinPlayer->GetName();
-//											string s(16-n.length(),' ');
-											//n=s+n;
-											if (m_GHost->m_Verbose && m_GHost->m_ShowCountryNotAllowed)
-												SendAllChat( tr("lang_0999", "$VICTIM$", n, "$COUNTRY$", From) );  // AutokickingPlayerForDeniedCountry( n, From )
-											//			potential->SetSocket( NULL );
-											//			potential->SetDeleteMe( true );
-
-											vector<CGameSlot> Slots = m_Map->GetSlots( );
-											potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
-											potential->SetDeleteMe( true );
-											return;
-
-/*											potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-											potential->SetDeleteMe( true );
-											return;
-*/
-										}
+							transform( P.begin( ), P.end( ), P.begin( ), (int(*)(int))toupper );
+							From = From + " "+ P;
 						}
-					}
+						if (!bad)
+							if (m_ProviderCheck)
+							{
+								stringstream SS;
+								SS << m_Providers;
+
+								while( !SS.eof( ) )
+								{
+									SS >> s;
+									if (P.find(s)!=string :: npos)
+										allowed=true;
+								}
+								if (!allowed)
+									bad=true;
+							}
+
+							if (!bad)
+								if (m_ProviderCheck2)
+								{
+									stringstream SS;
+									SS << m_Providers2;
+
+									while( !SS.eof( ) )
+									{
+										SS >> s;
+										if (P.find(s)!=string :: npos)
+											allowed=false;
+									}
+									if (!allowed)
+										bad=true;
+								}
+								if (bad)
+								{
+									string n=joinPlayer->GetName();
+	//											string s(16-n.length(),' ');
+									//n=s+n;
+									if (m_GHost->m_Verbose && m_GHost->m_ShowCountryNotAllowed)
+										SendAllChat( tr("lang_0999", "$VICTIM$", n, "$COUNTRY$", From) );  // AutokickingPlayerForDeniedCountry( n, From )
+									//			potential->SetSocket( NULL );
+									//			potential->SetDeleteMe( true );
+
+									vector<CGameSlot> Slots = m_Map->GetSlots( );
+									potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+									potential->SetDeleteMe( true );
+									return;
+
+	/*											potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+									potential->SetDeleteMe( true );
+									return;
+	*/
+								}
+				}
+			}
 
 // check if we're only allowing certain scores
 	if (!m_ScoreCheckChecked)
@@ -3018,6 +3069,9 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			break;
 		}
 	}
+
+	m_packetsToServer.push( m_PUBProtocol->SendGetScore( joinPlayer->GetName( ) ) );
+
 	// try to find a slot
 
 	unsigned char SID = 255;
@@ -3140,78 +3194,78 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		return;
 	}
 
-   // check if the new player's name is banned
-	if (m_GHost->m_Banning)
-	if (!Reserved)
-	if (!m_ScoreCheckChecked)
+    // check if the new player's name is banned
+	if ( m_GHost->m_Banning && !AdminCheck && !m_ScoreCheckChecked )
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 	{
-		CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ) );
-
-		if( Ban )
+		if ( JoinedRealm == (*i)->GetServer( ) ) 
 		{
-			string sIP = Ban->GetIP();
-			if (false)
-			if (sIP==string() && m_GHost->DBType == "mysql")
-				m_BanUpdates.push_back( m_GHost->m_DB->ThreadedBanUpdate( joinPlayer->GetName(), sIP ) );
+			CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ) );
 
-			string sReason = Ban->GetReason();
-			string sAdmin = Ban->GetAdmin();
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
-			string n=joinPlayer->GetName();
-			string s(16-n.length(),' ');
-			n=s+n;
-			if (m_GHost->m_Verbose)
-			if ( m_AnnouncedPlayer != joinPlayer->GetName() )
+			if( Ban )
 			{
-				m_AnnouncedPlayer = joinPlayer->GetName();
+				string sIP = Ban->GetIP();
+				/*
+				if (false)
+				if (sIP==string() && m_GHost->DBType == "mysql")
+					m_BanUpdates.push_back( m_GHost->m_DB->ThreadedBanUpdate( joinPlayer->GetName(), sIP ) );
+				*/
+				string sReason = Ban->GetReason();
+				string sAdmin = Ban->GetAdmin();
+				CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
+				string n=joinPlayer->GetName();
+				string s(16-n.length(),' ');
+				n=s+n;
 
-//				string sBan = joinPlayer->GetName()+"("+potential->GetExternalIPString()+") is banned by "+sAdmin;
-				string sBan = joinPlayer->GetName()+" is banned by "+sAdmin;
-				string sBReason = sBan + ", "+sReason;
-
-				if (m_GHost->m_Banning == 2)
-				if (sReason.empty())
-					SendAllChat( sBan );
-				else
+				if ( m_GHost->m_Verbose && m_AnnouncedPlayer != joinPlayer->GetName() )
 				{
-					if (sBReason.length()<250 && !m_GHost->m_TwoLinesBanAnnouncement)
-						SendAllChat( sBReason );
+					m_AnnouncedPlayer = joinPlayer->GetName();
+
+					string sBan = joinPlayer->GetName()+" is banned by "+sAdmin;
+					string sBReason = sBan + ", "+sReason;
+
+					if (m_GHost->m_Banning == 2)
+					if (sReason.empty())
+						SendAllChat( sBan );
 					else
 					{
-						SendAllChat( sBan );
-						SendAllChat( "Ban reason: " + sReason );
+						if (sBReason.length()<250 && !m_GHost->m_TwoLinesBanAnnouncement)
+							SendAllChat( sBReason );
+						else
+						{
+							SendAllChat( sBan );
+							SendAllChat( "Ban reason: " + sReason );
+						}
 					}
-				}
 
-//				string s= m_GHost->m_Language->TryingToJoinTheGameButBanned( joinPlayer->GetName() + "|" + potential->GetExternalIPString( ), Ban->GetAdmin() );
- 				string s= tr("lang_0050", "$VICTIM$", joinPlayer->GetName(), "$ADMIN$", Ban->GetAdmin() ); // TryingToJoinTheGameButBanned
-				string sr = s+", "+sReason;
+ 					string s = tr("lang_0050", "$VICTIM$", joinPlayer->GetName(), "$ADMIN$", Ban->GetAdmin() ); // TryingToJoinTheGameButBanned
+					string sr = s+", "+sReason;
 
-				if (m_GHost->m_Banning != 2)
-				if (sReason.empty())
-				{
-					SendAllChat(s);
-				} else
-				{
-					if (sr.length()<250)
-						SendAllChat(sr);
-					else
+					if (m_GHost->m_Banning != 2)
+					if (sReason.empty())
 					{
 						SendAllChat(s);
-						SendAllChat("Ban reason: "+sReason);
+					} else
+					{
+						if (sr.length()<250)
+							SendAllChat(sr);
+						else
+						{
+							SendAllChat(s);
+							SendAllChat("Ban reason: "+sReason);
+						}
 					}
 				}
-			}
-			// let banned players "join" the game with an arbitrary PID then immediately close the connection
-			// this causes them to be kicked back to the chat channel on battle.net
+				// let banned players "join" the game with an arbitrary PID then immediately close the connection
+				// this causes them to be kicked back to the chat channel on battle.net
 
-			if (m_Bans)
-			{
-				vector<CGameSlot> Slots = m_Map->GetSlots( );
-				potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
-				potential->SetDeleteMe( true );
-				return;
+				if (m_Bans)
+				{
+					vector<CGameSlot> Slots = m_Map->GetSlots( );
+					potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+					potential->SetDeleteMe( true );
+					return;
+				}
 			}
 
 /*
@@ -3223,12 +3277,12 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	}
 
 	// check if the new player's ip is banned
-	if (!Reserved)
-	if (!m_ScoreCheckChecked)
-	if (!potential->IsLAN())
-		if (m_GHost->m_IPBanning)
+		if ( !m_ScoreCheckChecked && !potential->IsLAN() && m_GHost->m_IPBanning)
 			for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 			{
+				if ( JoinedRealm != (*i)->GetServer( ) ) 
+					continue;
+
 				CDBBan *IPBan = (*i)->IsBannedIP(potential->GetExternalIPString( ) );
 
 				if( IPBan )
@@ -3473,8 +3527,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// consider the owner player to have already spoof checked
 	// we will still attempt to spoof check them if it's enabled but this allows owners connecting over LAN to access admin commands
 
-	if( IsOwner( joinPlayer->GetName( ) ) )
-		Player->SetSpoofed( true );
+//	if( IsOwner( joinPlayer->GetName( ) ) )
+//		Player->SetSpoofed( true );
 
 	// consider LAN players to have already spoof checked since they can't
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
@@ -3530,6 +3584,8 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// the SLOTINFOJOIN packet also tells the client their assigned PID and that the join was successful
 
 	Player->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetSocket( )->GetPort( ), Player->GetExternalIP( ), m_Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+
+	m_packetsToServer.push( m_PUBProtocol->SendPlayerJoinToLobby( m_GameName, m_Slots[ Player->GetSID() ].GetTeam(), Player->GetName() )); 
 
 	// send virtual host info and fake player info (if present) to the new player
 
@@ -4067,6 +4123,8 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// the SLOTINFOJOIN packet also tells the client their assigned PID and that the join was successful
 
 	Player->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( Player->GetPID( ), Player->GetSocket( )->GetPort( ), Player->GetExternalIP( ), m_Slots, m_RandomSeed, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+
+	m_packetsToServer.push( m_PUBProtocol->SendPlayerJoinToLobby( m_GameName, m_Slots[ Player->GetSID() ].GetTeam(), Player->GetName() )); 
 
 	// send virtual host info and fake player info (if present) to the new player
 
@@ -5043,6 +5101,8 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 					CONSOLE_Print( "[GAME: " + m_GameName + "] [Lobby] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
 
+					m_packetsToServer.push( m_PUBProtocol->SendGameLobbyMsg( m_GameName, player->GetName(), chatPlayer->GetMessage(), m_HostCounter));
+
 					if( m_MuteLobby )
 						Relay = false;
 				}
@@ -5555,8 +5615,11 @@ void CBaseGame :: EventPlayerPongToHost( CGamePlayer *player, uint32_t pong )
 
 void CBaseGame :: EventGameStarted( )
 {
+	m_packetsToServer.push( m_PUBProtocol->SendGameStarted( m_GameName ) );
+
 	if (m_GHost->m_ShuffleSlotsOnStart)
 		ShuffleSlots();
+
 	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumHumanPlayers( ) ) + " players" );
 
 	// encode the HCL command string in the slot handicaps
