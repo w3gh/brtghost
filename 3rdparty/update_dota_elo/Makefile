@@ -3,7 +3,7 @@ SYSTEM = $(shell uname)
 C++ = g++
 DFLAGS =
 OFLAGS = -O3
-LFLAGS = -lmysqlclient
+LFLAGS = -lmysqlclient -lboost_system-mt
 CFLAGS =
 
 ifeq ($(SYSTEM),Darwin)
@@ -20,7 +20,7 @@ DFLAGS += -D__SOLARIS__
 LFLAGS += -lresolv -lsocket -lnsl
 endif
 
-CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I../ghost/
+CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I../../ghost/
 
 GHOSTOBJS = config.o
 OBJS = elo.o update_dota_elo.o
@@ -34,7 +34,7 @@ all: $(GHOSTOBJS) $(OBJS) $(PROGS)
 clean:
 	rm -f $(GHOSTOBJS) $(OBJS) $(PROGS)
 
-$(GHOSTOBJS): %.o: ../ghost/%.cpp
+$(GHOSTOBJS): %.o: ../../ghost/%.cpp
 	$(C++) -o $@ $(CFLAGS) -c $<
 
 $(OBJS): %.o: %.cpp
@@ -44,6 +44,6 @@ $(OBJS): %.o: %.cpp
 
 all: $(PROGS)
 
-config.o: ../ghost/ghost.h ../ghost/config.h
+config.o: ../../ghost/ghost.h ../../ghost/config.h
 elo.o: elo.h
-update_dota_elo.o: ../ghost/config.h elo.h
+update_dota_elo.o: ../../ghost/config.h elo.h

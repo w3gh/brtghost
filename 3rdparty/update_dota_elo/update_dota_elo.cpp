@@ -52,7 +52,7 @@ string UTIL_FloatToString (float number){
      return buff.str();
 }
 
-void CONSOLE_Print( string message )
+void CONSOLE_Print( const string& message )
 {
 	cout << message << endl;
 }
