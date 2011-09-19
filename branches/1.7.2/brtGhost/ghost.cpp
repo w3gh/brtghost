@@ -703,7 +703,7 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.1 r170";
+	m_GHostVersion = "1.7.2";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
