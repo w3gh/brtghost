@@ -109,6 +109,17 @@ bool CPacked :: Save( bool TFT, string fileName )
 		return false;
 }
 
+bool CPacked :: SaveDecompressed( bool TFT, const string& fileName )
+{
+	if( m_Valid )
+	{
+		CONSOLE_Print( "[PACKED] saving data to file [" + fileName + "]" );
+		return UTIL_FileWrite( fileName, (unsigned char *)m_Compressed.c_str( ), m_Compressed.size( ) );
+	}
+	else
+		return false;
+}
+
 bool CPacked :: Extract( string inFileName, string outFileName )
 {
 	m_Valid = true;

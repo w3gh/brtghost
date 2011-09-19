@@ -122,12 +122,11 @@ public:
 	bool m_ExitingNice;						// set to true to force ghost to disconnect from all battle.net connections and wait for all games to finish before shutting down
 	bool m_Enabled;							// set to false to prevent new games from being created
 	string m_Version;						// GHost++ version string
-	string m_GHostVersion;					// GHost++ version string
 	vector<string> providersn;
 	vector<string> providers;
 	uint32_t m_ScoresCount;
 	bool m_ScoresCountSet;
-	bool m_AutoHostLocal;
+
 	uint32_t m_HostCounter;					// the current host counter (a unique number to identify a game, incremented each time a game is created)
 	uint32_t m_MaxHostCounter;
 	CMyCallableDownloadFile *m_CallableDownloadFile;
@@ -135,9 +134,6 @@ public:
 	bool m_AllGamesFinished;				// if all games finished (used when exiting nicely)
 	uint32_t m_AllGamesFinishedTime;		// GetTime when all games finished (used when exiting nicely)
 
-	bool m_channeljoingreets;
-	bool m_AdminsAndSafeCanDownload;
-	bool m_channeljoinmessage;
 	vector<string> m_channeljoinex;
 	string m_channeljoinexceptions;
 	bool m_broadcastinlan;
@@ -151,14 +147,8 @@ public:
 
 	vector<string> m_CensoredWords;
 
-	string m_bnetpacketdelaymediumpvpgn;
-	string m_bnetpacketdelaybigpvpgn;
-	string m_bnetpacketdelaymedium;
-	string m_bnetpacketdelaybig;
-
 	uint32_t m_AutoHostAutoStartPlayers;	// when using auto hosting auto start the game when this many players have joined
 	string m_AutoHostServer;
-
 
 	bool m_AutoHostMatchMaking;
 	double m_AutoHostMinimumScore;
@@ -174,7 +164,7 @@ public:
 	string DBType;
 
 	string m_LastGameName;
-	string m_ExternalIP;					// our external IP
+
 	uint32_t m_ExternalIPL;					// our external IP long format
 	string m_Country;						// our country
 	string m_wtvPath;
@@ -185,7 +175,7 @@ public:
 	vector<string> m_CachedSpoofedNames;
 	vector<string> m_Providers;				//
 	vector<string> m_Welcome;				// our welcome message
-	vector<string> m_ChannelWelcome;				// our welcome message
+	vector<string> m_ChannelWelcome;		// our welcome message
 	vector<string> m_Mars;					// our mars messages
 	vector<string> m_MarsLast;				// our last mars messages
 
@@ -197,28 +187,22 @@ public:
 	uint32_t m_WarnTimeOfWarnedPlayer;		// number of days the warn will last
 	uint32_t m_GameNumToForgetAWarn;		// number of games till the first of the warns gets forgotten
 
-	uint32_t m_InformAboutWarnsPrintout;	// config value: how many secs should ghost wait to printout the warn count to each player.
-
 	bool m_doautowarn;
 
 	bool m_Log;
-
-	string m_CustomVersionText;				// config value: custom text to add to the version
 
 	uint32_t m_NewRefreshTime;				// config value: send refresh every n seconds
 	string m_AutoHostCountries;				// config value: which countries to allow
 	string m_AutoHostCountries2;			// config value: which countries to deny
 	bool m_AutoHosted;
-	bool m_AutoHostAllowStart;				// config value: allow players to start the game
+
 	bool m_AutoHostCountryCheck;			// config value: country check enabled?
 	bool m_AutoHostCountryCheck2;			// config value: country check2 enabled?
 	bool m_AutoHostGArena;					// config value: only allow GArena
-	bool m_patch23;							// config value: use for patch 1.23
-	bool m_patch21;							// config value: use for patch 1.21
 
 	uint32_t m_gamestateinhouse;
 	bool m_SafeLobbyImmunity;
-	bool m_DetourAllMessagesToAdmins;
+
 
 	uint32_t m_LastDynamicLatencyConsole;
 
@@ -237,7 +221,7 @@ public:
 	string m_RehostedServer;
 	uint32_t m_ShowDownloadsInfoTime;
 	vector<string> m_Commands;
-	string m_RootAdmins;
+
 	string m_FakePings;
 
 	bool m_onlyownerscanswapadmins;

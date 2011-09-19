@@ -118,8 +118,7 @@ string FixPath(string Path, string End);
 
 // patch 21
 
-bool Patch21();
-
+//
 string tr(const string& lang_id);
 string tr(const string& lang_id, const string& v1);
 string tr(const string& lang_id, const string& v1, const string& s1,
