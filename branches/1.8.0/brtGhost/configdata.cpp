@@ -76,6 +76,15 @@ bool CConfigData::Parse( const string& nFileName )
 		m_ScoreFormula = ghost.get<string>("system.scoreformula", "(((wins-losses)/totgames)+(kills-deaths+assists/2)+(creepkills/100+creepdenies/10+neutralkills/50)+(raxkills/6)+(towerkills/11))");
 		m_ScoreMinGames = ghost.get<uint32_t>("system.scoremingames", 5);
 		m_Refresh0Uptime = ghost.get<bool>("system.refresh0uptime", true);
+		m_ExternalIP = ghost.get<string>("system.externalip", "127.0.0.1");
+		m_bnetpacketdelaymediumpvpgn = ghost.get<uint32_t>("system.bnetpacketdelaymediumpvpgn", 2000);
+		m_bnetpacketdelaybigpvpgn = ghost.get<uint32_t>("system.bnetpacketdelaybigpvpgn", 2500);
+		m_bnetpacketdelaymedium = ghost.get<uint32_t>("system.bnetpacketdelaymedium", 3200);
+		m_bnetpacketdelaybig = ghost.get<uint32_t>("system.bnetpacketdelaybig", 4000);
+//		m_patch23 = ghost.get<bool>("system.patch23ornewer", true);
+		m_patch21 = ghost.get<bool>("system.patch21", false);
+	    m_channeljoingreets = ghost.get<bool>("system.channeljoingreets", true);
+	    m_channeljoinmessage = ghost.get<bool>("system.channeljoinmessage", false);
 
 		// dynamic latency
 		m_UseDynamicLatency = ghost.get<bool>("dynamic_latency.usedynamiclatency", false);
@@ -136,6 +145,8 @@ bool CConfigData::Parse( const string& nFileName )
 		m_AutoHostOwner = ghost.get<string>("autohost.owner", "bot");
 		m_AutoHostServer = ghost.get<string>("autohost.gamename", "ghost");
 		m_AutoHostMaximumGames = ghost.get<uint32_t>("autohost.maximumgames", 5);
+		m_AutoHostLocal = ghost.get<bool>("autohost.local", false);
+	    m_AutoHostAllowStart = ghost.get<bool>("autohost.allowstart", false);
 
 		// replays
 		m_ReplayWar3Version = ghost.get<uint32_t>("replay.war3version", 26);
@@ -149,6 +160,7 @@ bool CConfigData::Parse( const string& nFileName )
 		m_totaldownloadspeed = ghost.get<uint32_t>("games.map_download.totaldownloadspeed", 1024);
 		m_clientdownloadspeed = ghost.get<uint32_t>("games.map_download.clientdownloadspeed", 1024);
 		m_maxdownloaders = ghost.get<uint32_t>("games.map_download.maxdownloaders", 0);
+		m_AdminsAndSafeCanDownload = ghost.get<bool>("games.map_download.adminsandsafecandownload", true);
 
 		// replays
 		issavereplays = ghost.get<bool>("replay.savereplays", true);
@@ -165,6 +177,8 @@ bool CConfigData::Parse( const string& nFileName )
 		m_LanRootAdmins = ghost.get<bool>("admins.lanrootadmins", false);
 		m_LocalAdmins = ghost.get<bool>("admins.localadmins", false);
 		m_NonAdminCommands = ghost.get<bool>("admins.nonadmincommands", true);
+	    m_DetourAllMessagesToAdmins = ghost.get<bool>("admins.detourallmessagestoadmins", true);
+		m_RootAdmins = ghost.get<string>("system.rootadmins", "");
 
 		// admin game
 		m_AdminGameCreate = ghost.get<bool>("admingame.create", false);
@@ -197,6 +211,7 @@ bool CConfigData::Parse( const string& nFileName )
 	    m_AutoBanGameEndMins = ghost.get<uint32_t>("ban_and_warn.autobangameendmins", 3);
 		m_AdminsLimitedUnban = ghost.get<bool>("ban_and_warn.adminslimitedunban", false);
 		m_AdminsCantUnbanRootadminBans = ghost.get<bool>("ban_and_warn.adminscantunbanrootadminbans", true);
+		m_InformAboutWarnsPrintout = ghost.get<uint32_t>("ban_and_warn.informaboutwarnsprintout", 60);
 
 		if ( m_AutoBanGameEndMins < 1 )
 			m_AutoBanGameEndMins = 1;

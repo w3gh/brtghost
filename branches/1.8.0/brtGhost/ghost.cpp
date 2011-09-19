@@ -89,13 +89,11 @@ using namespace boost :: filesystem;
 #endif
 
 string	   gCFGFile;
-//string	   gLogFile;
-//uint32_t   gLogMethod;
 ofstream  *gLog = NULL;
 CGHost	  *gGHost = NULL;
 CConfigData* gConfig = NULL;
-CLanguage *m_Language = NULL;	// todotodo - Use singelton			
-CbrtServer* brtServer;					// Class for listen remote commands from brtServer			
+CLanguage *m_Language = NULL;	// todotodo - Use singelton ?
+CbrtServer* brtServer;			// Class for listen remote commands from brtServer			
 
 boost::mutex printMutex;
 
@@ -540,11 +538,12 @@ void Channel_Del(string name)
 	}
 }
 */
+/*
 bool Patch21 ( )
 {
-	return gGHost->m_patch21;
+	return m_Config->m_patch21;
 }
-
+*/
 string FixPath(string Path, string End)
 {
 	if (Path!="")
@@ -588,7 +587,6 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 
 	m_Config = nConfig;
 
-//	m_Console = true;
 	m_Log = true;
 
 	m_UDPSocket = new CUDPSocket( );
@@ -596,11 +594,7 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 
 	m_ReconnectSocket = NULL;
-//	m_GPSProtocol = new CGPSProtocol( );
 
-//	m_CRC = new CCRC32( );
-//	m_CRC->Initialize( );
-//	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
 	DBType = CFG->GetString( "db_type", "sqlite3" );
 	CONSOLE_Print( "[GHOST] opening primary database" );
@@ -685,27 +679,22 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.1 r170";
-	m_Version = "("+m_GHostVersion+")";
+	m_Version = "1.8.0";
 	stringstream SS;
 	string istr = string();
 	m_DisableReason = string();
 	m_RootAdmin = string();
 	m_CookieOffset = GetPID() * 10;
 	m_CallableDownloadFile = NULL;
-//	m_GameNameContainString.clear();
+
 	UTIL_ExtractStrings(CMD_string, m_Commands);
 	m_HostCounter = 1;
 	m_AutoHostServer = string();
-//	m_AutoHostOwner = "brtGHost";
-//	m_AutoHostGameName = string();
-	m_AutoHostLocal = false;
 	m_AutoHostGArena = false;
 	m_AutoHostCountries = string();
 	m_AutoHostCountries2 = string();
 	m_AutoHostCountryCheck = false;
 	m_AutoHostCountryCheck2 = false;
-//	m_AutoHostMaximumGames = 0;
 	m_AutoHostAutoStartPlayers = 0;
 	m_LastAutoHostTime = 0;
 	m_AutoHostMatchMaking = false;
@@ -714,15 +703,11 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
 
-//	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
-
 	if( m_Config->tft )
 		CONSOLE_Print( "[GHOST] acting as Warcraft III: The Frozen Throne" );
 	else
 		CONSOLE_Print( "[GHOST] acting as Warcraft III: Reign of Chaos" );
 
-//	m_Reconnect = CFG->GetInt( "bot_reconnect", 1 ) == 0 ? false : true;
-//	m_ReconnectPort = CFG->GetInt( "bot_reconnectport", 6114 );
 	m_ScoresCount = 0;
 	m_ScoresCountSet = false;
 	m_AutoHosted = false;
@@ -912,12 +897,12 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 
 	// external ip and country
 
-	if (!m_ExternalIP.empty())
+	if (!m_Config->m_ExternalIP.empty())
 	{
-		m_ExternalIPL = ntohl(inet_addr(m_ExternalIP.c_str()));
+		m_ExternalIPL = ntohl(inet_addr(m_Config->m_ExternalIP.c_str()));
 		m_Country = m_DBLocal->FromCheck(m_ExternalIPL);
 
-		CONSOLE_Print( "[GHOST] External IP is " + m_ExternalIP);
+		CONSOLE_Print( "[GHOST] External IP is " + m_Config->m_ExternalIP);
 		CONSOLE_Print( "[GHOST] Country is " + m_Country);
 	}
 
@@ -2174,27 +2159,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	// this doesn't set EVERY config value since that would potentially require reconfiguring the battle.net connections
 	// it just set the easily reloadable values
 
-//	m_LanguageFile = CFG->GetString( "bot_language", "language.cfg" );
 	delete m_Language;
 	m_Language = new CLanguage( m_Config->m_LanguageFile );
-//	m_Warcraft3Path = UTIL_AddPathSeperator( CFG->GetString( "bot_war3path", "C:\\Program Files\\Warcraft III\\" ) );
-//	m_BindAddress = CFG->GetString( "bot_bindaddress", string( ) );
-//	m_ReconnectWaitTime = CFG->GetInt( "bot_reconnectwaittime", 3 );
-//	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
-//	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
-
-//	if( BotCommandTrigger.empty( ) )
-//		BotCommandTrigger = "!";
-
-//	m_CommandTrigger = BotCommandTrigger[0];
-//	m_MapCFGPath = UTIL_AddPathSeperator( CFG->GetString( "bot_mapcfgpath", string( ) ) );
-//	m_SaveGamePath = UTIL_AddPathSeperator( CFG->GetString( "bot_savegamepath", string( ) ) );
-//	m_MapPath = UTIL_AddPathSeperator( CFG->GetString( "bot_mappath", string( ) ) );
-//	m_SaveReplays = CFG->GetInt( "bot_savereplays", 0 ) == 0 ? false : true;
-//	m_ReplayPath = UTIL_AddPathSeperator( CFG->GetString( "bot_replaypath", string( ) ) );
-//	m_VirtualHostName = CFG->GetString( "bot_virtualhostname", "|cFF4080C0GHost" );
-//	m_HideIPAddresses = CFG->GetInt( "bot_hideipaddresses", 0 ) == 0 ? false : true;
-//	m_CheckMultipleIPUsage = CFG->GetInt( "bot_checkmultipleipusage", 1 ) == 0 ? false : true;
 
 	if( m_Config->m_VirtualHostName.size( ) > 15 )
 	{
@@ -2202,22 +2168,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
 	}
 
-//	m_SpoofChecks = CFG->GetInt( "bot_spoofchecks", 2 );
-//	m_RequireSpoofChecks = CFG->GetInt( "bot_requirespoofchecks", 0 ) == 0 ? false : true;
-//	m_RefreshMessages = CFG->GetInt( "bot_refreshmessages", 0 ) == 0 ? false : true;
-//	m_AutoLock = CFG->GetInt( "bot_autolock", 0 ) == 0 ? false : true;
-//	m_AutoSave = CFG->GetInt( "bot_autosave", 0 ) == 0 ? false : true;
-//	m_AllowDownloads = CFG->GetInt( "bot_allowdownloads", 0 );
-//	m_PingDuringDownloads = CFG->GetInt( "bot_pingduringdownloads", 0 ) == 0 ? false : true;
-//	m_LCPings = CFG->GetInt( "bot_lcpings", 1 ) == 0 ? false : true;
-//	m_AutoKickPing = CFG->GetInt( "bot_autokickping", 400 );
-//	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
-//	m_Latency = CFG->GetInt( "bot_latency", 100 );
-//	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
-//	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
-//	m_VoteKickPercentage = CFG->GetInt( "bot_votekickpercentage", 100 );
 
 	if( m_Config->m_VoteKickPercentage > 100 )
 	{
@@ -2228,10 +2180,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
 	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
 	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
-//	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 0 ) == 0 ? false : true;
-//	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_dropifdesync = CFG->GetInt( "bot_dropifdesync", 1 ) == 0 ? false : true; //Metal_Koola
-//	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
 }
 
 void CGHost :: ExtractScripts( )
@@ -2624,7 +2573,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		m_PlayersfromRMK = string();
 	}
 
-	bool AutoHostRefresh = m_AutoHostLocal && m_AutoHosted;
+	bool AutoHostRefresh = m_Config->m_AutoHostLocal && m_AutoHosted;
 	// don't advertise the game if it's autohosted locally
 	if (!AutoHostRefresh )
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
@@ -2759,8 +2708,7 @@ void CGHost :: ReloadConfig ()
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "bot_autohostautostartplayers", 0 );
-	m_AutoHostAllowStart = CFG->GetInt( "bot_autohostallowstart", 0 ) == 0 ? false : true;
-	m_AutoHostLocal = CFG->GetInt( "bot_autohostlocal", 0 ) == 0 ? false : true;
+
 	m_AutoHostCountries2 = CFG->GetString( "bot_autohostdeniedcountries", string( ) );
 
 	if (m_AutoHostCountries2.length()>0)
@@ -2785,9 +2733,6 @@ void CGHost :: ReloadConfig ()
 	m_DeniedCountries = CFG->GetString( "bot_deniedcountries", string( ) );
 	transform( m_DeniedCountries.begin( ), m_DeniedCountries.end( ), m_DeniedCountries.begin( ), (int(*)(int))toupper );
 	m_DB->SetAdminAccess(m_Config->m_AdminAccess);
-	m_AdminsAndSafeCanDownload = CFG->GetInt( "bot_adminsandsafecandownload", 1 ) == 0 ? false : true;
-	m_channeljoingreets = CFG->GetInt( "bot_channeljoingreets", 1 ) == 0 ? false : true;
-	m_channeljoinmessage = CFG->GetInt( "bot_channeljoinmessage", 0 ) == 0 ? false : true;
 	m_channeljoinexceptions = CFG->GetString( "bot_channeljoinexceptions", string() );
 	UTIL_ExtractStrings(m_channeljoinexceptions, m_channeljoinex);
 	m_broadcastinlan = CFG->GetInt( "bot_broadcastlan", 1 ) == 0 ? false : true;
@@ -2808,11 +2753,6 @@ void CGHost :: ReloadConfig ()
 	m_DB->SetFormula(m_Config->m_ScoreFormula);
 	m_DB->SetMinGames( m_Config->m_ScoreMinGames );
 
-	m_bnetpacketdelaymedium = CFG->GetString( "bot_bnetpacketdelaymedium", "3200" );
-	m_bnetpacketdelaybig = CFG->GetString( "bot_bnetpacketdelaybig", "4000" );
-	m_bnetpacketdelaymediumpvpgn = CFG->GetString( "bot_bnetpacketdelaymediumpvpgn", "2000" );
-	m_bnetpacketdelaybigpvpgn = CFG->GetString( "bot_bnetpacketdelaybigpvpgn", "2500" );
-
 	if( m_Config->m_VoteKickPercentage > 100 )
 	{
 		m_Config->m_VoteKickPercentage = 100;
@@ -2831,25 +2771,22 @@ void CGHost :: ReloadConfig ()
 		SetTimerResolution();
 	}
 
-	m_ExternalIP = CFG->GetString( "bot_externalip", string () );
 	m_SafeLobbyImmunity = CFG->GetInt( "bot_safelistedlobbyimmunity", 0 ) == 0 ? false : true;
 	m_TBanLastTime = CFG->GetInt( "bot_tbanlasttime", 30 );
 	m_BanLastTime = CFG->GetInt( "bot_banlasttime", 180 );
 	m_BanTime = CFG->GetInt( "bot_bantime", 180 );
 	m_WarnTimeOfWarnedPlayer = CFG->GetInt( "bot_warntimeofwarnedplayer", 14 );
 	m_GameNumToForgetAWarn = CFG->GetInt( "bot_gamenumtoforgetawarn", 7);
-	m_InformAboutWarnsPrintout = CFG->GetInt( "bot_informaboutwarnsprintout", 60 );
-	m_CustomVersionText = CFG->GetString( "bot_customversiontext", string( ) );
+
 	m_autoinsultlobby = CFG->GetInt( "bot_autoinsultlobby", 0 ) == 0 ? false : true;
 	m_doautowarn = CFG->GetInt("bot_doautowarn", 0 ) == 0 ? false : true;
-	m_Version += m_CustomVersionText;
+
 	m_ShowDownloadsInfoTime = CFG->GetInt( "bot_showdownloadsinfotime", 3 );
-	m_RootAdmins = CFG->GetString( "bot_rootadmins", string () );
-	transform( m_RootAdmins.begin( ), m_RootAdmins.end( ), m_RootAdmins.begin( ), (int(*)(int))tolower );
+
+	transform( m_Config->m_RootAdmins.begin( ), m_Config->m_RootAdmins.end( ), m_Config->m_RootAdmins.begin( ), (int(*)(int))tolower );
+
 	m_FakePings = CFG->GetString( "bot_fakepings", string () );
 	transform( m_FakePings.begin( ), m_FakePings.end( ), m_FakePings.begin( ), (int(*)(int))tolower );
-	m_patch23 = CFG->GetInt( "bot_patch23ornewer", 1 ) == 0 ? false : true;
-	m_patch21 = CFG->GetInt( "bot_patch21", 0 ) == 0 ? false : true;
 	m_HoldPlayersForRMK = CFG->GetInt( "bot_holdplayersforrmk", 1 ) == 0 ? false : true;
 	m_onlyownerscanswapadmins = CFG->GetInt( "bot_onlyownerscanswapadmins", 1 ) == 0 ? false : true;
 	m_PlayersfromRMK = string();
@@ -2871,6 +2808,7 @@ void CGHost :: ReloadConfig ()
 			providers.push_back(m_Providers[i].substr(f+1,500));
 		}
 	}
+
 	ReadWelcome();
 	ReadChannelWelcome();
 	ReadMars();
@@ -3114,7 +3052,7 @@ bool CGHost :: IsRootAdmin(string name)
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	stringstream SS;
 	string s;
-	SS << m_RootAdmins;
+	SS << m_Config->m_RootAdmins;
 
 	while( !SS.eof( ) )
 	{
@@ -3133,7 +3071,7 @@ void CGHost :: DelRootAdmin( string name)
 	stringstream SS;
 	string tusers="";
 	string luser;
-	SS << m_RootAdmins;
+	SS << m_Config->m_RootAdmins;
 	while( !SS.eof( ) )
 	{
 		SS >> luser;
@@ -3143,18 +3081,18 @@ void CGHost :: DelRootAdmin( string name)
 		else
 			tusers +=" "+luser;
 	}
-	m_RootAdmins = tusers;
+	m_Config->m_RootAdmins = tusers;
 }
 
 
 void CGHost :: AddRootAdmin(string name)
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	if (m_RootAdmins.length()==0)
-		m_RootAdmins = name;
+	if (m_Config->m_RootAdmins.length()==0)
+		m_Config->m_RootAdmins = name;
 	else
 	if (!IsRootAdmin(name))
-		m_RootAdmins +=" "+name;
+		m_Config->m_RootAdmins += " " + name;
 }
 
 uint32_t CGHost :: CMDAccessAddOwner (uint32_t acc)
@@ -3286,7 +3224,7 @@ bool CGHost :: IsSpoofedIP(string name, string ip)
 	return false;
 }
 
-string CGHost :: IncGameNr ( string name)
+string CGHost :: IncGameNr ( string name )
 {
 	string GameName = name;
 	string GameNr = string();

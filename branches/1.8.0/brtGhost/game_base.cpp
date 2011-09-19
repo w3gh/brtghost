@@ -135,8 +135,8 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CConfigData* nConfig, CMap *nMap, CSaveG
 //	m_Latency = m_GHost->m_Latency;
 //	m_UseDynamicLatency = m_GHost->m_UseDynamicLatency;
 	m_DynamicLatency = m_Config->m_Latency;
-	m_DetourAllMessagesToAdmins = m_GHost->m_DetourAllMessagesToAdmins;
-	m_NormalCountdown = m_GHost->m_DetourAllMessagesToAdmins;
+//	m_DetourAllMessagesToAdmins = m_GHost->m_DetourAllMessagesToAdmins;
+//	m_NormalCountdown = m_GHost->m_DetourAllMessagesToAdmins;
 	m_LastDynamicLatencyTicks = 0;
 	m_LastAdminJoinAndFullTicks = GetTicks();
 	m_MaxSync = 0;
@@ -687,7 +687,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	if (m_Config->m_ShowRealSlotCount)
 		SlotReq = m_Slots.size();
 
-	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < SlotReq && !m_GHost->m_DetourAllMessagesToAdmins )
+	if( !m_GameLoading && !m_GameLoaded && GetNumPlayers( ) < SlotReq && !m_Config->m_DetourAllMessagesToAdmins )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -865,7 +865,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// refresh every 3 seconds
 
-	bool m_AutoHostRefresh = (m_autohosted && m_GHost->m_AutoHostLocal);
+	bool m_AutoHostRefresh = (m_autohosted && m_Config->m_AutoHostLocal);
 	// don't refresh if we're autohosting locally only
 	if (!m_AutoHostRefresh )
 	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( )- m_LastRefreshTime >= 3 )
@@ -1032,7 +1032,8 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// countdown every 500 ms
 
 	uint32_t waittime = 500;
-	if (m_NormalCountdown)
+
+	if (m_Config->m_NormalCountdown)
 		waittime = 1200;
 
 	if( m_CountDownStarted && GetTicks( ) - m_LastCountDownTicks >= waittime )
@@ -1043,7 +1044,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			// this sometimes resulted in a countdown of e.g. "6 5 3 2 1" during my testing which looks pretty dumb
 			// doing it this way ensures it's always "5 4 3 2 1" but each interval might not be *exactly* the same length
 
-			if (!m_NormalCountdown)
+			if (!m_Config->m_NormalCountdown)
 			SendAllChat( UTIL_ToString( m_CountDownCounter ) + ". . ." );
 			m_CountDownCounter--;
 		}
@@ -1062,7 +1063,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		// the game creation message will be sent on the next refresh
 	}
 
-	if (!(m_autohosted && m_GHost->m_AutoHostLocal))
+	if (!(m_autohosted && m_Config->m_AutoHostLocal))
 	if (!m_DownloadOnlyMode)
 	if (m_Config->m_VirtualHostName!="|cFFC04040Admin")
 	if (m_GameState==GAME_PUBLIC)
@@ -1497,8 +1498,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// look through each player's warn count and display it to them if > 0
 
-	if (m_GameLoadedTime!=0 && !m_AllPlayersWarnChecked)
-		if (GetTime()>= m_GameLoadedTime + m_GHost->m_InformAboutWarnsPrintout + m_LastWarnCheck)
+	if (m_GameLoadedTime && !m_AllPlayersWarnChecked && GetTime()>= m_GameLoadedTime + m_Config->m_InformAboutWarnsPrintout + m_LastWarnCheck)
 	{
 		m_AllPlayersWarnChecked = true;
 
@@ -1752,7 +1752,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			//Pings += ": ";
 			bool skipP;
 
-			if (((*i)->GetExternalIPString()=="127.0.0.1" || (*i)->GetExternalIPString()==m_GHost->m_ExternalIP) && !m_GHost->IsRootAdmin((*i)->GetName()))
+			if (((*i)->GetExternalIPString()=="127.0.0.1" || (*i)->GetExternalIPString() == m_Config->m_ExternalIP) && !m_GHost->IsRootAdmin((*i)->GetName()))
 				CN = "Ga";
 			else
 			CN = m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( (*i)->GetExternalIP( ), true ) );
@@ -1953,7 +1953,7 @@ void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string m
 {
 	// send a private message to one player - it'll be marked [Private] in Warcraft 3
 
-	if (m_DetourAllMessagesToAdmins)
+	if (m_Config->m_DetourAllMessagesToAdmins)
 		if (player)
 		{
 			bool isAdmin = IsAdmin(player->GetName()) || IsOwner(player->GetName()) || IsRootAdmin(player->GetName());
@@ -2030,7 +2030,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 				if (hname.substr(0,2)=="|c")
 					hname = hname.substr(10,hname.length()-10);
 
-				if (m_DetourAllMessagesToAdmins)
+				if (m_Config->m_DetourAllMessagesToAdmins)
 					SendAdmin( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetAdminPIDs( ), 16, BYTEARRAY( ), msg ) );
 				else
 					SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), msg ) );
@@ -2052,7 +2052,7 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 				} else
 					onemoretime=false;
 				// this is an ingame ghost chat message, print it to the console
-				if (m_DetourAllMessagesToAdmins)
+				if (m_Config->m_DetourAllMessagesToAdmins)
 					SendAdmin( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetAdminPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), msg ) );
 				else
 					SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), msg ) );
@@ -2614,7 +2614,7 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	// abort the countdown if there was one in progress
 
-	if (!m_NormalCountdown)
+	if (!m_Config->m_NormalCountdown)
 	if( m_CountDownStarted && !m_GameLoading && !m_GameLoaded )
 	{
 		SendAllChat( tr("lang_0049") ); // Count Down aborted
@@ -2867,7 +2867,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	{
 		string EIP = potential->GetExternalIPString();
 		// kick if not garena, admin, rootadmin, reserver
-		if (EIP!="127.0.0.1" && EIP!=m_GHost->m_ExternalIP && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+		if (EIP!="127.0.0.1" && EIP != m_Config->m_ExternalIP && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
 		{
 			// let banned players "join" the game with an arbitrary PID then immediately close the connection
 			// this causes them to be kicked back to the chat channel on battle.net
@@ -2888,7 +2888,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	{
 		string EIP = potential->GetExternalIPString();
 		// kick if garena and not admin, rootadmin, reserver
-		if ((EIP=="127.0.0.1" || EIP==m_GHost->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+		if ((EIP=="127.0.0.1" || EIP == m_Config->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
 		{
 			// let banned players "join" the game with an arbitrary PID then immediately close the connection
 			// this causes them to be kicked back to the chat channel on battle.net
@@ -3653,7 +3653,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 			{
 				IP1 = (*i)->GetExternalIPString();
 			// ignore host' LAN
-				if (IP1!=m_GHost->m_ExternalIP)
+				if (IP1 != m_Config->m_ExternalIP)
 				for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
 				{
 					// compare with all the other players except himself.
@@ -4199,7 +4199,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	{
 		string EIP = Player->GetExternalIPString();
 // kick if not garena, admin, rootadmin, reserver
-		if (EIP!="127.0.0.1" && EIP!=m_GHost->m_ExternalIP && !IsOwner( Player->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (Player->GetName()))
+		if (EIP != "127.0.0.1" && EIP != m_Config->m_ExternalIP && !IsOwner( Player->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (Player->GetName()))
 		{
 			Player->SetDeleteMe( true );
 			Player->SetLeftReason( tr("lang_1032"));
@@ -4214,7 +4214,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	{
 		string EIP = Player->GetExternalIPString();
 		// kick if garena and not admin, rootadmin, reserver
-		if ((EIP=="127.0.0.1" || EIP==m_GHost->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
+		if ((EIP == "127.0.0.1" || EIP == m_Config->m_ExternalIP) && !IsOwner( joinPlayer->GetName( ) ) && !AdminCheck && !RootAdminCheck && !IsReserved (joinPlayer->GetName()))
 		{
 			Player->SetDeleteMe( true );
 			Player->SetLeftReason( tr("lang_1502"));
@@ -4352,7 +4352,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 		{
 			IP1 = (*i)->GetExternalIPString();
 		// ignore host' LAN
-			if (IP1!=m_GHost->m_ExternalIP)
+			if (IP1 != m_Config->m_ExternalIP)
 			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
 			{
 				// compare with all the other players except himself.
@@ -4661,6 +4661,7 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 		CSaveGame nSaveGame( m_Config->savegamepath + nSaveGameFileName, nSaveGameFileName, m_Map->GetMapPath(), GetGameName(), m_Slots.size(), m_Slots, GetPlayers(), 0, m_Map->GetMapCRC() );
 		
 		nSaveGame.PrepareForSave();
+		nSaveGame.SaveDecompressed(true, m_Config->savegamepath + nSaveGameFileName);
 
 /*
 		TODO
@@ -5443,7 +5444,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 	{
 		// the player doesn't have the map
 
-		bool candownload = m_GHost->m_AdminsAndSafeCanDownload && (IsRootAdmin(player->GetName()) || IsAdmin(player->GetName()) || IsSafe(player->GetName()));
+		bool candownload = m_Config->m_AdminsAndSafeCanDownload && (IsRootAdmin(player->GetName()) || IsAdmin(player->GetName()) || IsSafe(player->GetName()));
 
 		if( m_Config->m_AllowDownloads != 0 || candownload )
 		{
@@ -5734,7 +5735,7 @@ void CBaseGame :: EventGameStarted( )
 	// since we use a fake countdown to deal with leavers during countdown the COUNTDOWN_START and COUNTDOWN_END packets are sent in quick succession
 	// send a start countdown packet
 
-	if (!m_NormalCountdown)
+	if (!m_Config->m_NormalCountdown)
 	SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_START( ) );
 
 	// remove the virtual host player
@@ -7701,7 +7702,7 @@ void CBaseGame :: StartCountDown( bool force )
 		{
 			m_CountDownStarted = true;
 			m_CountDownCounter = 5;
-			if (m_NormalCountdown)
+			if (m_Config->m_NormalCountdown)
 			SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_START( ) );
 		}
 		else
@@ -7764,7 +7765,7 @@ void CBaseGame :: StartCountDown( bool force )
 
 			string NotPinged;
 
-			bool AutoHostLocal = (m_autohosted && m_GHost->m_AutoHostLocal);
+			bool AutoHostLocal = (m_autohosted && m_Config->m_AutoHostLocal);
 			if (!AutoHostLocal)
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 			{
@@ -7787,8 +7788,9 @@ void CBaseGame :: StartCountDown( bool force )
 			{
 				m_CountDownStarted = true;
 				m_CountDownCounter = 5;
-				if (m_NormalCountdown)
-				SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_START( ));
+
+				if (m_Config->m_NormalCountdown)
+					SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_START( ));
 			}
 		}
 	}
@@ -7825,7 +7827,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 			if (m_Team1>=1 && m_Team2>=1)
 				EnoughPlayers = true;
 
-			if (m_GHost->m_AutoHostAllowStart && EnoughPlayers)
+			if (m_Config->m_AutoHostAllowStart && EnoughPlayers)
 				s = s+" "+string(1, m_Config->m_CommandTrigger)+"start " + tr("lang_1505");
 
 			if (!s.empty())

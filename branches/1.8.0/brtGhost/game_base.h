@@ -236,8 +236,8 @@ public:
 	vector <uint32_t> m_CensorMutedTime;		// muted player list
 	vector <uint32_t> m_CensorMutedSeconds;
 	uint32_t m_CensorMutedLastTime;
-	bool m_DetourAllMessagesToAdmins;
-	bool m_NormalCountdown;
+//	bool m_DetourAllMessagesToAdmins;
+//	bool m_NormalCountdown;
 	uint32_t m_LastPlayerWarningTicks;
 	bool m_HCL;
 	bool m_Listen;								// are we listening?

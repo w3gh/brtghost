@@ -1078,7 +1078,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			// we use "!a" as an alias for abort because you don't have much time to abort the countdown so it's useful for the abort command to be easy to type
 
-			else if( ( Command == "abort" || Command == "a" ) && m_CountDownStarted && !m_GameLoading && !m_GameLoaded && !m_NormalCountdown )
+			else if( ( Command == "abort" || Command == "a" ) && m_CountDownStarted && !m_GameLoading && !m_GameLoaded && !m_Config->m_NormalCountdown )
 			{
 				SendAllChat( tr("lang_0049") );
 				m_CountDownStarted = false;
@@ -1097,14 +1097,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					return HideCommand;
 				}
 
-				if (!m_NormalCountdown)
+				if (!m_Config->m_NormalCountdown)
 				{
 					SendChat(player->GetPID(), tr("lang_1148")); // "Normal countdown active !"
-					m_NormalCountdown = true;
+					m_Config->m_NormalCountdown = true;
 				} else
 				{
 					SendChat(player->GetPID(), tr("lang_1149")); // "Ghost countdown active !"
-					m_NormalCountdown = false;
+					m_Config->m_NormalCountdown = false;
 				}
 			}
 
@@ -5585,7 +5585,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				m_CountDownStarted = true;
 				m_CountDownCounter = 0;
-				if (m_NormalCountdown)
+				if (m_Config->m_NormalCountdown)
 				{
 					m_CountDownCounter = 5;
 					SendAll( m_Protocol->SEND_W3GS_COUNTDOWN_START( ));
@@ -6538,7 +6538,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !START
 	//
 
-	else if( (Command == "start") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
+	else if( (Command == "start") && !m_CountDownStarted && m_Config->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
 	{
 		// if the player sent "!start force" skip the checks and start the countdown
 		// otherwise check that the game is ready to start
@@ -6560,7 +6560,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STARTN
 	//
 
-	else if( (Command == "startn") && !m_CountDownStarted && m_GHost->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
+	else if( (Command == "startn") && !m_CountDownStarted && m_Config->m_AutoHostAllowStart && m_AutoStartPlayers>0 )
 	{
 		// skip checks and start the game right now
 

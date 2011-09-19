@@ -37,6 +37,15 @@ public:
 	string m_ScoreFormula;					// score formula, config value
 	uint32_t m_ScoreMinGames;					// score min games, config value
 	bool m_Refresh0Uptime;
+	string m_ExternalIP;					// our external IP
+	uint32_t m_bnetpacketdelaymediumpvpgn;
+	uint32_t m_bnetpacketdelaybigpvpgn;
+	uint32_t m_bnetpacketdelaymedium;
+	uint32_t m_bnetpacketdelaybig;
+//	bool m_patch23;							// config value: use for patch 1.23
+	bool m_patch21;							// config value: use for patch 1.21
+	bool m_channeljoingreets;
+	bool m_channeljoinmessage;
 
 	// dynamic latency
 	bool m_UseDynamicLatency;
@@ -96,6 +105,8 @@ public:
 	string m_AutoHostOwner;
 	string m_AutoHostServer;
 	uint32_t m_AutoHostMaximumGames;		// maximum number of games to auto host
+	bool m_AutoHostLocal;
+	bool m_AutoHostAllowStart;
 
 	// replays
 	uint32_t m_ReplayWar3Version;			// config value: replay warcraft 3 version (for saving replays)
@@ -109,7 +120,8 @@ public:
 	bool m_LanRootAdmins;					// config value: LAN people who join the game are considered rootadmins
 	bool m_LocalAdmins;						// config value: Local(localhost or GArena) people who join the game are considered admins
 	bool m_NonAdminCommands;      			// config value: non admin commands available or not
-
+	bool m_DetourAllMessagesToAdmins;
+	string m_RootAdmins;
 	bool m_AdminsCantUnbanRootadminBans;
 
 	// map_download
@@ -119,6 +131,7 @@ public:
 	uint32_t m_totaldownloadspeed;			// config value: total download speed allowed per all clients
 	uint32_t m_clientdownloadspeed;			// config value: max download speed per client
 	uint32_t m_maxdownloaders;				// config value: max clients allowed to download at once
+	bool m_AdminsAndSafeCanDownload;
 
 	// replay
 	bool issavereplays;
@@ -160,6 +173,7 @@ public:
 	uint32_t m_AutoBanCountDown;			// Ban if leave during game start countdown.
 	uint32_t m_AutoBanGameEndMins;			// Ban if not left around x mins of game end time.
 	bool m_AdminsLimitedUnban;
+	uint32_t m_InformAboutWarnsPrintout;	// config value: how many secs should ghost wait to printout the warn count to each player.
 
 	// auto censor
 	string m_CensorWords;

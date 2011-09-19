@@ -86,7 +86,7 @@ BYTEARRAY CPotentialPlayer :: GetExternalIP( )
 			if (IP[0]==5)
 				local=true;
 		}
-		if (local && m_Game->m_GHost->m_ExternalIP!="")
+		if (local && !m_Game->m_Config->m_ExternalIP.empty())
 		{
 			IP=UTIL_CreateByteArray(m_Game->m_GHost->m_ExternalIPL,true);
 		}
@@ -127,9 +127,9 @@ string CPotentialPlayer :: GetExternalIPString( )
 			m_LAN = local;
 		}
 		EIP=m_Socket->GetIPString( );
-		if (local && m_Game->m_GHost->m_ExternalIP!="")
+		if (local && !m_Game->m_Config->m_ExternalIP.empty())
 		{
-			EIP=m_Game->m_GHost->m_ExternalIP;
+			EIP = m_Game->m_Config->m_ExternalIP;
 		}
 		return EIP;
 	}
@@ -443,7 +443,7 @@ string CGamePlayer :: GetCountry()
 {
 	if (m_Country.empty())
 	{
-		if ((GetExternalIPString()=="127.0.0.1" || GetExternalIPString()==m_Game->m_GHost->m_ExternalIP) && !m_Game->m_GHost->IsRootAdmin(m_Name))
+		if ((GetExternalIPString()=="127.0.0.1" || GetExternalIPString() == m_Game->m_Config->m_ExternalIP) && !m_Game->m_GHost->IsRootAdmin(m_Name))
 			m_Country = "Ga";
 		else
 			m_Country = m_Game->m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( GetExternalIP( ), true ) );

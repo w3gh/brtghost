@@ -70,6 +70,7 @@ public:
 
 	virtual void Load( string fileName, bool allBlocks );
 	virtual bool Save( bool TFT, string fileName );
+	virtual bool SaveDecompressed( bool TFT, const string& fileName );
 	virtual bool Extract( string inFileName, string outFileName );
 	virtual bool Pack( bool TFT, string inFileName, string outFileName );
 	virtual void Decompress( bool allBlocks );

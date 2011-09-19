@@ -950,13 +950,13 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 		uint32_t WaitTicks = 0;
 
-		uint32_t medium = UTIL_ToUInt32(m_GHost->m_bnetpacketdelaymedium);
-		uint32_t big = UTIL_ToUInt32(m_GHost->m_bnetpacketdelaybig);
+		uint32_t medium = m_Config->m_bnetpacketdelaymedium;
+		uint32_t big = m_Config->m_bnetpacketdelaybig;
 
 		if (m_PasswordHashType == "pvpgn")
 		{
-			medium = UTIL_ToUInt32(m_GHost->m_bnetpacketdelaymediumpvpgn);
-			big = UTIL_ToUInt32(m_GHost->m_bnetpacketdelaybigpvpgn);
+			medium = m_Config->m_bnetpacketdelaymediumpvpgn;
+			big = m_Config->m_bnetpacketdelaybigpvpgn;
 		}
 
 		if( m_LastOutPacketSize < 10 )
@@ -2482,7 +2482,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_Config->m_AutoHostMapCFG.clear( );
 //							m_GHost->m_AutoHostCountryCheck = false;
 							m_GHost->m_AutoHostGArena = false;
-							m_GHost->m_AutoHostLocal = false;
+							m_Config->m_AutoHostLocal = false;
 							m_Config->m_AutoHostMaximumGames = 0;
 							m_GHost->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
@@ -2528,7 +2528,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 //										m_GHost->m_AutoHostCountryCheck = false;
 										m_GHost->m_AutoHostGArena = false;
-										m_GHost->m_AutoHostLocal = true;
+										m_Config->m_AutoHostLocal = true;
 										m_GHost->m_LastAutoHostTime = GetTime( );
 									}
 								}
@@ -2555,7 +2555,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_Config->m_AutoHostGameName.clear( );
 							m_Config->m_AutoHostMapCFG.clear( );
 //							m_GHost->m_AutoHostCountryCheck = false;
-							m_GHost->m_AutoHostLocal = false;
+							m_Config->m_AutoHostLocal = false;
 							m_GHost->m_AutoHostGArena = false;
 							m_Config->m_AutoHostMaximumGames = 0;
 							m_GHost->m_AutoHostAutoStartPlayers = 0;
@@ -2601,7 +2601,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_Config->m_AutoHostMaximumGames = MaximumGames;
 										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 //										m_GHost->m_AutoHostCountryCheck = false;
-										m_GHost->m_AutoHostLocal = false;
+										m_Config->m_AutoHostLocal = false;
 										m_GHost->m_AutoHostGArena = true;
 										m_GHost->m_LastAutoHostTime = GetTime( );
 									}
@@ -4231,7 +4231,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					if (m_GHost->m_CurrentGame)
 					{
-						m_GHost->m_CurrentGame->m_DetourAllMessagesToAdmins = true;
+						m_Config->m_DetourAllMessagesToAdmins = true;
 						m_Config->m_NormalCountdown = true;
 						m_GHost->m_CurrentGame->m_GarenaOnly = true;
 						m_Config->m_ShowRealSlotCount = true;
@@ -5821,7 +5821,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 			// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-				if (m_GHost->m_DetourAllMessagesToAdmins)
+				if (m_Config->m_DetourAllMessagesToAdmins)
 					return;
 
 				if (!m_Config->m_NonAdminCommands && !IsRootAdmin(User) && !IsAdmin( User ) )
@@ -6255,16 +6255,16 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			if( m_Config->gproxy_enable )
 			{
 				if(m_PasswordHashType == "pvpgn")
-					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 				else
-					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			}
 			else
 			{
 				if(m_PasswordHashType == "pvpgn")
-					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 				else
-					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, 1, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			}
 		}
 		else
@@ -6287,16 +6287,16 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			if( m_Config->gproxy_enable )
 			{
 				if(m_PasswordHashType == "pvpgn")
-					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 				else
-					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			}
 			else
 			{
 				if(m_PasswordHashType == "pvpgn")
-					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets2.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 				else
-					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( m_Config->m_patch21, state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, 1, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			}
 		}
 	}
@@ -6871,7 +6871,7 @@ void CBNET :: ChannelJoin( const string& name )
 			QueueChatCommand("/ban "+name);
 	}
 
-	if (m_GHost->m_channeljoinmessage && !m_GHost->IsChannelException(name))
+	if (m_Config->m_channeljoinmessage && !m_GHost->IsChannelException(name))
 	{
 		for (uint32_t i=0; i<m_GHost->m_ChannelWelcome.size(); i++)
 		{
@@ -6882,7 +6882,7 @@ void CBNET :: ChannelJoin( const string& name )
 		}
 	}
 
-	if (!m_GHost->m_channeljoingreets)
+	if (!m_Config->m_channeljoingreets)
 		return;
 
 	if (m_GHost->IsChannelException(name))
