@@ -26,7 +26,7 @@
 // standard integer sizes for 64 bit compatibility
 
 #ifdef WIN32
- #include <stdint.h>
+ #include "ms_stdint.h"
  #else
  #include <stdint.h>
 #endif

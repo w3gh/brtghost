@@ -251,7 +251,7 @@ BYTEARRAY CPUBProtocol :: SendRealName( const string login, const string& key )
     return packet;
 }
 
-BYTEARRAY CPUBProtocol :: SendAuthAccept( string login, string pass, string key, deque<CBotData> BotList )
+BYTEARRAY CPUBProtocol :: SendAuthAccept( string login, string pass, string key, vector<CBotData> BotList )
 {
     BYTEARRAY packet;
 

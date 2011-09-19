@@ -19,6 +19,7 @@
 
 #include "includes.h"
 #include "util.h"
+#include "configdata.h"
 #include "updater.h"
 
 void CUpdater::ProcessDir( string start_dir, path dir )
@@ -54,11 +55,11 @@ void CUpdater::ProcessDir( string start_dir, path dir )
     }
 }
 
-CUpdater::CUpdater( string nLocalPath, string n_DownloadPath, string n_DownloadLocalPath )
+CUpdater::CUpdater( CConfig* nConfig /*string nLocalPath, string n_DownloadPath, string n_DownloadLocalPath*/ )
 {
-  m_localpath = nLocalPath;
-  m_downloadpath = n_DownloadPath;
-  m_download_localpath = n_DownloadLocalPath;
+  m_localpath = nConfig->client_updater_directory; // nLocalPath;
+  m_downloadpath = nConfig->client_updater_download_httppath;//n_DownloadPath;
+  m_download_localpath = nConfig->client_download_localpath;//n_DownloadLocalPath;
 
   path p( m_localpath );
 

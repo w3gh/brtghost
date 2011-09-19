@@ -30,6 +30,13 @@ class CUpdater;
 
 uint32_t GetTime( );
 
+class CChatCommand
+{
+	public:	
+		string m_User, m_From, m_Command, m_Payload;
+
+		CChatCommand( string nUser, string nFrom, string nCommand, string nPayload ) : m_User(nUser), m_From(nFrom), m_Command(nCommand), m_Payload(nPayload) {};
+};
 
 class CGameMsg
 {
@@ -90,8 +97,10 @@ class CBotData
         CTCPClient* m_socket;
 
     public:
+		string name;
         string bot_ip;
         string bot_channel;
+		string password;
         uint16_t bot_gameport;
         uint16_t bot_command_port;
         bool can_create_game;
@@ -107,7 +116,6 @@ class CBotData
 class CServer
 {
     private:
-
         CTCPServer* m_MainServer;
         CPUBProtocol* m_PUBProtocol;
 
@@ -116,6 +124,8 @@ class CServer
         queue<CCommandPacket *> m_Packets; // Recieve packets from PUB client
         queue<CCommandPacket *> m_BotsPackets; // Recieve packets from bots client
         queue<BYTEARRAY> m_toAllPackets;
+		queue<string> m_chatCommands;	// Commands recived from battle.net, pvpgn or brtConsole
+
         vector<string> m_AllreadySendVersionInvalid;
 
         int portin;
@@ -132,7 +142,7 @@ class CServer
         void UpdateRunningGamesList();
 
     public:
-        deque<CBotData> BotList;
+        vector<CBotData> BotList;
 
         CServer(int port_in, int port_out, CUpdater* nUpdater, string nClientVersion );
         virtual ~CServer();
@@ -148,6 +158,8 @@ class CServer
 
         void EventSendAuthAccept(CTCPSocket* socket, string& login, string& pass);
         void EventSendAuthFailed(CTCPSocket* socket);
+
+		void ProcessUserCommands( const CChatCommand& nCommand );
 
     protected:
 

@@ -26,9 +26,11 @@
 #include "user.h"
 #include "pubprotocol.h"
 #include "sha1.h"
-#include "redisclient.h"
-#include <time.h>
+//#include "redisclient.h"
+#include "update_dota_elo.h"
+#include "servermysql.h"
 
+#include <time.h>
 #include <boost/shared_ptr.hpp>
 
 extern list<CUser*> DBUsersList;
@@ -36,10 +38,9 @@ extern list<CUser*> UsersList;
 
 extern string CFGFile;
 
-void UpdateUsersList();
+extern int UpdateUsersList();
 
-
-extern boost::shared_ptr<redis::client> redis_client;
+//extern boost::shared_ptr<redis::client> redis_client;
 
 bool AssignLength( BYTEARRAY &content )
 {
@@ -81,7 +82,7 @@ CServer::~CServer()
 {
     delete m_MainServer;
 
-    for (deque<CBotData>::iterator it = BotList.begin(); it != BotList.end(); it++)
+    for (vector<CBotData>::iterator it = BotList.begin(); it != BotList.end(); it++)
     {
         for (vector<CGame*>::iterator i = (*it).m_GamesList.begin(); i != (*it).m_GamesList.end(); ++i)
             delete *i;
@@ -94,9 +95,57 @@ CServer::~CServer()
         delete *it;
 }
 
-bool CServer::UpdateBotStatus()
+void CServer :: ProcessUserCommands( const CChatCommand& nCommand )
 {
-    for (deque<CBotData>::iterator it = BotList.begin(); it != BotList.end(); it++)
+	if ( nCommand.m_Command == "pub" )
+	{
+	   bool is_GameCreated = false;
+
+       for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+        {
+            if ( /*( (*i).bot_channel == nLocationName || nLocationName.empty() ) && */(*i).can_create_game )
+            {
+                bool isGameCreated = false;
+
+                for (vector<CGame*>::iterator c = (*i).m_GamesList.begin(); c != (*i).m_GamesList.end(); ++c)
+                {
+                    if ( !(*c)->isStarted() )
+                    {
+                        isGameCreated = true;
+                        break;
+                    }
+                }
+
+                if ( !isGameCreated )
+                {
+					(*i).GetSocket()->PutBytes( m_PUBProtocol->SendBotCreateGame( nCommand.m_User,
+																				  nCommand.m_Payload,
+                                                                                  string(),
+                                                                                  vector<string>(),
+                                                                                  0,
+                                                                                  30000,
+                                                                                  true,
+                                                                                  false ));
+
+                    cout << "[USER] Game created " << nCommand.m_Payload << endl;
+
+                    is_GameCreated = true;
+
+                    break;
+                }
+
+            }
+	   }
+
+	   if (!is_GameCreated)
+//			usr->GetSocket()->PutBytes( m_PUBProtocol->SendUnableToCreate() );
+		;
+	}
+}
+
+bool CServer :: UpdateBotStatus()
+{
+    for (vector<CBotData>::iterator it = BotList.begin(); it != BotList.end(); it++)
     {
         if ( !(*it).GetSocket() )
             (*it).SetSocket( new CTCPClient( ) );
@@ -122,7 +171,7 @@ void CServer :: SendLobbyPlayers(CUser* usr, const string& gamename)
     {
         if ( (*c).m_type == 3 ) // WAR3_GAME
         {
-            for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+            for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
             {
                 if ( (*i).bot_ip == (*c).m_bot_ip && (*i).bot_gameport == (*c).m_gameport )
                 {
@@ -152,7 +201,7 @@ void CServer :: UpdateRunningGamesList()
 {
         vector<CGame*> m_allGamesList;
 
-        for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+        for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
             for (vector<CGame*>::iterator c = (*i).m_GamesList.begin(); c != (*i).m_GamesList.end(); ++c)
             if ( (*c)->isStarted() )
                 m_allGamesList.push_back( *c );
@@ -286,7 +335,7 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
                 BYTEARRAY bvalue = BYTEARRAY( data.begin() + 6 + key.size() + key2.size(), data.end() );// UTIL_ExtractCString(data, 6 + key.size() + key2.size() );
                 string value = string( bvalue.begin(), bvalue.end() );
 
-                redis_client->hset( key, key2, value );
+ //               redis_client->hset( key, key2, value );
 
                 if ( "savedata" ==  key2 )
                 {
@@ -301,7 +350,7 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
 		        string key = UTIL_ExtractCString(data, 4);
                 string value = UTIL_ExtractCString(data, 5 + key.size() );
 
-                redis_client->set( key, value );
+ //               redis_client->set( key, value );
 
 		    } else if ( packet->GetID() == CPUBProtocol::R_RPUSH )
 		    {
@@ -309,14 +358,14 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
 		        string key = UTIL_ExtractCString(data, 4);
                 string value = UTIL_ExtractCString(data, 5 + key.size() );
 
-                redis_client->rpush( key, value );
+ //               redis_client->rpush( key, value );
 		    }
 		    else if ( packet->GetID() == CPUBProtocol::R_GAMEID_INCR )
 		    {
 		        BYTEARRAY data = packet->GetData();
 		        string key = UTIL_ExtractCString(data, 4);
 
-		        bot->GetSocket()->PutBytes( m_PUBProtocol->SendRedisIncrGameID( redis_client->incr( key )));
+	//	        bot->GetSocket()->PutBytes( m_PUBProtocol->SendRedisIncrGameID( redis_client->incr( key )));
 		    }
 
 		} else if (packet->GetPacketType() == W3GS_HEADER_CONSTANT)
@@ -353,7 +402,7 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
 
                     uint32_t hostCounter = UTIL_ByteArrayToUInt32(HostCounter, false);
 
-                    int i = 23 + nGameName.size( )  + nStatString.size( ) + 22;
+                    uint32_t i = 23 + nGameName.size( )  + nStatString.size( ) + 22;
 
                     if ( packet_data.size() > i )
                     {
@@ -431,7 +480,7 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
 		    {
                 BYTEARRAY packet_data = packet->GetData();
                 string login = UTIL_ExtractCString( packet_data, 4 );
-
+/*
 				try
 				{
 				    string score = redis_client->zscore("DOTA_ELO:scores", login );
@@ -447,7 +496,7 @@ bool CServer :: ProcessBotsPackets(CBotData* bot)
 					{
 						//cerr << "[REDIS] " << e.what() << endl;
 					}
-
+*/
              //   cout << "[PACKET] from bot PUB_GETSCORE " << string(login) << endl;
 
 		        break;
@@ -666,7 +715,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 		        BYTEARRAY nMagicNumber = BYTEARRAY( data.begin() + nGameName.size() + nSaveFile.size() + 6, data.begin() + nGameName.size() + nSaveFile.size() + 10);
 
                 cout << "[CREATE] " << nGameName << endl;
-
+/*
                 try
 				{
 				    string botip     = redis_client->hget("SAVEGAME:" + nGameName + ":" + nSaveFile, "botip" );
@@ -683,8 +732,8 @@ bool CServer :: ProcessClientPackets(CUser* usr)
                     {
                         for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
                         {
-                            if ( (*i).can_create_game /*(*i).bot_ip == botip && (*i).bot_gameport == botgameport*/ )
-                            {
+ //                           if ( (*i).can_create_game /*(*i).bot_ip == botip && (*i).bot_gameport == botgameport*/// )
+  /*                          {
                                 (*i).GetSocket()->PutBytes( m_PUBProtocol->SendBotCreateSavedGame(nGameName, nSaveFile, nMagicNumber, usr->GetName(), saveData) );
 
                                 break;
@@ -696,7 +745,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 					{
 						//cerr << "[REDIS] " << e.what() << endl;
 					}
-
+*/
 
 		        break;
 		    }
@@ -704,10 +753,10 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 		    {
 		        BYTEARRAY data = packet->GetData();
 
-                bool isLadder = data[4];
-                bool isBalance = data[5];
+				bool isLadder = data[4] > 0 ? true : false;
+                bool isBalance = data[5]> 0 ? true : false;
                 uint16_t nHoldListSize = data[6];
-                bool nReserve = data[7];
+                bool nReserve = data[7] > 0 ? true : false;
 
                 uint16_t nMinScore = UTIL_ByteArrayToUInt16( BYTEARRAY( data.begin() + 8, data.begin() + 10), false );
                 uint16_t nMaxScore = UTIL_ByteArrayToUInt16( BYTEARRAY( data.begin() + 10, data.begin() + 12), false );
@@ -733,7 +782,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 
                 bool is_GameCreated = false;
                 double nScore = 1000.0;
-
+/*
 				try
 				{
 				    string score = redis_client->zscore("DOTA_ELO:scores", usr->GetName() );
@@ -746,17 +795,17 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 					{
 						//cerr << "[REDIS] " << e.what() << endl;
 					}
+*/
 
 					if ( nScore < nMinScore)
 					{
-                        usr->GetSocket()->PutBytes( m_PUBProtocol->SendPlayerLowScore( round(nScore) ) );
+                        usr->GetSocket()->PutBytes( m_PUBProtocol->SendPlayerLowScore( nScore ) );
 
                         break;
 					}
 
-                    for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+                    for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
                     {
-
                         if ( ( (*i).bot_channel == nLocationName || nLocationName.empty() ) && (*i).can_create_game )
                         {
                             bool isGameCreated = false;
@@ -801,7 +850,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 		    {
                 BYTEARRAY packet_data = packet->GetData();
                 string login = UTIL_ExtractCString( packet_data, 4 );
-
+/*
 				try
 				{
 				    string score = redis_client->zscore("DOTA_ELO:scores", login );
@@ -814,7 +863,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 					{
 						//cerr << "[REDIS] " << e.what() << endl;
 					}
-
+*/
 
 		        break;
 		    }
@@ -834,7 +883,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
 
                 if ( type == 3 && usr->GetSocket() )
                 {
-                    for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+                    for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
                     {
                         if ( (*i).bot_ip == botip && (*i).bot_gameport == gameport )
                         {
@@ -898,7 +947,7 @@ bool CServer :: ProcessClientPackets(CUser* usr)
                 string bot_ip = UTIL_ExtractCString(packet_data, 6 );
                 string message = UTIL_ExtractCString(packet_data, bot_ip.size() + 7);
 
-                for (deque<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
+                for (vector<CBotData>::iterator i = BotList.begin(); i != BotList.end(); ++i)
                     if ( (*i).bot_ip == bot_ip && bot_gameport == (*i).bot_gameport)
                         if ( (*i).GetSocket() && GetTime() - usr->m_last_chat_to_game_send > 4 )
                         {
@@ -1132,7 +1181,7 @@ bool CServer ::Update(long usecBlock)
 
     // 3. Bots socket
 
-    for (deque<CBotData>::iterator ib = BotList.begin(); ib != BotList.end();ib++)
+    for (vector<CBotData>::iterator ib = BotList.begin(); ib != BotList.end();ib++)
     {
         if ( (*ib).GetSocket() && (*ib).GetSocket()->GetConnected( ) && !(*ib).GetSocket()->HasError() )
         {
@@ -1169,7 +1218,7 @@ bool CServer ::Update(long usecBlock)
         static uint32_t max = 0;
 
 	//    cout << "[SRV] Client number " << UsersList.size() << " connected.";
-
+/*
 	    if ( UsersList.size() > max )
 	    {
             time_t current_time = time( NULL );
@@ -1180,7 +1229,7 @@ bool CServer ::Update(long usecBlock)
             redis_client->set("GLOBAL:usersOnline:max:" + c_current_time, UTIL_ToString( max ) );
             redis_client->rpush("GLOBAL:usersOnline:max:timestamps", UTIL_ToString( current_time ) );
 	    }
-
+*/
 	    tmpSocket -> SetNoDelay( true );
 
 	    UsersList.push_back( new CUser(tmpSocket) );
@@ -1243,7 +1292,7 @@ bool CServer ::Update(long usecBlock)
 
     // 2. Bot sockets
 
-    for (deque<CBotData>::iterator ib = BotList.begin(); ib != BotList.end(); ++ib)
+    for (vector<CBotData>::iterator ib = BotList.begin(); ib != BotList.end(); ++ib)
     {
         bool connected = true;
 
@@ -1307,8 +1356,8 @@ bool CServer ::Update(long usecBlock)
         time_t current_time = time( NULL );
         string c_current_time = UTIL_ToString( current_time );
 
-        redis_client->set("GLOBAL:usersOnline:" + c_current_time, UTIL_ToString(UsersList.size()) );
-        redis_client->rpush("GLOBAL:userOnline:timestamps", c_current_time );
+ //       redis_client->set("GLOBAL:usersOnline:" + c_current_time, UTIL_ToString(UsersList.size()) );
+ //       redis_client->rpush("GLOBAL:userOnline:timestamps", c_current_time );
 
         last_bot_update_time = GetTime();
     }

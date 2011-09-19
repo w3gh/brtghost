@@ -21,7 +21,7 @@
 #define INCLUDES_H
 
 #ifdef WIN32
- #include <winsock.h>
+ #include <winsock2.h>
 #endif
 
 #include <stdlib.h>
@@ -39,10 +39,11 @@
 #include <list>
 #include <sstream>
 #include <fstream>
+#include <iterator>
+#include <algorithm>
 
 #ifdef WIN32
- //#include "ms_stdint.h"
- #include <stdint.h>
+ #include "ms_stdint.h"
 #else
  #include <stdint.h>
 #endif
@@ -51,6 +52,12 @@
 #include <algorithm>
 
 #include <boost/filesystem.hpp>
+#include <boost/date_time.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+#include <boost/thread.hpp>
 
 #include "md5.h"
 

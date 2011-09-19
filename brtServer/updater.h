@@ -20,6 +20,8 @@
 #ifndef CUPDATER_H
 #define CUPDATER_H
 
+#include "configdata.h"
+
 class CUpdaterFile
 {
     private:
@@ -47,7 +49,7 @@ class CUpdater
         void ProcessDir( string start_dir, path dir );
 
     public:
-        CUpdater( string nLocalPath, string n_DownloadPath, string n_DownloadLocalPath );
+        CUpdater( CConfig* nConfig /*string nLocalPath, string n_DownloadPath, string n_DownloadLocalPath*/ );
 
         bool CheckFiles( vector<CUpdaterFile>& testFiles, vector<CUpdaterFile>& notCompareFiles );
         string GetDownloadUrl() { return m_downloadpath; }

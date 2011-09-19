@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "redisclient.h"
 #include "includes.h"
 #include "util.h"
 #include "socket.h"
@@ -26,158 +25,142 @@
 #include "sha1.h"
 #include "md5.h"
 #include "user.h"
-
-#include <boost/date_time.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/info_parser.hpp>
-#include <boost/filesystem.hpp>
+#include "configdata.h"
+#include "bnet.h"
 
 #include <iostream>
 
-#include <iterator>
-#include <vector>
-#include <algorithm>
-#include <map>
-
 #include "zlib/zlib.h"
 
-string dbServer;
-string dbDatabase;
-string dbUser;
-string dbPassword;
-string bot_ips;
-string bot_ports;
-string bot_admin_list;
+CUpdater* nUpdater;
+CConfig* nConfig;
 
-string redis_host;
-int redis_port;
-string redis_password;
+bool nExiting = false;
 
-string client_lastversion;
+const string defaultCFGFile = "server.cfg";
 
-string client_updater_directory;
-string client_updater_download_httppath;
-string client_download_localpath;
-
-const string defaultCFGFile = "default.cfg";
-
-int Port;
 MYSQL *Connection = NULL;
-CUpdater* updater;
 
-deque<CBotData> nBotList;
 list<CUser*> DBUsersList;
 list<CUser*> UsersList;
 
-boost::shared_ptr<redis::client> redis_client;
+class CBNetConfig;
 
-void loadconfig( string& nFileName )
+class CBNETThread
 {
-    try
-    {
-        boost::property_tree::ptree data;
-        read_info(nFileName, data);
+private:
+	CBNET* m_BNet;
+	bool m_Exiting;
 
-        const boost::property_tree::ptree& server = data.get_child("server");
+public:
+	CBNETThread( CBNET* nBNet ) : m_BNet( nBNet ) { m_Exiting = false; };
 
-        client_lastversion              = server.get<string>("version", "");
+	bool Update( int usecBlock );
+	void UpdateThread();
 
-        client_updater_directory         = server.get<string>("autoupdater.localpath", "");
-        client_updater_download_httppath = server.get<string>("autoupdater.download_httppath", "");
-        client_download_localpath        = server.get<string>("autoupdater.download_localpath", "");
+	void StartThread();
+	void SetExiting() { m_Exiting = true; }
+};
 
-        BOOST_FOREACH (const boost::property_tree::ptree::value_type& base,
-            data.get_child("server.databases"))
-        {
-            const boost::property_tree::ptree& values = base.second;
-
-            if (const boost::optional<std::string> optionalComment =
-                    values.get_optional<std::string>("comment"))
-            {
-                std::cout << optionalComment.get() << endl;
-            } else
-            {
-                if ( static_cast<string>(base.first.data()) == "mysql" )
-                {
-                    dbServer = values.get<string>("host", "localhost");
-                    dbDatabase = values.get<string>("database", "");
-                    dbUser = values.get<string>("user", "");
-                    dbPassword = values.get<string>("password", "");
-                    Port = values.get<int>("port", 0);
-                }
-                else if ( static_cast<string>(base.first.data()) == "redis" )
-                {
-                    redis_password = values.get<string>("password", "");
-                    redis_host = values.get<string>("host", "localhost");
-                    redis_port = values.get<int>("port", 6378 );
-                }
-
-                std::cout << "[CONFIG] " << base.first.data() << " database config succesfully parsed. " << endl;
-            }
-        }
-
-        BOOST_FOREACH (const boost::property_tree::ptree::value_type& bot,
-            data.get_child("server.bots"))
-        {
-            const boost::property_tree::ptree& values = bot.second;
-
-            if (const boost::optional<std::string> optionalComment =
-                    values.get_optional<std::string>("comment"))
-            {
-                std::cout << optionalComment.get() << endl;
-            } else
-            {
-                if ( values.get<bool>("enabled", false) )
-                {
-                    CBotData botdata;
-
-                    botdata.bot_channel = values.get<string>("channel", "");
-                    botdata.bot_command_port = values.get<int>("command_port", 8200);
-                    botdata.bot_gameport = values.get<int>("gameport", 6112);
-                    botdata.bot_ip = values.get<string>("ip", "127.0.0.1");
-                    botdata.can_create_game = values.get<bool>("can_create_game", false);
-                    botdata.SetSocket( NULL );
-
-                    nBotList.push_back(botdata);
-
-                    cout << "[CONFIG] Bot " << bot.first.data() << "(" << values.get<string>("name", static_cast<string>(bot.first.data())) << ") config data succesfully parsed." << endl;
-                }
-
-
-            }
-
-        }
-    }
-    catch (const boost::property_tree::ptree_bad_data& error)
-    {
-        std::cout << "[CONFIG] Parse error: " << error.what() << std::endl;
-    }
-    catch (const boost::property_tree::ptree_bad_path& error)
-    {
-        std::cout << "[CONFIG] Parse error: " << error.what() << std::endl;
-    }
+void CBNETThread :: StartThread()
+{
+	boost::thread Thread( boost :: bind( &CBNETThread::UpdateThread, this ) );
 }
 
-void initRedisClient()
+bool CBNETThread :: Update(int usecBlock)
 {
-    try
-    {
-        redis_client = boost::shared_ptr<redis::client>( new redis::client(redis_host, redis_port) );
-    }
-    catch (redis::redis_error & e)
-    {
-        cerr << "[REDIS] error: " << e.what() << endl << "FAIL" << endl;
-    }
+	int nfds = 0;
+	fd_set fd;
+	fd_set send_fd;
+	FD_ZERO( &fd );
+	FD_ZERO( &send_fd );
 
-    redis_client->auth(redis_password);
-    redis_client->select(0);
+	m_BNet->SetFD( &fd, &send_fd, &nfds );
+
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = usecBlock;
+
+	struct timeval send_tv;
+	send_tv.tv_sec = 0;
+	send_tv.tv_usec = 0;
+
+#ifdef WIN32
+	select( 1, &fd, NULL, NULL, &tv );
+	select( 1, NULL, &send_fd, NULL, &send_tv );
+#else
+	select( nfds + 1, &fd, NULL, NULL, &tv );
+	select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
+#endif
+
+	if( m_BNet->Update( &fd, &send_fd ) )
+		return true;
+
+	return false;
 }
 
+void CBNETThread :: UpdateThread()
+{
+	while (1)
+		if (Update(40000) || m_Exiting)
+			break;
 
+	delete m_BNet;
+	m_BNet = NULL;
+}
+
+vector<CBNETThread*> nBNetList;
+
+char rand_small_letter() 
+{
+	int nHigh = 122;
+	int nLow = 97;
+	int small_letter = ((rand()%(nHigh - nLow + 1)) + nLow);      //values from 97 to 122
+	return (char)(small_letter);
+}
+char rand_big_letter() 
+{
+	int nHigh = 90;
+	int nLow = 65;
+	int big_letter = ((rand()%(nHigh - nLow + 1)) + nLow);      //values from 65 to 90
+	return (char)(big_letter);
+}
+
+int rand_number(int nLow, int nHigh) 
+{
+	return ((rand()%(nHigh - nLow + 1)) + nLow);
+}
 
 void CONSOLE_Print( string message )
 {
     cout << message << endl;
+}
+
+string getRandomPassword()
+{
+	string pass = string();
+
+	for (int i = 0; i < 12; ++i)
+		switch (rand_number(1,3))
+		{
+			case 1: pass += string(1, rand_small_letter() ); break;
+			case 2: pass += string(1, rand_big_letter() ); break;
+			case 3: pass += UTIL_ToString(rand_number(0,9)); break;
+		}
+
+	return pass;
+}
+
+string getHashPassword( const string& pass )
+{
+	string return_password = pass;
+
+	for ( int i = 0; i < 100; ++i )
+	{
+		return_password = md5(return_password);
+	}
+
+	return return_password; 
 }
 
 uint32_t GetTicks( )
@@ -240,80 +223,21 @@ vector<string> MySQLFetchRow( MYSQL_RES *res )
 			else
 				Result.push_back( string( ) );
 		}
-
 	}
 
 	return Result;
 }
 
-int ConvertItems()
-{
-   	cout << "[SERVER] Converting items from mysql to redis database." << endl;
-
-    string Query = "SELECT * FROM items;";
-
-	if( mysql_real_query( Connection, Query.c_str( ), Query.size( ) ) != 0 )
-	{
-		cout << "error: " << mysql_error( Connection ) << endl;
-		return 1;
-	}
-	else
-	{
-		MYSQL_RES *Result = mysql_store_result( Connection );
-
-		if( Result )
-		{
-			vector<string> Row = MySQLFetchRow( Result );
-
-			while( !Row.empty( ) )
-			{
-                if ( !Row[0].empty())
-                {
-                    string itemCode = Row[0];
-                    string itemName1 = Row[1];
-                    string itemName2 = Row[2];
-                    string itemFileName = Row[3];
-
-                    cout << "[ITEM] " << itemCode << " -> " << itemFileName << endl;
-
-                    try
-                    {
-                        redis_client->hset("DOTA_DATA:item:" + itemCode, "filename", itemFileName);
-                        redis_client->hset("DOTA_DATA:item:" + itemCode, "name", itemName1);
-                        redis_client->hset("DOTA_DATA:item:" + itemCode, "shortname", itemName2);
-
-                    } catch (redis::redis_error & e)
-					{
-						//cerr << "[REDIS] " << e.what() << endl;
-					}
-
-                }
-
-				Row = MySQLFetchRow( Result );
-			}
-
-			mysql_free_result( Result );
-		}
-		else
-		{
-			cout << "error: " << mysql_error( Connection ) << endl;
-			return 1;
-		}
-	}
-
-
-}
-
 int UpdateUsersList()
 {
-    for (list<CUser*>::iterator i = DBUsersList.begin(); i != DBUsersList.end(); i++)
+    for (list<CUser*>::iterator i = DBUsersList.begin(); i != DBUsersList.end(); ++i)
         delete *i;
 
     DBUsersList.clear();
 
 	cout << "[SERVER] Checking datatable" << endl;
 
-        string QAdminsList = "SELECT name, password FROM users;";
+    string QAdminsList = "SELECT name, password FROM users;";
 
 	if( mysql_real_query( Connection, QAdminsList.c_str( ), QAdminsList.size( ) ) != 0 )
 	{
@@ -352,28 +276,85 @@ int UpdateUsersList()
 		}
 	}
 
+	return 0;
+}
+/*
+bool UpdateBNetFunc(int usecBlock)
+{
+	int nfds = 0;
+	fd_set fd;
+	fd_set send_fd;
+	FD_ZERO( &fd );
+	FD_ZERO( &send_fd );
+
+	nBnet->SetFD( &fd, &send_fd, &nfds );
+
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = usecBlock;
+
+	struct timeval send_tv;
+	send_tv.tv_sec = 0;
+	send_tv.tv_usec = 0;
+
+#ifdef WIN32
+	select( 1, &fd, NULL, NULL, &tv );
+	select( 1, NULL, &send_fd, NULL, &send_tv );
+#else
+	select( nfds + 1, &fd, NULL, NULL, &tv );
+	select( nfds + 1, NULL, &send_fd, NULL, &send_tv );
+#endif
+
+	if( nBnet->Update( &fd, &send_fd ) )
+		return true;
+
+	return false;
 }
 
+void UpdateBNetThread()
+{
+	while (1)
+		if (UpdateBNetFunc(40000) || nExiting)
+			break;
+
+	delete nBnet;
+	nBnet = NULL;
+}
+*/
 int main( int argc, char **argv )
 {
-    CONSOLE_Print( "[SRV] Starting server ");
+	srand( time(NULL) );
+
+    CONSOLE_Print( "[SERVER] Starting server ");
+
+	#ifndef WIN32
+	// disable SIGPIPE since some systems like OS X don't define MSG_NOSIGNAL
+
+	signal( SIGPIPE, SIG_IGN );
+	#endif
+
+	#ifdef WIN32
+	// initialize winsock
+
+	CONSOLE_Print( "[SERVER] Starting winsock" );
+	WSADATA wsadata;
+
+	if( WSAStartup( MAKEWORD( 2, 2 ), &wsadata ) != 0 )
+	{
+		CONSOLE_Print( "[SERVER] error starting winsock" );
+		return 1;
+	}
+	#endif
 
     string CFGFile = defaultCFGFile;
-    string mode;
 
 	if( argc > 1 && argv[1] )
-	{
-	    mode = argv[1];
-
-	    if ( mode != "--items_convert")
             CFGFile = argv[1];
-	}
 
-    loadconfig( CFGFile );
+	nConfig = new CConfig();
+	nConfig->Parse(CFGFile);
 
-    updater = new CUpdater( client_updater_directory, client_updater_download_httppath, client_download_localpath );
-
-    initRedisClient();
+	nUpdater = new CUpdater( nConfig );
 
 	if( !( Connection = mysql_init( NULL ) ) )
 	{
@@ -384,48 +365,105 @@ int main( int argc, char **argv )
 	my_bool Reconnect = true;
 	mysql_options( Connection, MYSQL_OPT_RECONNECT, &Reconnect );
 
-	if( !( mysql_real_connect( Connection, dbServer.c_str( ), dbUser.c_str( ), dbPassword.c_str( ), dbDatabase.c_str( ), Port, NULL, 0 ) ) )
+	if( !( mysql_real_connect( Connection, nConfig->dbServer.c_str( ), nConfig->dbUser.c_str( ), nConfig->dbPassword.c_str( ), nConfig->dbDatabase.c_str( ), nConfig->Port, NULL, 0 ) ) )
 	{
-		cout << "error: " << mysql_error( Connection ) << endl;
-		return 1;
+		cout << "[DATABASE] Error: " << mysql_error( Connection ) << " " << nConfig->dbUser << " " << nConfig->dbPassword << endl;
+//		return 1;
 	}
 
-	cout << "[SRV] connecting to users database server" << endl;
+	cout << "[SERVER] connecting to users database server" << endl;
 
     UsersList.clear();
 
-    if ( mode == "--items_convert")
-    {
-        ConvertItems();
-    } else
-    {
-
     UpdateUsersList();
 
-	CServer* gGGB = new CServer( 6143, 6144, updater, client_lastversion );
-	gGGB->BotList = nBotList;
+	for (vector<CBNetConfig>::iterator i = nConfig->m_BNetList.begin(); i != nConfig->m_BNetList.end(); ++i)
+	{
+		if ( !(*i).enabled ) 
+			continue;
 
-    gGGB->UpdateBotStatus();
+		CBNET* nBNet = new CBNET( (*i).tft,
+								  nConfig->war3path,
+								  (*i).bnet_server, 
+								  (*i).bnls_server, 
+							  	  (*i).bnls_port, 
+							  	  (*i).bnls_wardercookie, 
+								  (*i).cdkeyroc, 
+								  (*i).cdkeytft, 
+								  "USA", "United States", 
+								  (*i).username, 
+								  (*i).password, 
+								  (*i).channel, 
+								  (*i).war3version, 
+								  UTIL_ExtractNumbers((*i).exeversion, 4), 
+								  UTIL_ExtractNumbers((*i).exeversionhash, 4), 
+								  (*i).passwordhashtype, 
+								  200, nConfig); 
+
+		CBNETThread* newBNETThread = new CBNETThread( nBNet );
+		newBNETThread->StartThread();
+		nBNetList.push_back( newBNETThread ); 
+	}
+
+	CServer* nServer = new CServer( 6143, 6144, nUpdater, nConfig->client_lastversion );
+	
+	for ( vector<CBotData>::iterator i = nConfig->nBotList.begin(); i != nConfig->nBotList.end(); ++i )
+	{
+		if ( (*i).password.empty() )
+		{
+			(*i).password = getRandomPassword();
+			
+			ofstream passwords;
+			passwords.open( "passwords.cfg", ios :: app );
+
+			if( !passwords.fail( ) )
+			{
+				passwords << "Password for " << (*i).name << " = " << (*i).password << endl;
+				passwords.close( );
+			}
+
+			(*i).password = getHashPassword( (*i).password );
+
+			nConfig->data.put<string>("server.bots." + (*i).name + ".password", (*i).password );
+		}
+	}
+	nConfig->Save(CFGFile);
+
+	nServer->BotList = nConfig->nBotList;
+
+    nServer->UpdateBotStatus();
 
 	while( 1 )
 	{
-		if( gGGB->Update( 40000 ) )
+		if( nServer->Update( 40000 ) )
 			break;
+
+		/*
+		if (nBnet)
+		{
+			while ( !nBnet->m_chatCommands.empty() )
+			{
+				nServer->ProcessUserCommands( nBnet->m_chatCommands.front() );
+
+				nBnet->m_chatCommands.pop();
+			}
+		}
+		*/
 	}
 
-	// shutdown GGB
+	CONSOLE_Print( "[SERVER] shutting down" );
 
-	CONSOLE_Print( "[SRV] shutting down" );
-	delete gGGB;
-	gGGB = NULL;
+	nExiting = true;
 
-    }
-
-	delete updater;
-
+	delete nServer;
+	delete nUpdater;
+	delete nConfig;
 
     for (list<CUser*>::iterator i = DBUsersList.begin(); i != DBUsersList.end(); i++)
         delete *i;
+
+	for (vector<CBNETThread*>::iterator i = nBNetList.begin(); i != nBNetList.end(); ++i)
+		(*i)->SetExiting();
 
     mysql_close(Connection);
 

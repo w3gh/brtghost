@@ -123,7 +123,7 @@ public:
 	BYTEARRAY SEND_GAME_KEY( string key, string login );
 
 	// send functions
-    BYTEARRAY SendAuthAccept( string login, string pass, string key, deque<CBotData> BotList );
+    BYTEARRAY SendAuthAccept( string login, string pass, string key, vector<CBotData> BotList );
     BYTEARRAY SendAuthFailed(  );
 
     BYTEARRAY SendRealName( const string login, const string& key );
