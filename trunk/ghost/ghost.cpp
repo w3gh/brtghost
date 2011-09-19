@@ -199,7 +199,7 @@ void SignalCatcher( int s )
 
 // initialize ghost
 
-void CONSOLE_PrintThread( const string& message )
+void CONSOLE_PrintThread( string message )
 {
 	printMutex.lock();
 
@@ -256,7 +256,7 @@ void CONSOLE_PrintThread( const string& message )
 void CONSOLE_Print( const string& message )
 {
 	if ( gConfig->logmethod && !gConfig->logfile.empty( ) )
-		boost::thread PrintThread( CONSOLE_PrintThread, boost::ref( message ) );
+		boost::thread PrintThread( CONSOLE_PrintThread, message );
 	else
 		CONSOLE_PrintThread( message );
 }
@@ -703,7 +703,7 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_GHostVersion = "1.7.1 r170";
+	m_GHostVersion = "1.7.2";
 	m_Version = "("+m_GHostVersion+")";
 	stringstream SS;
 	string istr = string();
