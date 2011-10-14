@@ -17,17 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
+#ifdef WIN32
+	#include <windows.h>
+#endif
+
 #include "includes.h"
 #include "util.h"
 #include "configdata.h"
 
 using boost::property_tree::ptree;
 
-CConfigData::CConfigData(void)
+CConfigData::CConfigData()
 {
 }
 
-CConfigData::~CConfigData(void)
+CConfigData::~CConfigData()
 {
 }
 
@@ -85,6 +89,16 @@ bool CConfigData::Parse( const string& nFileName )
 		m_patch21 = ghost.get<bool>("system.patch21", false);
 	    m_channeljoingreets = ghost.get<bool>("system.channeljoingreets", true);
 	    m_channeljoinmessage = ghost.get<bool>("system.channeljoinmessage", false);
+		m_udp_dontroute = ghost.get<bool>("system.udp_dontroute", false);
+		m_udp_broadcasttarget = ghost.get<string>("system.udp_broadcasttarget", string());
+		m_newLatency = ghost.get<uint16_t>("system.newLatency", 0 );
+		m_newTimer = ghost.get<bool>("system.newTimer", 0 );
+		m_newTimerResolution = ghost.get<uint16_t>("system.newTimerResolution", 0);
+		m_channeljoinexceptions = ghost.get<string>("system.channeljoinexceptions", string() );
+		m_FakePings = ghost.get<string>("system.fakepings", string() );
+		m_autoinsultlobby = ghost.get<bool>("system.autoinsultlobby", false );
+
+		transform( m_FakePings.begin( ), m_FakePings.end( ), m_FakePings.begin( ), (int(*)(int))tolower );
 
 		// dynamic latency
 		m_UseDynamicLatency = ghost.get<bool>("dynamic_latency.usedynamiclatency", false);
@@ -137,6 +151,23 @@ bool CConfigData::Parse( const string& nFileName )
 		m_ShowNotesOnJoin = ghost.get<bool>("games.shownotesonjoin", true);
 		m_AutoRehostDelay = ghost.get<uint32_t>("games.autorehostdelay", 50);
 		m_RehostIfNameTaken = ghost.get<bool>("games.rehostifnametaken", true);
+		m_EndReq2ndTeamAccept = ghost.get<bool>("games.endreq2ndteamaccept", true);
+		m_DeniedCountries = ghost.get<string>("games.deniedcountries", string());
+		m_AllowedCountries = ghost.get<string>("games.allowedcountries", string());
+		m_gamestateinhouse = ghost.get<uint32_t>("games.gamestateinhouse", 999);
+		m_LobbyAnnounceUnoccupied = ghost.get<bool>("games.lobbyannounceunoccupied", true);
+		m_detectwtf = ghost.get<bool>("games.detectwtf", true);
+		m_LobbyTimeLimit = ghost.get<uint16_t>("games.lobbytimelimit", 10);
+		m_LobbyTimeLimitMax = ghost.get<uint16_t>("games.lobbytimelimitmax", 15);
+		m_broadcastinlan = ghost.get<bool>("games.broadcastlan", true);
+		m_onlyownerscanstart = ghost.get<uint16_t>("games.onlyownerscanstart", true);
+		m_MaxHostCounter = ghost.get<uint16_t>("games.maxhostcounter", 999);
+		m_dropifdesync = ghost.get<bool>("games.dropifdesync", true);
+		m_HoldPlayersForRMK = ghost.get<bool>("games.holdplayersforrmk", true);
+
+
+		transform( m_AllowedCountries.begin( ), m_AllowedCountries.end( ), m_AllowedCountries.begin( ), (int(*)(int))toupper );
+		transform( m_DeniedCountries.begin( ), m_DeniedCountries.end( ), m_DeniedCountries.begin( ), (int(*)(int))toupper );
 
 		// autohost
 		m_AutoHostAllowedScores = ghost.get<double>("autohost.autohostallowedscores", 0.0);
@@ -147,6 +178,9 @@ bool CConfigData::Parse( const string& nFileName )
 		m_AutoHostMaximumGames = ghost.get<uint32_t>("autohost.maximumgames", 5);
 		m_AutoHostLocal = ghost.get<bool>("autohost.local", false);
 	    m_AutoHostAllowStart = ghost.get<bool>("autohost.allowstart", false);
+		m_AutoHostCountries = ghost.get<string>("autohost.allowedcountries", string());
+		m_DeniedCountries = ghost.get<string>("autohost.deniedcountries", string());
+		m_AutoHostAutoStartPlayers  = ghost.get<uint32_t>("autohost.autostartplayers", 10);
 
 		// replays
 		m_ReplayWar3Version = ghost.get<uint32_t>("replay.war3version", 26);
@@ -161,6 +195,7 @@ bool CConfigData::Parse( const string& nFileName )
 		m_clientdownloadspeed = ghost.get<uint32_t>("games.map_download.clientdownloadspeed", 1024);
 		m_maxdownloaders = ghost.get<uint32_t>("games.map_download.maxdownloaders", 0);
 		m_AdminsAndSafeCanDownload = ghost.get<bool>("games.map_download.adminsandsafecandownload", true);
+		m_ShowDownloadsInfoTime = ghost.get<bool>("games.map_download.showdownloadsinfotime", 5);
 
 		// replays
 		issavereplays = ghost.get<bool>("replay.savereplays", true);
@@ -168,6 +203,7 @@ bool CConfigData::Parse( const string& nFileName )
 		// features
 		gproxy_enable = ghost.get<bool>("features.gproxy_enable", true);
 		m_EnableBnetCommandInChannel = ghost.get<bool>("features.enable_bnet_command_in_channel", true);
+		m_BrtServerEnable = ghost.get<bool>("features.brt_server_enable", true);
 
 		// admins
 		m_LocalAdminMessages = ghost.get<bool>("admins.localadminmessages", false);
@@ -178,7 +214,14 @@ bool CConfigData::Parse( const string& nFileName )
 		m_LocalAdmins = ghost.get<bool>("admins.localadmins", false);
 		m_NonAdminCommands = ghost.get<bool>("admins.nonadmincommands", true);
 	    m_DetourAllMessagesToAdmins = ghost.get<bool>("admins.detourallmessagestoadmins", true);
-		m_RootAdmins = ghost.get<string>("system.rootadmins", "");
+		m_RootAdmins = ghost.get<string>("admins.rootadmins", "");
+		m_onlyownerscanswapadmins = ghost.get<bool>("admins.onlyownerscanswapadmins", true);
+
+		// files
+		m_IPBlackListFile = ghost.get<bool>("files.ipblacklist", "ipblacklist.txt");
+		m_MOTDFile = ghost.get<bool>("files.motd", "motd.txt");
+		m_GameLoadedFile = ghost.get<bool>("files.gameloaded", "gameloaded.txt"); 
+		m_GameOverFile = ghost.get<bool>("files.gameover", "gameover.txt"); 
 
 		// admin game
 		m_AdminGameCreate = ghost.get<bool>("admingame.create", false);
@@ -212,6 +255,14 @@ bool CConfigData::Parse( const string& nFileName )
 		m_AdminsLimitedUnban = ghost.get<bool>("ban_and_warn.adminslimitedunban", false);
 		m_AdminsCantUnbanRootadminBans = ghost.get<bool>("ban_and_warn.adminscantunbanrootadminbans", true);
 		m_InformAboutWarnsPrintout = ghost.get<uint32_t>("ban_and_warn.informaboutwarnsprintout", 60);
+		m_SafeLobbyImmunity = ghost.get<bool>("ban_and_warn.safelistedlobbyimmunity", false);
+		m_TBanLastTime = ghost.get<uint32_t>("ban_and_warn.tbanlasttime", 30);
+		m_BanLastTime = ghost.get<uint32_t>("ban_and_warn.banlasttime", 60);
+		m_BanTime = ghost.get<uint32_t>("ban_and_warn.bantime", 60);
+		m_WarnTimeOfWarnedPlayer = ghost.get<uint32_t>("ban_and_warn.warntimeofwarnedplayer", 7);
+		m_GameNumToForgetAWarn = ghost.get<uint32_t>("ban_and_warn.gamenumtoforgetawarn", 7);
+		m_doautowarn = ghost.get<uint32_t>("ban_and_warn.doautowarn", false);
+
 
 		if ( m_AutoBanGameEndMins < 1 )
 			m_AutoBanGameEndMins = 1;
@@ -224,88 +275,126 @@ bool CConfigData::Parse( const string& nFileName )
 		m_CensorMuteSecondSeconds = ghost.get<uint32_t>("games.autocensor.censormutesecondseconds", 180);
 		m_CensorMuteExcessiveSeconds = ghost.get<uint32_t>("games.autocensor.censormuteexcessiveseconds", 360);
 
-		/*
-		const boost::property_tree::ptree& battlenet = data.get_child("server.battle_net");
-		
-		connect_to_battle_net = battlenet.get<bool>("enable", false);
-		war3path = battlenet.get<string>("war3path", "");
-		cdkeyroc = battlenet.get<string>("cdkeyroc", "");
-		cdkeytft = battlenet.get<string>("cdkeytft", "");
-		bnet_server   = battlenet.get<string>("server", "");
-		username = battlenet.get<string>("username", "");
-		password = battlenet.get<string>("password", "");
-		channel  = battlenet.get<string>("channel", "");
-		exeversion		= battlenet.get<string>("exeversion", "");
-		exeversionhash	= battlenet.get<string>("exeversionhash", "");
-		passwordhashtype = battlenet.get<string>("passwordhashtype", "");
-		war3path = battlenet.get<string>("war3path", "");
+		// wtv
+		m_wtvPath = ghost.get<string>("wtv.path", "C:\\Program Files\\WaaaghTV Recorder\\");
+		m_wtvPlayerName = ghost.get<string>("wtv.playername", string() );
+		m_wtv = ghost.get<bool>("wtv.enabled", false );
 
-		bnls_server = battlenet.get<string>("bnls_server", "");
-		bnls_port = battlenet.get<uint32_t>("bnls_port", 0);
-		bnls_wardercookie = battlenet.get<uint32_t>("bnls_wardercookie", 0); 
+		// database
+		m_DBType = ghost.get<string>("database.type", "sqlite3" );
+		m_Sqlite3_file = ghost.get<string>("database.sqlite3.file", "ghost.dbs" );
 
-		war3version = battlenet.get<uint16_t>("war3version", 26);
-		port = battlenet.get<uint32_t>("port", 6112);
+		m_MySql_Server	 = ghost.get<string>("database.mysql.server", "localhost" );
+		m_MySql_Database = ghost.get<string>("database.mysql.database", "ghost" );
+		m_MySql_User	 = ghost.get<string>("database.mysql.user", "ghost" );
+		m_MySql_Password = ghost.get<string>("database.mysql.password", "ghost_password" );
+		m_MySql_Port	 = ghost.get<uint32_t>("database.mysql.port", 3306 );
+		m_MySql_BotID	 = ghost.get<uint32_t>("database.mysql.botid", 0 );
 
-        BOOST_FOREACH (const boost::property_tree::ptree::value_type& base,
-            data.get_child("server.databases"))
+		BOOST_FOREACH (const boost::property_tree::ptree::value_type& bnet,
+            data.get_child("ghost.bnet"))
         {
-            const boost::property_tree::ptree& values = base.second;
+            const boost::property_tree::ptree& bnet_server_name = bnet.second;
 
-            if (const boost::optional<std::string> optionalComment =
-                    values.get_optional<std::string>("comment"))
+            if (const boost::optional<string> optionalComment =
+                    bnet_server_name.get_optional<string>("comment"))
             {
-                std::cout << optionalComment.get() << endl;
+                std::cout << "[CONFIG] " << bnet.second.data() << " " << optionalComment.get() << endl;
             } else
             {
-                if ( static_cast<string>(base.first.data()) == "mysql" )
-                {
-                    dbServer = values.get<string>("host", "localhost");
-                    dbDatabase = values.get<string>("database", "");
-                    dbUser = values.get<string>("user", "");
-                    dbPassword = values.get<string>("password", "");
-                    Port = values.get<int>("port", 0);
-                }
- //               else if ( static_cast<string>(base.first.data()) == "redis" )
- //               {
-//                    redis_password = values.get<string>("password", "");
-//                    redis_host = values.get<string>("host", "localhost");
-//                    redis_port = values.get<int>("port", 6378 );
-//                }
+				int number = 0;
 
-                std::cout << "[CONFIG] " << base.first.data() << " database config succesfully parsed. " << endl;
+                if ( bnet_server_name.get<bool>("enabled", false) )
+                {
+					CBNetConfigContainer nBNetContainer;
+
+					nBNetContainer.Server   = bnet_server_name.get<string>("server", string( ) );
+					nBNetContainer.CDKeyROC = bnet_server_name.get<string>("cdkeyroc", string( ) );
+					nBNetContainer.CDKeyTFT = bnet_server_name.get<string>("cdkeytft", string( ) );
+					nBNetContainer.ServerAlias	= bnet_server_name.get<string>("serveralias", string( ) );
+					nBNetContainer.Locale		= bnet_server_name.get<string>("locale", "system" );
+					nBNetContainer.CountryAbbrev= bnet_server_name.get<string>("countryabbrev", "USA" );
+					nBNetContainer.Country		= bnet_server_name.get<string>("country", "United States" );
+
+					nBNetContainer.LocaleID = UTIL_ToUInt32( nBNetContainer.Locale );
+					if( nBNetContainer.Locale == "system" )
+					{
+					#ifdef WIN32
+						nBNetContainer.LocaleID = GetUserDefaultLangID( );
+					#else
+						nBNetContainer.LocaleID = 1033;
+					#endif
+					}
+
+
+					nBNetContainer. UserName     = bnet_server_name.get<string>("username", string( ) );
+					nBNetContainer. UserPassword = bnet_server_name.get<string>("password", string( ) );
+					nBNetContainer. FirstChannel = bnet_server_name.get<string>("firstchannel", "The Void" );
+					nBNetContainer. RootAdmin    = bnet_server_name.get<string>("rootadmin", string( ) );
+
+					nBNetContainer.Whereis = bnet_server_name.get<bool>("whereis", false );
+
+					nBNetContainer.BNETCommandTrigger = bnet_server_name.get<string>("commandtrigger", "!" );
+
+					nBNetContainer.HoldFriends = bnet_server_name.get<bool>("holdfriends", true );
+					nBNetContainer.HoldClan = bnet_server_name.get<bool>("holdclan", true);
+					nBNetContainer.PublicCommands = bnet_server_name.get<bool>("publiccommands", true );
+
+					nBNetContainer.BNLSServer = bnet_server_name.get<string>("bnlsserver", string( ) );
+					nBNetContainer.BNLSPort = bnet_server_name.get<int>("bnlsport", 9367 );
+					nBNetContainer.BNLSWardenCookie = number;// + nGHost->m_CookieOffset;				// !!!
+
+					nBNetContainer.War3Version = bnet_server_name.get<unsigned char>("custom_war3version", 26 );
+					nBNetContainer.EXEVersion = UTIL_ExtractNumbers( bnet_server_name.get<string>("custom_exeversion", string( ) ), 4 );
+					nBNetContainer.EXEVersionHash = UTIL_ExtractNumbers( bnet_server_name.get<string>("custom_exeversionhash", string( ) ), 4 );
+					nBNetContainer.PasswordHashType = bnet_server_name.get<string>("custom_passwordhashtype", string( ) );
+					nBNetContainer.PVPGNRealmName = bnet_server_name.get<string>("custom_pvpgnrealmname", "PvPGN Realm" );
+					nBNetContainer.MaxMessageLength = bnet_server_name.get<int>("custom_maxmessagelength", 200 );
+
+					if( nBNetContainer.Server.empty( ) )
+						break;
+
+					if( nBNetContainer.CDKeyROC.empty( ) )
+					{
+						CONSOLE_Print( "[CONFIG] missing " + nBNetContainer.Server + "cdkeyroc, skipping this battle.net connection" );
+						continue;
+					}
+
+					if( tft && nBNetContainer.CDKeyTFT.empty( ) )
+					{
+						CONSOLE_Print( "[CONFIG] missing " + nBNetContainer.Server + "cdkeytft, skipping this battle.net connection" );
+						continue;
+					}
+
+					if( nBNetContainer.UserName.empty( ) )
+					{
+						CONSOLE_Print( "[CONFIG] missing " + nBNetContainer.Server + "username, skipping this battle.net connection" );
+						continue;
+					}
+
+					if( nBNetContainer.UserPassword.empty( ) )
+					{
+						CONSOLE_Print( "[CONFIG] missing " + nBNetContainer.Server + "password, skipping this battle.net connection" );
+						continue;
+					}
+
+//					CONSOLE_Print( "[CONFIG] found battle.net connection #" + UTIL_ToString( number++ ) + " for server [" + Server + "]" );
+					if( nBNetContainer.Locale == "system" )
+					{
+					#ifdef WIN32
+						CONSOLE_Print( "[GHOST] using system locale of " + UTIL_ToString( nBNetContainer.LocaleID ) );
+					#else
+						CONSOLE_Print( "[GHOST] unable to get system locale, using default locale of 1033" );
+					#endif
+					}
+				
+					m_BNETcfg.push_back(nBNetContainer);
+
+					cout << "[CONFIG] BATTLE.NET/PVPGN server " << nBNetContainer.Server << " succesfully added." << endl;
+                }
             }
         }
 
-        BOOST_FOREACH (const boost::property_tree::ptree::value_type& bot,
-            data.get_child("server.bots"))
-        {
-            const boost::property_tree::ptree& values = bot.second;
-
-            if (const boost::optional<std::string> optionalComment =
-                    values.get_optional<std::string>("comment"))
-            {
-                std::cout << optionalComment.get() << endl;
-            } else
-            {
-                if ( values.get<bool>("enabled", false) )
-                {
-                    CBotData botdata;
-
-                    botdata.bot_channel = values.get<string>("channel", "");
-                    botdata.bot_command_port = values.get<int>("command_port", 8200);
-                    botdata.bot_gameport = values.get<int>("gameport", 6112);
-                    botdata.bot_ip = values.get<string>("ip", "127.0.0.1");
-                    botdata.can_create_game = values.get<bool>("can_create_game", false);
-                    botdata.SetSocket( NULL );
-
-                    nBotList.push_back(botdata);
-          
-					cout << "[CONFIG] Bot " << bot.first.data() << " config data succesfully parsed." << endl;
-                }
-            }
-        }
-		*/
     }
 	catch (boost::property_tree::info_parser_error& error)
 	{

@@ -112,9 +112,10 @@ uint32_t CSQLITE3 :: LastRowID( )
 // CGHostDBSQLite
 //
 
-CGHostDBSQLite :: CGHostDBSQLite( CConfig *CFG ) : CGHostDB( CFG )
+CGHostDBSQLite :: CGHostDBSQLite( CConfigData *CFG ) : CGHostDB( CFG )
 {
-	m_File = CFG->GetString( "db_sqlite3_file", "ghost.dbs" );
+	m_File = CFG->m_Sqlite3_file;
+
 	CONSOLE_Print( "[SQLITE3] version " + string( SQLITE_VERSION ) );
 	CONSOLE_Print( "[SQLITE3] opening database [" + m_File + "]" );
 	

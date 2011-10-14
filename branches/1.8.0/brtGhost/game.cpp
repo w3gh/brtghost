@@ -128,7 +128,7 @@ CGame :: ~CGame( )
 
 			// store the CDBGamePlayers in the database
 			uint32_t EndingWarnMark = 0;
-			if( m_DoAutoWarns )
+			if( m_Config->m_doautowarn )
 			{
 				uint32_t ElapsedTime = ( GetTime() - m_GameLoadedTime ) / 60;
 				for( vector<uint32_t> :: iterator i = m_AutoWarnMarks.begin( ); i != m_AutoWarnMarks.end( ); i++ )
@@ -140,7 +140,7 @@ CGame :: ~CGame( )
 
 			for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); i++ )
 			{
-				if( m_DoAutoWarns && (*i)->GetLeftEarly( ) > 0 && (*i)->GetLeftEarly( ) + 2 <= EndingWarnMark )
+				if( m_Config->m_doautowarn && (*i)->GetLeftEarly( ) > 0 && (*i)->GetLeftEarly( ) + 2 <= EndingWarnMark )
 				{
 					string VictimLower = (*i)->GetName();
 					transform( VictimLower.begin( ), VictimLower.end( ), VictimLower.begin( ), (int(*)(int))tolower );
@@ -160,7 +160,7 @@ CGame :: ~CGame( )
 
 					if( Match != NULL )
 					{
-						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( Match->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", "Early leaver", m_GHost->m_WarnTimeOfWarnedPlayer, 1));
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( Match->GetServer( ), Match->GetName( ), Match->GetIP( ), m_GameName, "Autowarn", "Early leaver", m_Config->m_WarnTimeOfWarnedPlayer, 1));
 
 						uint32_t WarnCount = 0;
 						for(int i = 0; i < 3 && WarnCount == 0; i++)
@@ -191,7 +191,7 @@ CGame :: ~CGame( )
 					}
 				}
 
-				if(m_GHost->m_GameNumToForgetAWarn > 0)
+				if(m_Config->m_GameNumToForgetAWarn > 0)
 					// "forget" one of this player's warns
 					m_GHost->m_WarnForgetQueue.push_back( (*i)->GetName( ));
 //					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedWarnForget( (*i)->GetName( ), m_GHost->m_GameNumToForgetAWarn ));
@@ -891,7 +891,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 
 		uint32_t LeftEarly = 0;
 //		if( m_DoAutoWarns && GetNumPlayers() >= m_GetMapOnlyAutoWarnIfMoreThanXPlayers && ( m_GameLoaded ) && player->GetLeftReason( ).compare( m_GHost->m_Language->HasLeftVoluntarily( ) ) == 0 )
-		if( m_DoAutoWarns && GetNumPlayers() >= m_GetMapOnlyAutoWarnIfMoreThanXPlayers && ( m_GameLoaded ) )
+		if( m_Config->m_doautowarn && GetNumPlayers() >= m_GetMapOnlyAutoWarnIfMoreThanXPlayers && ( m_GameLoaded ) )
 		{
 			uint32_t ElapsedTime = ( GetTime() - m_GameLoadedTime ) / 60;
 			for( vector<uint32_t> :: iterator i = m_AutoWarnMarks.begin( ); i != m_AutoWarnMarks.end( ); i++ )
@@ -1760,23 +1760,21 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							return HideCommand;
 						}
 
-						uint32_t BanTime = m_GHost->m_BanTime;
-
 						if(!(LastMatch->GetServer().empty()))
-							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, BanTime, 0 ) ) );
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, m_Config->m_BanTime, 0 ) ) );
 						else
-							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, LastMatch->GetName( ), "", m_GameName, User, Reason, BanTime, 0 ) ) );
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, LastMatch->GetName( ), "", m_GameName, User, Reason, m_Config->m_BanTime, 0 ) ) );
 
 						uint32_t GameNr = GetGameNr();
 
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + LastMatch->GetName( ) + "] was banned by player [" + User + "]" );
 
                         string sBan;
-                        if (BanTime)
+                        if (m_Config->m_BanTime)
                             sBan = tr("lang_0519", "$SERVER$", LastMatch->GetServer(),
                                                                              "$VICTIM$", LastMatch->GetName( ),
                                                                              "$USER$",  User,
-                                                                             "$BANDAYTIME$", UTIL_ToString(BanTime));
+                                                                             "$BANDAYTIME$", UTIL_ToString(m_Config->m_BanTime));
                         else
 
                             sBan = tr("lang_0052", "$SERVER$", LastMatch->GetServer(),
@@ -1801,8 +1799,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						if (m_Config->m_NotifyBannedPlayers)
 						{
 							sBReason = tr("lang_1142"); // You have been banned
+
 							if (!Reason.empty())
 								sBReason = sBReason+", "+Reason;
+
 							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 							{
 								if( (*i)->GetServer( ) == GetCreatorServer( ) )
@@ -1847,12 +1847,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							return HideCommand;
 						}
 
-						uint32_t BanTime = m_GHost->m_BanTime;
-
 						if(Matches == 1 && !(LastMatch->GetJoinedRealm().empty()))
-							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), BanPlayer, LastMatch->GetExternalIPString( ), m_GameName, User, Reason, BanTime, 0 ) ) );
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), BanPlayer, LastMatch->GetExternalIPString( ), m_GameName, User, Reason, m_Config->m_BanTime, 0 ) ) );
 						else
-							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, BanPlayer, "", m_GameName, User, Reason, BanTime, 0 ) ) );
+							m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, BanPlayer, "", m_GameName, User, Reason, m_Config->m_BanTime, 0 ) ) );
 
 						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + Victim + "] was banned by player [" + User + "]" );
 
@@ -1861,22 +1859,22 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						if (Matches == 1)
 						{
-							if (BanTime)
+							if (m_Config->m_BanTime)
 								sBan = tr("lang_0519", "$SERVER$", GetCreatorServer(),
 									                                             "$VICTIM$", BanPlayer,
 										                                         "$USER$",  User,
-											                                     "$BANDAYTIME$", UTIL_ToString(BanTime));
+											                                     "$BANDAYTIME$", UTIL_ToString(m_Config->m_BanTime));
 							else
 	                            sBan = tr("lang_0052", "$SERVER$", GetCreatorServer(),
 																				 "$VICTIM$", BanPlayer,
 																				 "$USER$",  User);
 						}
                         else
-							if (BanTime)
+							if (m_Config->m_BanTime)
 								sBan = tr("lang_0519", "$SERVER$", GetCreatorServer(),
 																				 "$VICTIM$", BanPlayer,
 																				 "$USER$",  User,
-																				 "$BANDAYTIME$", UTIL_ToString(BanTime));
+																				 "$BANDAYTIME$", UTIL_ToString(m_Config->m_BanTime));
 							else
 	                            sBan = tr("lang_0052", "$SERVER$", GetCreatorServer(),
 																				 "$VICTIM$", BanPlayer,
@@ -1900,8 +1898,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						if (m_Config->m_NotifyBannedPlayers)
 						{
 							sBReason = tr("lang_1142"); // You have been banned
+
 							if (!Reason.empty())
 								sBReason = sBReason+", "+Reason;
+
 							for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
 							{
 								if( (*i)->GetServer( ) == GetCreatorServer( ) )
@@ -2425,7 +2425,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "autostart" && !m_CountDownStarted )
 			{
-				if (m_GHost->m_onlyownerscanstart)
+				if (m_Config->m_onlyownerscanstart)
 					if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 					{
 						SendChat( player->GetPID(),  tr("lang_1141") ); //  Only the owner can start the game.
@@ -2479,9 +2479,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				else
 				{
 					
-					m_DoAutoWarns = !m_DoAutoWarns;
+					m_Config->m_doautowarn = !m_Config->m_doautowarn;
 
-					if(m_DoAutoWarns)
+					if(m_Config->m_doautowarn)
 					{
 						SendAllChat( tr("lang_0517") ); // AutoWarnEnabled
 					}
@@ -2544,7 +2544,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				string Reason = CustomReason( Payload, m_DBBanLast->GetName() );
 
-				uint32_t BanTime = m_GHost->m_BanLastTime;
+				uint32_t BanTime = m_Config->m_BanLastTime;
 				if(!(m_DBBanLast->GetServer().empty()))
 					m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Reason, BanTime, 0 ) ) );
 				else
@@ -2646,7 +2646,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				string Reason = CustomReason( Payload, m_DBBanLast->GetName() );
 
-				uint32_t BanTime = m_GHost->m_TBanLastTime;
+				uint32_t BanTime = m_Config->m_TBanLastTime;
 				if(!(m_DBBanLast->GetServer().empty()))
 					m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Reason, BanTime, 0 ) ) );
 				else
@@ -2813,7 +2813,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "clearhcl" && !m_CountDownStarted )
 			{
-				if (m_GHost->m_onlyownerscanstart)
+				if (m_Config->m_onlyownerscanstart)
 					if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 					{
 						SendChat( player->GetPID(), tr("lang_1147")); //  "Only the owner can change HCL."
@@ -3219,8 +3219,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( ( Command == "dlinfotime" ) && !Payload.empty( ) )
 			{
-				uint32_t itime = m_GHost->m_ShowDownloadsInfoTime;
-				m_GHost->m_ShowDownloadsInfoTime = UTIL_ToUInt32( Payload );
+				uint32_t itime = m_Config->m_ShowDownloadsInfoTime;
+				m_Config->m_ShowDownloadsInfoTime = UTIL_ToUInt32( Payload );
 				SendAllChat( tr("lang_1163", "$TIME$", Payload, "$PRE_TIME", UTIL_ToString(itime))); // Show Downloads Info Time = "+ Payload+" s, previously "+UTIL_ToString(itime)+" s"
 			}
 
@@ -3280,7 +3280,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( Command == "endn" && m_GameLoaded )
 			{
 				if (!m_GameEndCountDownStarted)
-					if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
+					if (m_Config->m_EndReq2ndTeamAccept && m_EndRequested)
 						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
 						{
 							CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
@@ -3290,7 +3290,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 							m_GameEndLastCountDownTicks = GetTicks();
 						}
 
-				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
+				if (m_Config->m_EndReq2ndTeamAccept && !RootAdminCheck)
 				{
 					bool secondTeamPresent = false;
 
@@ -3388,7 +3388,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					
 					if (!m_GameEndCountDownStarted)
 					{
-						if (m_GHost->m_EndReq2ndTeamAccept && m_RequestedWinner && UTIL_ToUInt32(Payload) == m_RequestedWinner)
+						if (m_Config->m_EndReq2ndTeamAccept && m_RequestedWinner && UTIL_ToUInt32(Payload) == m_RequestedWinner)
 						if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
 						{
 							CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
@@ -3401,7 +3401,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						}
 					}
 
-					if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
+					if (m_Config->m_EndReq2ndTeamAccept && !RootAdminCheck)
 					{
 						bool secondTeamPresent = false;
 						unsigned char PID = player->GetPID();
@@ -3447,7 +3447,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				if (!m_GameEndCountDownStarted)
 				{
-					if (m_GHost->m_EndReq2ndTeamAccept && m_EndRequested)
+					if (m_Config->m_EndReq2ndTeamAccept && m_EndRequested)
 					if (m_Slots[GetSIDFromPID(player->GetPID())].GetTeam()!=m_EndRequestedTeam)
 					{
 						CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
@@ -3459,7 +3459,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					}
 				}
 
-				if (m_GHost->m_EndReq2ndTeamAccept && !RootAdminCheck)
+				if (m_Config->m_EndReq2ndTeamAccept && !RootAdminCheck)
 				{
 					bool secondTeamPresent = false;
 					
@@ -4155,7 +4155,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						CloseSlot( m_Slots.size()-2, true );
 						CloseSlot( m_Slots.size()-1, true );
-						CreateWTVPlayer( m_GHost->m_wtvPlayerName );
+						CreateWTVPlayer( m_Config->m_wtvPlayerName );
 					}
 					else
 					{
@@ -4201,7 +4201,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								if( CMD1 == "name" )
 								{
 									DeleteWTVPlayer( );
-									m_GHost->m_wtvPlayerName = CMD2;
+									m_Config->m_wtvPlayerName = CMD2;
 									OpenSlot( m_Slots.size()-2, true );
 									OpenSlot( m_Slots.size()-1, true );
 									CreateWTVPlayer( CMD2 );
@@ -4450,7 +4450,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( (Command == "hcl" || Command == "mode" || Command == "gamemode") && !m_CountDownStarted )
 			{
 
-				if (m_GHost->m_onlyownerscanstart && !Payload.empty( ))
+				if (m_Config->m_onlyownerscanstart && !Payload.empty( ))
 					if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 					{
 						SendChat( player->GetPID(), tr("lang_1147")); // Only the owner can change HCL.
@@ -4692,7 +4692,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_Config->m_Latency = UTIL_ToUInt32( Payload );
 
 					uint32_t minLatency = 20;
-					if (!m_GHost->m_newLatency)
+					if (!m_Config->m_newLatency)
 						minLatency = 50;
 
 					if( m_Config->m_Latency <= minLatency )
@@ -4951,7 +4951,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					return HideCommand;
 				}
 
-				if (m_GHost->m_onlyownerscanstart && !Payload.empty())
+				if (m_Config->m_onlyownerscanstart && !Payload.empty())
 					if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 					{
 						SendChat( player->GetPID(), tr("lang_1048")); // "Only the owner can change the gamename."
@@ -5014,7 +5014,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				if ( Command == "pri" )
 				{
-					m_GameState = m_GHost->m_gamestateinhouse;
+					m_GameState = m_Config->m_gamestateinhouse;
 					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as inhouse game [" + GameName + "]" );
 				}
 				else
@@ -5028,9 +5028,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				AddGameName(GameName);
 				m_GHost->m_HostCounter++;
 				m_GHost->SaveHostCounter();
-				if (m_GHost->m_MaxHostCounter>0)
-				if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
+
+				if (m_Config->m_MaxHostCounter > 0 && m_GHost->m_HostCounter > m_Config->m_MaxHostCounter )
 					m_GHost->m_HostCounter = 1;
+
 				m_HostCounter = m_GHost->m_HostCounter;
 				m_RefreshError = false;
 				m_GHost->m_QuietRehost = true;
@@ -5158,7 +5159,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					return HideCommand;
 				}
 
-				if (m_GHost->m_onlyownerscanstart && !Payload.empty())
+				if (m_Config->m_onlyownerscanstart && !Payload.empty())
 					if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 					{
 						SendChat( player->GetPID(), tr("lang_1048")); // Only the owner can change the gamename.
@@ -5224,9 +5225,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_GameName = GameName;
 					m_GHost->m_HostCounter++;
 					m_GHost->SaveHostCounter();
-					if (m_GHost->m_MaxHostCounter>0)
-					if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
+
+					if (m_Config->m_MaxHostCounter > 0 && m_GHost->m_HostCounter > m_Config->m_MaxHostCounter)
 						m_GHost->m_HostCounter = 1;
+
 					m_HostCounter = m_GHost->m_HostCounter;
 					m_GHost->m_QuietRehost = true;
 					m_RefreshError = false;
@@ -5357,8 +5359,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( Command == "marsauto" )
 			{
 				string msg = "Auto insult ";
-				m_GHost->m_autoinsultlobby = !m_GHost->m_autoinsultlobby;
-				if (m_GHost->m_autoinsultlobby)
+				m_Config->m_autoinsultlobby = !m_Config->m_autoinsultlobby;
+				if (m_Config->m_autoinsultlobby)
 					msg += "ON";
 				else
 					msg += "OFF";
@@ -5550,13 +5552,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( Command == "safeimmune" || Command =="si" || Command == "sk" )
 			{
 				string mess;
-				if (!m_GHost->m_SafeLobbyImmunity)
+				if (!m_Config->m_SafeLobbyImmunity)
 				{
-					m_GHost->m_SafeLobbyImmunity = true;
+					m_Config->m_SafeLobbyImmunity = true;
 					mess = tr("lang_1195"); // "Safe are immune to lobby kicking"
 				} else
 				{
-					m_GHost->m_SafeLobbyImmunity = false;
+					m_Config->m_SafeLobbyImmunity = false;
 					mess = tr("lang_1196"); //"Safe are no longer immune to lobby kicking"
 				}
 				SendChat( player->GetPID(), mess);
@@ -5568,7 +5570,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "startn" && !m_CountDownStarted )
 			{
-				if (m_GHost->m_onlyownerscanstart)
+				if (m_Config->m_onlyownerscanstart)
 				if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 				{
 					SendChat( player->GetPID(), tr("lang_1197")); // "Only the owner can start the game."
@@ -5598,7 +5600,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "start" && !m_CountDownStarted )
 			{
-				if (m_GHost->m_onlyownerscanstart)
+				if (m_Config->m_onlyownerscanstart)
 				if ((!IsOwner( User) && GetPlayerFromName(m_OwnerName, false)) && !RootAdminCheck )
 				{
 					SendChat( player->GetPID(), tr("lang_1197")); //"Only the owner can start the game."
@@ -5668,7 +5670,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 									if (Player2->GetName()!=User)
 										if (IsRootAdmin(Player2->GetName()))
 											isRootAdmin = true;
-								if (m_GHost->m_onlyownerscanswapadmins && !sameteam)
+								if (m_Config->m_onlyownerscanswapadmins && !sameteam)
 								{
 									CGamePlayer *Player = GetPlayerFromSID( SID1 - 1 );
 									CGamePlayer *Player2 = GetPlayerFromSID( SID2 - 1 );
@@ -6013,7 +6015,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	else if( Command == "end" )
 	{
-		if (!m_GameEndCountDownStarted && m_GHost->m_EndReq2ndTeamAccept)
+		if (!m_GameEndCountDownStarted && m_Config->m_EndReq2ndTeamAccept)
 		{
 			bool do_end_command = false;
 			if(Payload.empty( ))
@@ -6485,7 +6487,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		string GameState = string();
 
 		if (Command == "sdi")
-			GameState = UTIL_ToString(m_GHost->m_gamestateinhouse);
+			GameState = UTIL_ToString(m_Config->m_gamestateinhouse);
 
 		if (Command == "sdpub")
 			GameState = "16";
@@ -6688,7 +6690,7 @@ void CGame :: SaveGameData( )
 
 void CGame :: WarnPlayer( CDBBan *LastMatch, string Reason, string User)
 {
-	m_GHost->m_Callables.push_back(m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName(), LastMatch->GetIP( ), m_GameName, User, Reason, m_GHost->m_WarnTimeOfWarnedPlayer, 1 ));
+	m_GHost->m_Callables.push_back(m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer(), LastMatch->GetName(), LastMatch->GetIP( ), m_GameName, User, Reason, m_Config->m_WarnTimeOfWarnedPlayer, 1 ));
 	string BanPlayer = LastMatch->GetName();
 
 	bool isAdmin = IsOwner(BanPlayer);
@@ -6837,9 +6839,9 @@ void CGame :: WarnPlayer( string Victim, string Reason, string User)
 		}
 
 		if (Matches == 1)
-			m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, m_GHost->m_WarnTimeOfWarnedPlayer, 1 ) ) );
+			m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, m_Config->m_WarnTimeOfWarnedPlayer, 1 ) ) );
 		else
-			m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string(), m_GameName, User, Reason, m_GHost->m_WarnTimeOfWarnedPlayer, 1 ) ) );
+			m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string(), m_GameName, User, Reason, m_Config->m_WarnTimeOfWarnedPlayer, 1 ) ) );
 		//						m_GHost->m_DB->BanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason );
 
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + BanPlayer + "] was warned by player [" + User + "]" );

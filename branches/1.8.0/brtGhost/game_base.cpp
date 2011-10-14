@@ -128,9 +128,9 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CConfigData* nConfig, CMap *nMap, CSaveG
 	m_RandomSeed = GetTicks( );
 	m_GHost->m_HostCounter++;
 	m_GHost->SaveHostCounter();
-	if (m_GHost->m_MaxHostCounter>0)
-	if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
+	if (m_Config->m_MaxHostCounter > 0 && m_GHost->m_HostCounter > m_Config->m_MaxHostCounter)
 		m_GHost->m_HostCounter = 1;
+
 	m_HostCounter = m_GHost->m_HostCounter;
 //	m_Latency = m_GHost->m_Latency;
 //	m_UseDynamicLatency = m_GHost->m_UseDynamicLatency;
@@ -249,7 +249,6 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CConfigData* nConfig, CMap *nMap, CSaveG
 	m_AllSlotsAnnounced = false;
 	m_DownloadOnlyMode = false;
 //	m_AutoSave = m_GHost->m_AutoSave;
-	m_DoAutoWarns = m_GHost->m_doautowarn;
 	m_MatchMaking = false;
 //	m_LocalAdminMessages = m_GHost->m_LocalAdminMessages;
 	m_CreepSpawnTime = 0;
@@ -278,16 +277,16 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CConfigData* nConfig, CMap *nMap, CSaveG
 	else
 		m_Slots = m_Map->GetSlots( );
 
-	if( !m_GHost->m_IPBlackListFile.empty( ) )
+	if( !m_Config->m_IPBlackListFile.empty( ) )
 	{
 		ifstream in;
-		in.open( m_GHost->m_IPBlackListFile.c_str( ) );
+		in.open( m_Config->m_IPBlackListFile.c_str( ) );
 
 		if( in.fail( ) )
-			CONSOLE_Print( "[GAME: " + m_GameName + "] error loading IP blacklist file [" + m_GHost->m_IPBlackListFile + "]" );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] error loading IP blacklist file [" + m_Config->m_IPBlackListFile + "]" );
 		else
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] loading IP blacklist file [" + m_GHost->m_IPBlackListFile + "]" );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] loading IP blacklist file [" + m_Config->m_IPBlackListFile + "]" );
 			string Line;
 
 			while( !in.eof( ) )
@@ -708,7 +707,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 				m_packetsToServer.push( data );
 
-				if (m_GHost->m_broadcastinlan)
+				if (m_Config->m_broadcastinlan)
 				{
 					m_GHost->m_UDPSocket->SendTo("127.0.0.1", 6112, data );
 				}
@@ -803,7 +802,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
 
-				if (m_GHost->m_broadcastinlan)
+				if (m_Config->m_broadcastinlan)
 				{
 					m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Config->tft, m_Config->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					m_GHost->m_UDPSocket->SendTo("127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Config->tft, m_Config->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter, m_EntryKey ) );
@@ -849,7 +848,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 				m_GHost->m_UDPSocket->Broadcast( 6112, data );
 
-				if (m_GHost->m_broadcastinlan)
+				if (m_Config->m_broadcastinlan)
 				{
 					m_GHost->m_UDPSocket->Broadcast( 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Config->tft, m_Config->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter, m_EntryKey ) );
 					m_GHost->m_UDPSocket->SendTo( "127.0.0.1", 6112, m_Protocol->SEND_W3GS_GAMEINFO( m_Config->tft, m_Config->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, m_CreatorName, GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), slotstotal, slotsopen, m_HostPort, FixedHostCounter, m_EntryKey ) );
@@ -987,7 +986,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// kick players who don't spoof check within 20 seconds when spoof checks are required and the game is autohosted
 
-	if( !m_CountDownStarted && m_Config->m_RequireSpoofChecks && m_GameState == GAME_PUBLIC && !m_Config->m_AutoHostGameName.empty( ) && m_Config->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0 )
+	if( !m_CountDownStarted && m_Config->m_RequireSpoofChecks && m_GameState == GAME_PUBLIC && !m_Config->m_AutoHostGameName.empty( ) && m_Config->m_AutoHostMaximumGames && m_Config->m_AutoHostAutoStartPlayers && m_AutoStartPlayers )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
 		{
@@ -1078,9 +1077,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_GameName = m_GHost->IncGameNr(m_GameName);
 		m_GHost->m_HostCounter++;
 		m_GHost->SaveHostCounter();
-		if (m_GHost->m_MaxHostCounter>0)
-		if (m_GHost->m_HostCounter>m_GHost->m_MaxHostCounter)
+		if (m_Config->m_MaxHostCounter > 0 && m_GHost->m_HostCounter>m_Config->m_MaxHostCounter)
 			m_GHost->m_HostCounter = 1;
+
 		m_HostCounter = m_GHost->m_HostCounter;
 		m_GHost->m_QuietRehost = true;
 		m_RefreshError = false;
@@ -1101,11 +1100,11 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// check if the lobby is "abandoned" and needs to be closed since it will never start
 
-	if(m_Config->m_VirtualHostName!="|cFFC04040Admin" && !m_GameLoading && !m_GameLoaded && m_AutoStartPlayers == 0 && m_GHost->m_LobbyTimeLimitMax > 0 )
+	if(m_Config->m_VirtualHostName!="|cFFC04040Admin" && !m_GameLoading && !m_GameLoaded && m_AutoStartPlayers == 0 && m_Config->m_LobbyTimeLimitMax > 0 )
 	{
 		// check if we've hit the time limit
 
-		if( GetTime( ) - m_CreationTime >= m_GHost->m_LobbyTimeLimitMax * 60 && !m_DownloadOnlyMode )
+		if( GetTime( ) - m_CreationTime >= m_Config->m_LobbyTimeLimitMax * 60 && !m_DownloadOnlyMode )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
 			return true;
@@ -1114,7 +1113,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// check if the lobby is "abandoned" and needs to be closed since it will never start
 
-	if( !m_GameLoading && !m_GameLoaded && (m_AutoStartPlayers == 0) && m_GHost->m_LobbyTimeLimit > 0 )
+	if( !m_GameLoading && !m_GameLoaded && (m_AutoStartPlayers == 0) && m_Config->m_LobbyTimeLimit > 0 )
 	{
 		// check if there's a player with reserved status in the game
 
@@ -1139,7 +1138,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		// check if we've hit the time limit
 
-		if( GetTime( ) - m_LastReservedSeen >= m_GHost->m_LobbyTimeLimit * 60 && !m_DownloadOnlyMode )
+		if( GetTime( ) - m_LastReservedSeen >= m_Config->m_LobbyTimeLimit * 60 && !m_DownloadOnlyMode )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
 			return true;
@@ -1452,11 +1451,11 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
 	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
 
-	if (!m_GHost->m_newLatency)
+	if (!m_Config->m_newLatency)
 	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_DynamicLatency )
 		SendAllActions( );
 
-	if (m_GHost->m_newLatency)
+	if (m_Config->m_newLatency)
 	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_DynamicLatency - m_LastActionLateBy )
 		SendAllActions( );
 
@@ -1527,13 +1526,13 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	if ( m_GameLoadedTime && !m_GameLoadedMessage && GetTime() >= m_GameLoadedTime + m_Config->m_GameLoadedPrintout )
 	{
-		CONSOLE_Print("[GAME: " + m_GameName + "] loading gameloaded.txt");
+		CONSOLE_Print("[GAME: " + m_GameName + "] loading " + m_Config->m_GameLoadedFile );
 		m_GameLoadedMessage = true;
 
 		ifstream inn;
-		inn.open( "gameloaded.txt" );
+		inn.open( m_Config->m_GameLoadedFile.c_str() );
 
-		if( !inn.fail( ) && UTIL_FileExists("gameloaded.txt") )
+		if( !inn.fail( ) && UTIL_FileExists(m_Config->m_GameLoadedFile ) )
 		{
 			// don't print more than 8 lines
 
@@ -1557,17 +1556,16 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			inn.close( );
 		} else
-			CONSOLE_Print("[GAME: " + m_GameName + "] gameloaded.txt load failed");
+			CONSOLE_Print("[GAME: " + m_GameName + "] " + m_Config->m_GameLoadedFile + " load failed");
 
 	}
 
 	// check if switch expired
-	if (m_SwitchTime!=0)
-		if (GetTime()-m_SwitchTime>60)
-		{
-			m_SwitchTime = 0;
-			CONSOLE_Print("[GAME: " + m_GameName + "] Switch expired");
-		}
+	if (m_SwitchTime && GetTime() - m_SwitchTime > 60)
+	{
+		m_SwitchTime = 0;
+		CONSOLE_Print("[GAME: " + m_GameName + "] Switch expired");
+	}
 
 	bool lessthanminpercent = false;
 	bool lessthanminplayers = false;
@@ -1576,7 +1574,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	if (!m_GameOverCanceled)
 	{
 		// start the gameover timer if world tree/frozen throne has fallen
-		if (m_Config->m_gameoverbasefallen>0 && m_GameOverTime == 0 && m_GameEnded)
+		if (m_Config->m_gameoverbasefallen > 0 && m_GameOverTime == 0 && m_GameEnded)
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (a base has fallen)");
 			m_GameOverTime = GetTime( ) - 60 + m_Config->m_gameoverbasefallen;
@@ -1674,7 +1672,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	}
 
 	if ( !m_DownloadOnlyMode)
-	if( m_GHost->m_LobbyTimeLimit && (m_Config->m_VirtualHostName!="|cFFC04040Admin") && !m_GameLoading && !m_GameLoaded )
+	if( m_Config->m_LobbyTimeLimit && (m_Config->m_VirtualHostName!="|cFFC04040Admin") && !m_GameLoading && !m_GameLoaded )
 	{
 	// is there a player with reserved status in the game?
 		if (m_Players.size()>0)
@@ -1686,7 +1684,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			}
 		}
 	//check if we have hit the timelimit
-		if ( GetTime( ) > m_LastReservedSeen + m_GHost->m_LobbyTimeLimit*60 )
+		if ( GetTime( ) > m_LastReservedSeen + m_Config->m_LobbyTimeLimit*60 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby timelimit hit)" );
 			for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
@@ -1705,8 +1703,8 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	ProcessCensorMuted();
 
 	// check how many slots are unoccupied and announce if needed
-	if (m_GHost->m_LobbyAnnounceUnoccupied)
-	if (!m_GameLoaded && !m_GameLoading && m_AutoStartPlayers==0)
+	if (m_Config->m_LobbyAnnounceUnoccupied)
+	if (!m_GameLoaded && !m_GameLoading && !m_AutoStartPlayers)
 	if (GetSlotsOpen()!=m_LastSlotsUnoccupied)
 	{
 		m_LastSlotsUnoccupied = GetSlotsOpen();
@@ -2299,7 +2297,7 @@ void CBaseGame :: SendWTVPlayerInfo( CGamePlayer *player )
 	IP.push_back( 0 );
 
 	//	if (m_GHost->m_wtv && m_Map->GetMapObservers()>=3)
-	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_WTVPlayerPID, m_GHost->m_wtvPlayerName, IP, IP ) );
+	Send( player, m_Protocol->SEND_W3GS_PLAYERINFO( m_WTVPlayerPID, m_Config->m_wtvPlayerName, IP, IP ) );
 }
 
 void CBaseGame :: SendAllActions( )
@@ -2314,7 +2312,7 @@ void CBaseGame :: SendAllActions( )
 
 	uint32_t Latency = m_DynamicLatency;
 
-	if (!m_GHost->m_newLatency)
+	if (!m_Config->m_newLatency)
 	{
 		Latency = GetTicks( ) - m_LastActionSentTicks;
 		m_GameTicks += Latency;
@@ -2432,7 +2430,7 @@ void CBaseGame :: SendAllActions( )
 		// print a message because even though this will take more resources it should provide some information to the administrator for future reference
 		// other solutions - dynamically modify the latency, request higher priority, terminate other games, ???
 
-		if (m_GHost->m_newLatency)
+		if (m_Config->m_newLatency)
 		CONSOLE_Print( "[GAME: " + m_GameName + "] warning - the latency is " + UTIL_ToString( m_DynamicLatency ) + "ms but the last update was late by " + UTIL_ToString( m_LastActionLateBy ) + "ms" );
 		m_LastActionLateBy = m_DynamicLatency;
 		m_LastActionLateTicks = GetTicks();
@@ -2478,9 +2476,9 @@ void CBaseGame :: SendEndMessage( )
 	// read from gameover.txt if available
 
 	ifstream in;
-	in.open( "gameover.txt" );
+	in.open( m_Config->m_GameOverFile.c_str() );
 
-	if( !in.fail( ) && UTIL_FileExists("gameover.txt") )
+	if( !in.fail( ) && UTIL_FileExists( m_Config->m_GameOverFile ) )
 	{
 		// don't print more than 8 lines
 
@@ -4677,7 +4675,7 @@ void CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 
 void CBaseGame :: EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum )
 {
-	if( m_GHost->m_dropifdesync)
+	if( m_Config->m_dropifdesync)
 	{
 		// check for desyncs
 		// however, it's possible that not every player has sent a checksum for this frame yet
@@ -5017,7 +5015,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 									blueplayer = true;
 								}
 						}
-						if (m.substr(0,4) == "-wtf" && GetTime()<m_GameLoadedTime+15 && m_GHost->m_detectwtf)
+						if (m.substr(0,4) == "-wtf" && GetTime() < m_GameLoadedTime+15 && m_Config->m_detectwtf)
 						{
 							if (blueplayer)
 							{
@@ -5178,7 +5176,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 							Send( b, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), Silence(GetRootAdminPIDs(player->GetPID())), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), msg2 ) );
 					}
 
-					if (m_GHost->m_autoinsultlobby  && msg2 != msg && m_Config->m_CensorMute && !m_GameLoaded && !m_GameLoading)
+					if (m_Config->m_autoinsultlobby  && msg2 != msg && m_Config->m_CensorMute && !m_GameLoaded && !m_GameLoading)
 					{
 						bool ok = true;
 						if (isAdmin && !m_Config->m_CensorMuteAdmins)
@@ -5918,7 +5916,7 @@ void CBaseGame :: EventGameLoaded( )
 	}
 	// reserve players from last game
 
-	if (m_GHost->m_HoldPlayersForRMK)
+	if (m_Config->m_HoldPlayersForRMK)
 	{
 		bool isadmin;
 		for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
@@ -6492,7 +6490,7 @@ unsigned char CBaseGame :: GetEmptySlotAdmin( bool reserved )
 				if (Player)
 				{
 					isadmin = IsOwner(Player->GetName( )) || IsAdmin(Player->GetName( )) || IsRootAdmin(Player->GetName());
-					if (m_GHost->m_SafeLobbyImmunity && IsSafe(Player->GetName()))
+					if (m_Config->m_SafeLobbyImmunity && IsSafe(Player->GetName()))
 						isadmin = true;
 				}
 
@@ -7669,7 +7667,7 @@ uint32_t CBaseGame :: CountDownloading( )
 
 uint32_t CBaseGame :: ShowDownloading( )
 {
-	if (GetTime() - m_DownloadInfoTime < m_GHost->m_ShowDownloadsInfoTime || !m_Config->m_ShowDownloadsInfo)
+	if (GetTime() - m_DownloadInfoTime < m_Config->m_ShowDownloadsInfoTime || !m_Config->m_ShowDownloadsInfo)
 		return 0;
 
 	m_DownloadInfoTime = GetTime();
@@ -8024,9 +8022,9 @@ void CBaseGame :: CreateWTVPlayer( string name, bool lobbyhost )
 		si.cb = sizeof(si);
 		ZeroMemory( &pi, sizeof(pi) );
 
-		string wtvRecorderEXE = m_GHost->m_wtvPath + "\\wtvRecorder.exe";
+		string wtvRecorderEXE = m_Config->m_wtvPath + "\\wtvRecorder.exe";
 
-		int hProcess = CreateProcessA( wtvRecorderEXE.c_str( ), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_GHost->m_wtvPath.c_str( ), LPSTARTUPINFOA(&si), &pi );
+		int hProcess = CreateProcessA( wtvRecorderEXE.c_str( ), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_Config->m_wtvPath.c_str( ), LPSTARTUPINFOA(&si), &pi );
 
 		if( !hProcess )
 			CONSOLE_Print( "[WaaaghTV] : Failed to start wtvRecorder.exe" );
@@ -8052,7 +8050,7 @@ void CBaseGame :: CreateWTVPlayer( string name, bool lobbyhost )
 		IP.push_back( 0 );
 		IP.push_back( 0 );
 		IP.push_back( 0 );
-		m_GHost->m_wtvPlayerName = name;
+		m_Config->m_wtvPlayerName = name;
 		SendAll( m_Protocol->SEND_W3GS_PLAYERINFO( m_WTVPlayerPID, name, IP, IP ) );
 		m_Slots[SID] = CGameSlot( m_WTVPlayerPID, 100, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
 		SendAllSlotInfo( );
@@ -8453,7 +8451,7 @@ void CBaseGame :: SetDynamicLatency( )
 
 	// if the actions are sent too slow, set dynamic latency to max + 30
 
-	bool LateActions = (GetTicks() - m_LastActionLateTicks < 2000) && m_GHost->m_newLatency;
+	bool LateActions = (GetTicks() - m_LastActionLateTicks < 2000) && m_Config->m_newLatency;
 
 	if (LateActions || m_Lagging)
 	{
@@ -8510,7 +8508,7 @@ void CBaseGame :: SetDynamicLatency( )
 
 // don't go lower than 20/50 ms
 	uint32_t lowestlatencyallowed = 20;
-	if (!m_GHost->m_newLatency)
+	if (!m_Config->m_newLatency)
 		lowestlatencyallowed = 50;
 
 	if (m_DynamicLatency<lowestlatencyallowed)

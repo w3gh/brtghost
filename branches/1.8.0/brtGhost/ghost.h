@@ -77,6 +77,8 @@ private:
 
 	uint32_t m_Port;
 
+	boost::thread* m_UpdateThread;
+
 public:
 	queue<CCommandPacket *> m_CommandPackets;  // queue incoming packets of command server
 	queue<BYTEARRAY> m_PacketsToServer;		   // Packet who be sent to the main server
@@ -88,11 +90,12 @@ public:
 	bool isExiting() { return nExiting; }
 
 	void Update(int usecBlock);
+	void UpdateThread();
 
 	bool ExctactsCommandPackets();
 };
 
-class CGHost
+class CGHost : boost::noncopyable
 {
 private:
 	CConfigData* m_Config;
@@ -128,16 +131,14 @@ public:
 	bool m_ScoresCountSet;
 
 	uint32_t m_HostCounter;					// the current host counter (a unique number to identify a game, incremented each time a game is created)
-	uint32_t m_MaxHostCounter;
+
 	CMyCallableDownloadFile *m_CallableDownloadFile;
 	uint32_t m_LastAutoHostTime;			// GetTime when the last auto host was attempted
 	bool m_AllGamesFinished;				// if all games finished (used when exiting nicely)
 	uint32_t m_AllGamesFinishedTime;		// GetTime when all games finished (used when exiting nicely)
 
 	vector<string> m_channeljoinex;
-	string m_channeljoinexceptions;
-	bool m_broadcastinlan;
-	bool m_onlyownerscanstart;
+
 	vector<string> m_WarnForgetQueue;
 	uint32_t m_MySQLQueueTicks;
 	string m_AllowedCountries;
@@ -147,17 +148,11 @@ public:
 
 	vector<string> m_CensoredWords;
 
-	uint32_t m_AutoHostAutoStartPlayers;	// when using auto hosting auto start the game when this many players have joined
 	string m_AutoHostServer;
 
 	bool m_AutoHostMatchMaking;
 	double m_AutoHostMinimumScore;
 	double m_AutoHostMaximumScore;
-
-	string m_MOTDFile;						// config value: motd.txt
-	string m_GameLoadedFile;				// config value: gameloaded.txt
-	string m_GameOverFile;					// config value: gameover.txt
-	string m_IPBlackListFile;				// config value: IP blacklist file (ipblacklist.txt)
 
 	bool m_QuietRehost;
 	bool m_CalculatingScores;
@@ -167,9 +162,6 @@ public:
 
 	uint32_t m_ExternalIPL;					// our external IP long format
 	string m_Country;						// our country
-	string m_wtvPath;
-	string m_wtvPlayerName;
-	bool m_wtv;
 
 	vector<string> m_CachedSpoofedIPs;
 	vector<string> m_CachedSpoofedNames;
@@ -180,14 +172,6 @@ public:
 	vector<string> m_MarsLast;				// our last mars messages
 
 	string m_DisableReason;					// reason for disabling the bot
-
-	uint32_t m_TBanLastTime;				// number of days to tempban when tbanlast
-	uint32_t m_BanLastTime;					// number of days to tempban when banlast
-	uint32_t m_BanTime;						// number of days to tempban when banning
-	uint32_t m_WarnTimeOfWarnedPlayer;		// number of days the warn will last
-	uint32_t m_GameNumToForgetAWarn;		// number of games till the first of the warns gets forgotten
-
-	bool m_doautowarn;
 
 	bool m_Log;
 
@@ -200,32 +184,18 @@ public:
 	bool m_AutoHostCountryCheck2;			// config value: country check2 enabled?
 	bool m_AutoHostGArena;					// config value: only allow GArena
 
-	uint32_t m_gamestateinhouse;
-	bool m_SafeLobbyImmunity;
-
-
 	uint32_t m_LastDynamicLatencyConsole;
 
-	bool m_LobbyAnnounceUnoccupied;
-	bool m_EndReq2ndTeamAccept;
-	bool m_detectwtf;
-	bool m_autoinsultlobby;
 	bool m_Rehosted;
 	bool m_Hosted;
-	bool m_newLatency;
-	bool m_newTimer;
-	uint32_t m_newTimerResolution;
+
 	bool m_newTimerStarted;
 	string m_RehostedName;
 	string m_HostedName;
 	string m_RehostedServer;
-	uint32_t m_ShowDownloadsInfoTime;
+
 	vector<string> m_Commands;
 
-	string m_FakePings;
-
-	bool m_onlyownerscanswapadmins;
-	bool m_HoldPlayersForRMK;
 	string m_PlayersfromRMK;
 	bool newGame;
 	string newGameUser;
@@ -241,10 +211,8 @@ public:
 	unsigned char newGameGameState;
 	string newGameName;
 	bool newGameGArena;
-	uint32_t m_LobbyTimeLimit;
-	uint32_t m_LobbyTimeLimitMax;
 
-	CGHost( CConfig *CFG, CConfigData* nConfig );
+	CGHost( CConfigData* nConfig );
 	~CGHost( );
 
 	string Commands(unsigned int idx);
@@ -262,7 +230,6 @@ public:
 	bool IsRootAdmin(string name);
 	void AddRootAdmin(string name);
 	void DelRootAdmin(string name);
-	void ReloadConfig();
 
 	uint32_t CMDAccessAddOwner (uint32_t acc);
 	uint32_t CMDAccessAllOwner ();
@@ -305,15 +272,13 @@ public:
 	// other functions
 	virtual CMyCallableDownloadFile *ThreadedDownloadFile( string url, string path );
 
-	void ReloadConfigs( );
-	void SetConfigs( CConfig *CFG );
+	void CheckConfigs( );
+
 	void ExtractScripts( );
 	void LoadIPToCountryData( );
 	void LoadIPToCountryDataOpt( );
 	void CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
 
-	// Metal_Koola's attempts
-	bool m_dropifdesync;				// config value: Drop desynced players
 	int m_CookieOffset;					// System used to remove need for bnet_bnlswardencookie. May need further optimization.
 };
 

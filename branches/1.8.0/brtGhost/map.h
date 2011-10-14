@@ -128,7 +128,7 @@ private:
 
 public:
 	CMap( CConfigData* nConfig );
-	CMap( CConfigData* nConfig, CConfig *CFG, string nCFGFile );
+	CMap( CConfigData* nConfig, CConfig *CFG, string nCFGFile, bool nShowDebug = false );
 	~CMap( );
 
 	bool m_LogAll;
@@ -164,7 +164,7 @@ public:
 	vector<uint32_t> GetAutoWarnMarks( )	{ return m_AutoWarnMarks; }
 	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 
-	void Load( CConfig *CFG, string nCFGFile );
+	void Load( CConfig *CFG, string nCFGFile, bool nShowDebug = false );
 	void CheckValid( );
 	uint32_t XORRotateLeft( unsigned char *data, uint32_t length );
 };

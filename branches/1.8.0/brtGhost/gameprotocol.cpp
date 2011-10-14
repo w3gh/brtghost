@@ -554,6 +554,8 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 {
 	BYTEARRAY packet;
 
+	CONSOLE_Print( "[GAMEPROTO] SEND_W3GS_CHAT_FROM_HOST: toPIDs size: " + UTIL_ToString(toPIDs.size()) + " message: " + message );
+
 	if( !toPIDs.empty( ) && !message.empty( ) && message.size( ) < 255 )
 	{
 		packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant

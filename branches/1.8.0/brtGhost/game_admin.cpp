@@ -431,7 +431,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				m_Config->m_AutoHostOwner.clear( );
 				m_Config->m_AutoHostServer.clear( );
 				m_Config->m_AutoHostMaximumGames = 0;
-				m_GHost->m_AutoHostAutoStartPlayers = 0;
+				m_Config->m_AutoHostAutoStartPlayers = 0;
 				m_GHost->m_LastAutoHostTime = GetTime( );
 				m_GHost->m_AutoHostMatchMaking = false;
 				m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -476,7 +476,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 							m_Config->m_AutoHostOwner = User;
 							m_GHost->m_AutoHostServer.clear( );
 							m_Config->m_AutoHostMaximumGames = MaximumGames;
-							m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+							m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 							m_GHost->m_AutoHostMatchMaking = false;
 							m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -500,7 +500,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 				m_Config->m_AutoHostOwner.clear( );
 				m_GHost->m_AutoHostServer.clear( );
 				m_Config->m_AutoHostMaximumGames = 0;
-				m_GHost->m_AutoHostAutoStartPlayers = 0;
+				m_Config->m_AutoHostAutoStartPlayers = 0;
 				m_GHost->m_LastAutoHostTime = GetTime( );
 				m_GHost->m_AutoHostMatchMaking = false;
 				m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -559,7 +559,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 									m_Config->m_AutoHostOwner = User;
 									m_GHost->m_AutoHostServer.clear( );
 									m_Config->m_AutoHostMaximumGames = MaximumGames;
-									m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+									m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 									m_GHost->m_LastAutoHostTime = GetTime( );
 									m_GHost->m_AutoHostMatchMaking = true;
 									m_GHost->m_AutoHostMinimumScore = MinimumScore;
@@ -1266,8 +1266,8 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 
 		else if( Command == "reload" )
 		{
-			SendChat( player, tr("lang_0205") ); // ReloadingConfigurationFiles
-			m_GHost->ReloadConfig( );
+//			SendChat( player, tr("lang_0205") ); // ReloadingConfigurationFiles
+//			m_GHost->ReloadConfig( );
 		}
 
 		//

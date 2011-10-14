@@ -27,7 +27,7 @@
 // CGHostDB
 //
 
-CGHostDB :: CGHostDB( CConfig *CFG )
+CGHostDB :: CGHostDB( CConfigData *CFG )
 {
 	m_HasError = false;
 	m_ScoreFormula = string();

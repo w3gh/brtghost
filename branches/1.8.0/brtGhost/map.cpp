@@ -86,14 +86,14 @@ CMap :: CMap( CConfigData* nConfig )
     m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 11, 11, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
 }
 
-CMap :: CMap( CConfigData* nConfig, CConfig *CFG, string nCFGFile )
+CMap :: CMap( CConfigData* nConfig, CConfig *CFG, string nCFGFile, bool nShowDebug )
 {
 //	m_SHA = new CSHA1( );
 //	m_CRC = new CCRC32( );
 	
 	m_Config = new CConfigData( *nConfig );
 	m_LogAll = false;
-	Load( CFG, nCFGFile );
+	Load( CFG, nCFGFile, nShowDebug );
 }
 
 CMap :: ~CMap( )
@@ -269,7 +269,7 @@ unsigned char CMap :: GetMapLayoutStyle( )
 	return 3;
 }
 
-void CMap :: Load( CConfig *CFG, string nCFGFile )
+void CMap :: Load( CConfig *CFG, string nCFGFile, bool nShowDebug )
 {
 	m_Valid = true;
 	m_CFGFile = nCFGFile;
@@ -312,12 +312,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		// calculate map_size
 
 		MapSize = UTIL_CreateByteArray( (uint32_t)m_MapData.size( ), false );
-		CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ToString( (uint32_t)MapSize[0] ) + " " + UTIL_ToString( (uint32_t)MapSize[1] ) + " " + UTIL_ToString( (uint32_t)MapSize[2] ) + " " + UTIL_ToString( (uint32_t)MapSize[3] ) );
+		if (nShowDebug)
+			CONSOLE_Print( "[MAP] calculated map_size = " + UTIL_ToString( (uint32_t)MapSize[0] ) + " " + UTIL_ToString( (uint32_t)MapSize[1] ) + " " + UTIL_ToString( (uint32_t)MapSize[2] ) + " " + UTIL_ToString( (uint32_t)MapSize[3] ) );
 
 		// calculate map_info (this is actually the CRC)
 
 		MapInfo = UTIL_CreateByteArray( (uint32_t)m_CRC->FullCRC( (unsigned char *)m_MapData.c_str( ), m_MapData.size( ) ), false );
-		CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( (uint32_t)MapInfo[0] ) + " " + UTIL_ToString( (uint32_t)MapInfo[1] ) + " " + UTIL_ToString( (uint32_t)MapInfo[2] ) + " " + UTIL_ToString( (uint32_t)MapInfo[3] ) );
+		if (nShowDebug)
+			CONSOLE_Print( "[MAP] calculated map_info = " + UTIL_ToString( (uint32_t)MapInfo[0] ) + " " + UTIL_ToString( (uint32_t)MapInfo[1] ) + " " + UTIL_ToString( (uint32_t)MapInfo[2] ) + " " + UTIL_ToString( (uint32_t)MapInfo[3] ) );
 
 		// calculate map_crc (this is not the CRC) and map_sha1
 		// a big thank you to Strilanc for figuring the map_crc algorithm out
@@ -476,13 +478,18 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 						CONSOLE_Print( "[MAP] couldn't find war3map.j or scripts\\war3map.j in MPQ file, calculated map_crc/sha1 is probably wrong" );
 
 					MapCRC = UTIL_CreateByteArray( Val, false );
-					CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ToString( (uint32_t)MapCRC[0] ) + " " + UTIL_ToString( (uint32_t)MapCRC[1] ) + " " + UTIL_ToString( (uint32_t)MapCRC[2] ) + " " + UTIL_ToString( (uint32_t)MapCRC[3] ) );
+
+					if (nShowDebug)
+						CONSOLE_Print( "[MAP] calculated map_crc = " + UTIL_ToString( (uint32_t)MapCRC[0] ) + " " + UTIL_ToString( (uint32_t)MapCRC[1] ) + " " + UTIL_ToString( (uint32_t)MapCRC[2] ) + " " + UTIL_ToString( (uint32_t)MapCRC[3] ) );
+
 					m_SHA->Final( );
 					unsigned char SHA1[20];
 					memset( SHA1, 0, sizeof( unsigned char ) * 20 );
 					m_SHA->GetHash( SHA1 );
 					MapSHA1 = UTIL_CreateByteArray( SHA1, 20 );
-					CONSOLE_Print( "[MAP] calculated map_sha1 = " + UTIL_ByteArrayToDecString( MapSHA1 ) );
+
+					if (nShowDebug)
+						CONSOLE_Print( "[MAP] calculated map_sha1 = " + UTIL_ByteArrayToDecString( MapSHA1 ) );
 				}
 				else
 					CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - map MPQ file not loaded" );
@@ -673,16 +680,27 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							// let's not confuse the user by displaying erroneous map options so zero them out now
 							MapOptions = RawMapFlags & ( MAPOPT_MELEE | MAPOPT_FIXEDPLAYERSETTINGS | MAPOPT_CUSTOMFORCES );
 
-							CONSOLE_Print( "[MAP] calculated map_options = " + UTIL_ToString( MapOptions ) );
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] calculated map_options = " + UTIL_ToString( MapOptions ) );
 							MapWidth = UTIL_CreateByteArray( (uint16_t)RawMapWidth, false );
-							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ToString( (uint32_t)MapWidth[0] ) + " " + UTIL_ToString( (uint32_t)MapWidth[1] ) );
+							
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ToString( (uint32_t)MapWidth[0] ) + " " + UTIL_ToString( (uint32_t)MapWidth[1] ) );
 							MapHeight = UTIL_CreateByteArray( (uint16_t)RawMapHeight, false );
-							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ToString( (uint32_t)MapHeight[0] ) + " " + UTIL_ToString( (uint32_t)MapHeight[1] ) );
+							
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ToString( (uint32_t)MapHeight[0] ) + " " + UTIL_ToString( (uint32_t)MapHeight[1] ) );
 							MapNumPlayers = RawMapNumPlayers - ClosedSlots;
-							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
+							
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
 							MapNumTeams = RawMapNumTeams;
-							CONSOLE_Print( "[MAP] calculated map_numteams = " + UTIL_ToString( MapNumTeams ) );
-							CONSOLE_Print( "[MAP] found " + UTIL_ToString( Slots.size( ) ) + " slots" );
+							
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] calculated map_numteams = " + UTIL_ToString( MapNumTeams ) );
+
+							if (nShowDebug)
+								CONSOLE_Print( "[MAP] found " + UTIL_ToString( Slots.size( ) ) + " slots" );
 
 							BYTEARRAY b;
 							string s;

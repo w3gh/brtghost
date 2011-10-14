@@ -183,7 +183,7 @@ private:
 	vector<uint32_t> m_LastAccesses;
 
 public:
-	CGHostDBMySQL( CConfig *CFG );
+	CGHostDBMySQL( CConfigData *CFG );
 	virtual ~CGHostDBMySQL( );
 
 	virtual string GetStatus( );

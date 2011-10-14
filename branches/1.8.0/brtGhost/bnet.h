@@ -67,6 +67,8 @@ typedef pair<string,CCallableSafeAdd *> PairedSafeAdd;
 typedef pair<string,CCallableSafeRemove *> PairedSafeRemove;
 typedef pair<string,CCallableRunQuery *> PairedRunQuery;
 
+class CGHost;
+
 class CBNET
 {
 public:
