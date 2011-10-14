@@ -71,6 +71,7 @@ class CDBGamePlayer;
 class CDBGamePlayerSummary;
 class CDBScoreSummary;
 class CDBDotAPlayerSummary;
+class CConfigData;
 
 typedef pair<uint32_t,string> VarP;
 
@@ -84,7 +85,7 @@ protected:
 	uint32_t m_AdminAccess;
 
 public:
-	CGHostDB( CConfig *CFG );
+	CGHostDB( CConfigData *CFG );
 	virtual ~CGHostDB( );
 
 	bool HasError( )			{ return m_HasError; }

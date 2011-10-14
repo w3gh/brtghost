@@ -112,13 +112,6 @@ const string CMD_stringshow = "ban delban host unhost end mute kick say open clo
 bool CMDCheck (uint32_t cmd, uint32_t acc);
 uint32_t CMDAccessAll ();
 
-// path fix
-
-string FixPath(string Path, string End);
-
-// patch 21
-
-//
 string tr(const string& lang_id);
 string tr(const string& lang_id, const string& v1);
 string tr(const string& lang_id, const string& v1, const string& s1,

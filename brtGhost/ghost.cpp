@@ -93,7 +93,7 @@ ofstream  *gLog = NULL;
 CGHost	  *gGHost = NULL;
 CConfigData* gConfig = NULL;
 CLanguage *m_Language = NULL;	// todotodo - Use singelton ?
-CbrtServer* brtServer;			// Class for listen remote commands from brtServer			
+CbrtServer* brtServer = NULL;	// Class for listen remote commands from brtServer			
 
 boost::mutex printMutex;
 
@@ -144,8 +144,8 @@ uint32_t GetTicks( )
 	// don't use GetTickCount anymore because it's not accurate enough (~16ms resolution)
 	// don't use QueryPerformanceCounter anymore because it isn't guaranteed to be strictly increasing on some systems and thus requires "smoothing" code
 	// use timeGetTime instead, which typically has a high resolution (5ms or more) but we request a lower resolution on startup
-	if (gGHost)
-	if (gGHost->m_newTimer)
+
+	if (gConfig && gConfig->m_newTimer)
 		return timeGetTime( );
 	return GetTickCount();
 #elif __APPLE__
@@ -272,14 +272,6 @@ void DEBUG_Print( BYTEARRAY b )
 	cout << "}" << endl;
 }
 
-void brtUpdateThread()
-{
-	while ( !brtServer->isExiting() )
-	{
-		brtServer->Update(40000);
-	}
-}
-
 //
 // main
 //
@@ -303,14 +295,9 @@ int main( int argc, char **argv )
 
 	gConfig = new CConfigData();
 
-	if (gConfig->Parse("default_new.cfg"))
+	if (gConfig->Parse(gCFGFile))
 		return 0;
 	
-	CConfig CFG;
-	CFG.Read( "default.cfg" );
-	CFG.Read( gCFGFile );
-
-
 	if( !gConfig->logfile.empty( ) )
 	{
 		if( gConfig->logmethod == 1 )
@@ -416,7 +403,7 @@ unsigned int TimerResolution = 0;
 
 	// initialize ghost
 
-	gGHost = new CGHost( &CFG, gConfig );
+	gGHost = new CGHost( gConfig );
 
 	while( 1 )
 	{
@@ -434,8 +421,9 @@ unsigned int TimerResolution = 0;
 
 	CONSOLE_Print( "[GHOST] shutting down" );
 
-	TimerResolution = gGHost->m_newTimerResolution;
+	TimerResolution = gConfig->m_newTimerResolution;
 	bool TimerStarted = gGHost->m_newTimerStarted;
+
 	delete gGHost;
 	gGHost = NULL;
 
@@ -463,95 +451,6 @@ if (TimerStarted)
 
 	return 0;
 }
-/*
-vector<string> m_UsersinChannel;
-string m_ChannelName;
-
-vector<string> Channel_Users()
-{
-	return m_UsersinChannel;
-}
-
-void Channel_Clear(string name)
-{
-	m_UsersinChannel.clear();
-	m_ChannelName = name;
-	gGHost->m_NewChannel = true;
-	gGHost->m_ChannelJoinTime = GetTime();
-}
-
-void Channel_Add(string name)
-{
-	for( vector<string> :: iterator i = m_UsersinChannel.begin( ); i != m_UsersinChannel.end( ); i++ )
-	{
-		if( *i == name )
-		{
-			return;
-		}
-	}
-	m_UsersinChannel.push_back( name );
-	gGHost->m_ChannelJoinTime = GetTime();
-}
-/*
-void Channel_Join(string server, string name)
-{
-	bool Ban = false;
-	if (m_Config->m_KickUnknownFromChannel)
-	{
-		for( vector<CBNET *> :: iterator i = gGHost->m_BNETs.begin( ); i != gGHost->m_BNETs.end( ); i++ )
-		{
-			if ((*i)->GetServer()==server)
-				if (!(*i)->IsSafe(name) && !(*i)->IsAdmin(name) && !(*i)->IsRootAdmin(name) )
-					(*i)->QueueChatCommand("/kick "+name);
-		}
-	}
-	if (m_Config->m_KickBannedFromChannel)
-	{
-		for( vector<CBNET *> :: iterator i = gGHost->m_BNETs.begin( ); i != gGHost->m_BNETs.end( ); i++ )
-		{
-			if ((*i)->GetServer()==server)
-				if ((*i)->IsBannedName(name))
-					(*i)->QueueChatCommand("/kick "+name);
-		}
-	}
-	if (m_Config->m_BanBannedFromChannel)
-	{
-		for( vector<CBNET *> :: iterator i = gGHost->m_BNETs.begin( ); i != gGHost->m_BNETs.end( ); i++ )
-		{
-			if ((*i)->GetServer()==server)
-				if ((*i)->IsBannedName(name))
-					(*i)->QueueChatCommand("/ban "+name);
-		}
-	}
-}
-
-void Channel_Del(string name)
-{
-	for( vector<string> :: iterator i = m_UsersinChannel.begin( ); i != m_UsersinChannel.end( ); i++ )
-	{
-		if( *i == name )
-		{
-			m_UsersinChannel.erase(i);
-
-			return;
-		}
-	}
-}
-*/
-/*
-bool Patch21 ( )
-{
-	return m_Config->m_patch21;
-}
-*/
-string FixPath(string Path, string End)
-{
-	if (Path!="")
-	if (Path.substr(Path.length()-1,1)!=End)
-		Path += End;
-	return Path;
-}
-
 
 bool CMDCheck (uint32_t cmd, uint32_t acc)
 {
@@ -581,7 +480,7 @@ uint32_t CMDAccessAll ()
 // CGHost
 //
 
-CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
+CGHost :: CGHost( CConfigData* nConfig )
 {
 	srand( (unsigned int)time(0) );
 
@@ -590,28 +489,29 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_Log = true;
 
 	m_UDPSocket = new CUDPSocket( );
-	m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) );
-	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
+	m_UDPSocket->SetBroadcastTarget( m_Config->m_udp_broadcasttarget );
+	m_UDPSocket->SetDontRoute( m_Config->m_udp_dontroute );
 
 	m_ReconnectSocket = NULL;
 
 	m_CurrentGame = NULL;
-	DBType = CFG->GetString( "db_type", "sqlite3" );
+
 	CONSOLE_Print( "[GHOST] opening primary database" );
-	if( DBType == "mysql" )
+
+	if( m_Config->m_DBType == "mysql" )
 	{
 #ifdef GHOST_MYSQL
-		m_DB = new CGHostDBMySQL( CFG );
+		m_DB = new CGHostDBMySQL( m_Config );
 #else
 		CONSOLE_Print( "[GHOST] warning - this binary was not compiled with MySQL database support, using SQLite database instead" );
-		m_DB = new CGHostDBSQLite( CFG );
+		m_DB = new CGHostDBSQLite( m_Config );
 #endif
 	}
 	else
-		m_DB = new CGHostDBSQLite( CFG );
+		m_DB = new CGHostDBSQLite( m_Config );
 
 	CONSOLE_Print( "[GHOST] opening secondary (local) database" );
-	m_DBLocal = new CGHostDBSQLite( CFG );
+	m_DBLocal = new CGHostDBSQLite( m_Config );
 
 	// get a list of local IP addresses
 	// this list is used elsewhere to determine if a player connecting to the bot is local or not
@@ -695,7 +595,7 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_AutoHostCountries2 = string();
 	m_AutoHostCountryCheck = false;
 	m_AutoHostCountryCheck2 = false;
-	m_AutoHostAutoStartPlayers = 0;
+//	m_AutoHostAutoStartPlayers = 0;
 	m_LastAutoHostTime = 0;
 	m_AutoHostMatchMaking = false;
 	m_AutoHostMinimumScore = 0.0;
@@ -717,117 +617,41 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	m_Hosted = false;
 	m_LastGameName = string();
 
-	ReloadConfig();
+	CheckConfigs();
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)
-
-	for( uint32_t i = 1; i < 10; i++ )
+	unsigned int num = 0;
+	for (vector<CBNetConfigContainer>::iterator i = m_Config->m_BNETcfg.begin(); i != m_Config->m_BNETcfg.end(); ++i)
 	{
-		string Prefix;
+		m_BNETs.push_back( new CBNET( this, m_Config, (*i).Server, 
+			(*i).ServerAlias, 
+			(*i).BNLSServer, 
+			(uint16_t)(*i).BNLSPort, 
+			(uint32_t)(*i).BNLSWardenCookie + m_CookieOffset, 
+			(*i).CDKeyROC, 
+			(*i).CDKeyTFT, 
+			(*i).CountryAbbrev, 
+			(*i).Country, 
+			(*i).LocaleID, 
+			(*i).UserName, 
+			(*i).UserPassword, 
+			(*i).FirstChannel, 
+			(*i).RootAdmin, 
+			(*i).BNETCommandTrigger[0], 
+			(*i).HoldFriends, 
+			(*i).HoldClan, 
+			(*i).PublicCommands, 
+			(*i).War3Version, 
+			(*i).EXEVersion, 
+			(*i).EXEVersionHash, 
+			(*i).PasswordHashType, 
+			(*i).PVPGNRealmName, 
+			(*i).MaxMessageLength, num++ ) );
 
-		if( i == 1 )
-			Prefix = "bnet_";
-		else
-			Prefix = "bnet" + UTIL_ToString( i ) + "_";
+		m_BNETs[m_BNETs.size()-1]->SetWhereis( (*i).Whereis );
 
-		string Server = CFG->GetString( Prefix + "server", string( ) );
-		string ServerAlias = CFG->GetString( Prefix + "serveralias", string( ) );
-		string CDKeyROC = CFG->GetString( Prefix + "cdkeyroc", string( ) );
-		string CDKeyTFT = CFG->GetString( Prefix + "cdkeytft", string( ) );
-		string CountryAbbrev = CFG->GetString( Prefix + "countryabbrev", "USA" );
-		string Country = CFG->GetString( Prefix + "country", "United States" );
-		string Locale = CFG->GetString( Prefix + "locale", "system" );
-		uint32_t LocaleID;
-	
-		if( Locale == "system" )
-		{
-		#ifdef WIN32
-			LocaleID = GetUserDefaultLangID( );
-		#else
-			LocaleID = 1033;
-		#endif
-		}
-		else
-			LocaleID = UTIL_ToUInt32( Locale );
-
-		string UserName     = CFG->GetString( Prefix + "username", string( ) );
-		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
-		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
-		string RootAdmin    = CFG->GetString( Prefix + "rootadmin", string( ) );
-
-		if (!RootAdmin.empty())
-			m_RootAdmin = RootAdmin;
-
-		string BNETCommandTrigger = CFG->GetString( Prefix + "commandtrigger", "!" );
-
-		if( BNETCommandTrigger.empty( ) )
-			BNETCommandTrigger = "!";
-
-		bool Whereis = false;
-		uint32_t tmp = CFG->GetInt( Prefix + "whereis", 2 );
-		Whereis = (tmp == 0 ? false : true);
-
-		if (Server == "server.eurobattle.net")
-			if (tmp == 2)
-				Whereis = true;
-			else;
-		else if (tmp ==2)
-			Whereis = false;
-
-		bool HoldFriends = CFG->GetInt( Prefix + "holdfriends", 1 ) == 0 ? false : true;
-		bool HoldClan = CFG->GetInt( Prefix + "holdclan", 1 ) == 0 ? false : true;
-		bool PublicCommands = CFG->GetInt( Prefix + "publiccommands", 1 ) == 0 ? false : true;
-		string BNLSServer = CFG->GetString( Prefix + "bnlsserver", string( ) );
-		int BNLSPort = CFG->GetInt( Prefix + "bnlsport", 9367 );
-		int BNLSWardenCookie = i + m_CookieOffset;
-		unsigned char War3Version = CFG->GetInt( Prefix + "custom_war3version", 24 );
-		BYTEARRAY EXEVersion = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversion", string( ) ), 4 );
-		BYTEARRAY EXEVersionHash = UTIL_ExtractNumbers( CFG->GetString( Prefix + "custom_exeversionhash", string( ) ), 4 );
-		string PasswordHashType = CFG->GetString( Prefix + "custom_passwordhashtype", string( ) );
-		string PVPGNRealmName = CFG->GetString( Prefix + "custom_pvpgnrealmname", "PvPGN Realm" );
-		uint32_t MaxMessageLength = CFG->GetInt( Prefix + "custom_maxmessagelength", 200 );
-
-		if( Server.empty( ) )
-			break;
-
-		if( CDKeyROC.empty( ) )
-		{
-			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeyroc, skipping this battle.net connection" );
-			continue;
-		}
-
-		if( m_Config->tft && CDKeyTFT.empty( ) )
-		{
-			CONSOLE_Print( "[GHOST] missing " + Prefix + "cdkeytft, skipping this battle.net connection" );
-			continue;
-		}
-
-		if( UserName.empty( ) )
-		{
-			CONSOLE_Print( "[GHOST] missing " + Prefix + "username, skipping this battle.net connection" );
-			continue;
-		}
-
-		if( UserPassword.empty( ) )
-		{
-			CONSOLE_Print( "[GHOST] missing " + Prefix + "password, skipping this battle.net connection" );
-			continue;
-		}
-
-		CONSOLE_Print( "[GHOST] found battle.net connection #" + UTIL_ToString( i ) + " for server [" + Server + "]" );
-		if( Locale == "system" )
-		{
-		#ifdef WIN32
-			CONSOLE_Print( "[GHOST] using system locale of " + UTIL_ToString( LocaleID ) );
-		#else
-			CONSOLE_Print( "[GHOST] unable to get system locale, using default locale of 1033" );
-		#endif
-		}
-	
-		m_BNETs.push_back( new CBNET( this, m_Config, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
-		m_BNETs[m_BNETs.size()-1]->SetWhereis(Whereis);
-		if (m_AutoHostServer.length()==0)
-			m_AutoHostServer = Server;
+		if (m_AutoHostServer.empty())
+			m_AutoHostServer = (*i).Server;
 	}
 
 	if( m_BNETs.empty( ) )
@@ -921,7 +745,8 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
-	brtServer = new CbrtServer( m_Config->port_command );
+	if (m_Config->m_BrtServerEnable)
+		brtServer = new CbrtServer( m_Config->port_command );
 
 #ifdef GHOST_MYSQL
 	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (with MySQL support)" );
@@ -932,9 +757,9 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 
 CGHost :: ~CGHost( )
 {
-	delete brtServer;
+	delete brtServer; brtServer = NULL;
 
-	delete m_ReconnectSocket;
+	delete m_ReconnectSocket; m_ReconnectSocket = NULL;
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); i++ )
 		delete *i;
@@ -946,14 +771,14 @@ CGHost :: ~CGHost( )
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); i++ )
 		delete *i;
 
-	delete m_CurrentGame;
-	delete m_AdminGame;
+	delete m_CurrentGame; m_CurrentGame = NULL;
+	delete m_AdminGame; m_AdminGame = NULL;
 
 	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); i++ )
 		delete *i;
 
-	delete m_DB;
-	delete m_DBLocal;
+	delete m_DB; m_DB = NULL;
+	delete m_DBLocal; m_DBLocal = NULL;
 
 	// warning: we don't delete any entries of m_Callables here because we can't be guaranteed that the associated threads have terminated
 	// this is fine if the program is currently exiting because the OS will clean up after us
@@ -962,11 +787,11 @@ CGHost :: ~CGHost( )
 	if( !m_Callables.empty( ) )
 		CONSOLE_Print( "[GHOST] warning - " + UTIL_ToString( m_Callables.size( ) ) + " orphaned callables were leaked (this is not an error)" );
 
-	delete m_Language;
-	delete m_Map;
-	delete m_AdminMap;
-	delete m_AutoHostMap;
-	delete m_SaveGame;
+	delete m_Language; m_Language = NULL;
+	delete m_Map; m_Map = NULL;
+	delete m_AdminMap; m_AdminMap = NULL;
+	delete m_AutoHostMap; m_AutoHostMap = NULL;
+	delete m_SaveGame; m_SaveGame = NULL;
 }
 
 CbrtServer :: CbrtServer( uint32_t nPort )
@@ -979,18 +804,28 @@ CbrtServer :: CbrtServer( uint32_t nPort )
 	m_CommandSocketServer->Listen( string( ), m_Port );
 	m_CommandSocket = NULL;
 
-	boost :: thread Thread( brtUpdateThread );
+	m_UpdateThread = new boost::thread( boost::bind( &CbrtServer::UpdateThread, this ) );
 
 	CONSOLE_Print( "[GHOST] Listening brtServer on port [" + UTIL_ToString( m_Port ) +"]");
-
 }
 
 CbrtServer::~CbrtServer()
 {
 	nExiting = true;
 
+	m_UpdateThread->join();
+	delete m_UpdateThread;
+
 	delete m_CommandSocketServer;
 	m_CommandSocketServer = NULL;
+}
+
+void CbrtServer::UpdateThread()
+{
+	while (!nExiting)
+	{
+		Update( 40000 );
+	}
 }
 
 void CbrtServer::Update( int usecBlock )
@@ -1595,7 +1430,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 			CONSOLE_Print( "[GHOST] deleting current game [" + m_CurrentGame->GetGameName( ) + "]" );
 
 #ifdef WIN32
-			if (m_wtv && m_CurrentGame->wtvprocessid != 0)
+			if (m_Config->m_wtv && m_CurrentGame->wtvprocessid != 0)
 			{
 				HANDLE hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, m_CurrentGame->wtvprocessid );
 
@@ -1678,7 +1513,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 			CONSOLE_Print( "[GHOST] deleting game [" + (*i)->GetGameName( ) + "]" );
 
 #ifdef WIN32
-			if (m_wtv && (*i)->wtvprocessid != 0)
+			if (m_Config->m_wtv && (*i)->wtvprocessid != 0)
 			{
 				HANDLE hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, (*i)->wtvprocessid );
 
@@ -1877,7 +1712,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 
 	// autohost
 
-	if( !m_Config->m_AutoHostGameName.empty( ) && m_Config->m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) - m_LastAutoHostTime >= 30 )
+	if( !m_Config->m_AutoHostGameName.empty( ) && m_Config->m_AutoHostMaximumGames && m_Config->m_AutoHostAutoStartPlayers && GetTime( ) - m_LastAutoHostTime >= 30 )
 	{
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon
@@ -1896,7 +1731,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 
 					if( m_CurrentGame )
 					{
-						m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+						m_CurrentGame->SetAutoStartPlayers( m_Config->m_AutoHostAutoStartPlayers );
 
 						if( m_AutoHostMatchMaking )
 						{
@@ -1925,7 +1760,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 					m_Config->m_AutoHostOwner.clear( );
 					m_AutoHostServer.clear( );
 					m_Config->m_AutoHostMaximumGames = 0;
-					m_AutoHostAutoStartPlayers = 0;
+					m_Config->m_AutoHostAutoStartPlayers = 0;
 					m_AutoHostMatchMaking = false;
 					m_AutoHostMinimumScore = 0.0;
 					m_AutoHostMaximumScore = 0.0;
@@ -1938,7 +1773,7 @@ bool CGHost :: Update( unsigned long usecBlock )
 				m_Config->m_AutoHostOwner.clear( );
 				m_AutoHostServer.clear( );
 				m_Config->m_AutoHostMaximumGames = 0;
-				m_AutoHostAutoStartPlayers = 0;
+				m_Config->m_AutoHostAutoStartPlayers = 0;
 				m_AutoHostMatchMaking = false;
 				m_AutoHostMinimumScore = 0.0;
 				m_AutoHostMaximumScore = 0.0;
@@ -2060,9 +1895,10 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 			m_CurrentGame->AddGameName(m_CurrentGame->GetGameName());
 			m_HostCounter++;
 			SaveHostCounter();
-			if (m_MaxHostCounter>0)
-			if (m_HostCounter>m_MaxHostCounter)
+
+			if (m_Config->m_MaxHostCounter > 0 && m_HostCounter > m_Config->m_MaxHostCounter)
 				m_HostCounter = 1;
+
 			m_CurrentGame->SetHostCounter(m_HostCounter);
 			m_QuietRehost = true;
 			m_CurrentGame->SetRefreshError(false);
@@ -2144,43 +1980,6 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
 			(*i)->QueueChatCommand( m_Language->GetLang("lang_0040", game->GetDescription( ) ), game->GetCreatorName( ), true ); // GameIsOver
 	}
-}
-
-void CGHost :: ReloadConfigs( )
-{
-	CConfig CFG;
-	CFG.Read( "default.cfg" );
-	CFG.Read( gCFGFile );
-	SetConfigs( &CFG );
-}
-
-void CGHost :: SetConfigs( CConfig *CFG )
-{
-	// this doesn't set EVERY config value since that would potentially require reconfiguring the battle.net connections
-	// it just set the easily reloadable values
-
-	delete m_Language;
-	m_Language = new CLanguage( m_Config->m_LanguageFile );
-
-	if( m_Config->m_VirtualHostName.size( ) > 15 )
-	{
-		m_Config->m_VirtualHostName = "|cFF4080C0GHost";
-		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
-	}
-
-	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
-	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
-
-	if( m_Config->m_VoteKickPercentage > 100 )
-	{
-		m_Config->m_VoteKickPercentage = 100;
-		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
-	}
-
-	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
-	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
-	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
-	m_dropifdesync = CFG->GetInt( "bot_dropifdesync", 1 ) == 0 ? false : true; //Metal_Koola
 }
 
 void CGHost :: ExtractScripts( )
@@ -2558,7 +2357,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	// add players from RMK if any
 
-	if (m_HoldPlayersForRMK && m_PlayersfromRMK.length()>0)
+	if (m_Config->m_HoldPlayersForRMK && m_PlayersfromRMK.length()>0)
 	{
 		CONSOLE_Print( "[GHOST] reserving players from last game");
 
@@ -2638,11 +2437,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	// WaaaghTV
 
 #ifdef WIN32
-	if (m_wtv && m_CurrentGame->wtvprocessid == 0 && m_Map->GetMapObservers()>=3)
+	if (m_Config->m_wtv && m_CurrentGame->wtvprocessid == 0 && m_Map->GetMapObservers()>=3)
 	{
 		m_CurrentGame->CloseSlot( m_CurrentGame->m_Slots.size()-2, true );
 		m_CurrentGame->CloseSlot( m_CurrentGame->m_Slots.size()-1, true );
-		m_CurrentGame->CreateWTVPlayer( m_wtvPlayerName, true );
+		m_CurrentGame->CreateWTVPlayer( m_Config->m_wtvPlayerName, true );
 
 		STARTUPINFO si;
 		PROCESS_INFORMATION pi;
@@ -2651,11 +2450,11 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		si.cb = sizeof(si);
 		ZeroMemory( &pi, sizeof(pi) );
 
-		string wtvRecorderEXE = m_wtvPath + "wtvRecorder.exe";
+		string wtvRecorderEXE = m_Config->m_wtvPath + "wtvRecorder.exe";
 
 		//hProcess = CreateProcess( tr("D:\\Programme\\wc3tv\\wtvRecorder.exe"), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, tr("D:\\Programme\\wc3tv\\" ), &si, &pi );
 		//HANDLE hProcess = CreateProcess( wtvRecorderEXE, NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_wtvPath, &si, &pi );
-		int hProcess = CreateProcessA( wtvRecorderEXE.c_str( ), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_wtvPath.c_str( ), LPSTARTUPINFOA(&si), &pi );
+		int hProcess = CreateProcessA( wtvRecorderEXE.c_str( ), NULL, NULL, NULL, TRUE, HIGH_PRIORITY_CLASS, NULL, m_Config->m_wtvPath.c_str( ), LPSTARTUPINFOA(&si), &pi );
 
 		if( !hProcess )
 			CONSOLE_Print( "[WaaaghTV] : Failed to start wtvRecorder.exe" );
@@ -2678,43 +2477,23 @@ void CGHost :: AdminGameMessage(string name, string message)
 	}
 }
 
-void CGHost :: ReloadConfig ()
+void CGHost :: CheckConfigs ()
 {
-	CConfig CFGF;
-	CConfig *CFG;
-	CFGF.Read( gCFGFile );
-	CFG = &CFGF;
-
-	stringstream SS;
-	string istr = string();
-
 	delete m_Language;
 	m_Language = new CLanguage( m_Config->m_LanguageFile );
 
-	m_wtvPath = CFG->GetString( "wtv_path", "C:\\Program Files\\WaaaghTV Recorder\\" );
-
-	m_wtvPlayerName = CFG->GetString( "wtv_playername", "Waaagh!TV" );
-	m_wtv = CFG->GetInt( "wtv_enabled", 0 ) == 0 ? false : true;
-
 #ifndef WIN32
-	m_wtv = false;
+	m_Config->m_wtv = false;
 #endif
 
-	if (m_wtv)
+	if (m_Config->m_wtv)
 		CONSOLE_Print("[WTV] WaaaghTV is enabled.");
 	else
 		CONSOLE_Print("[WTV] WaaaghTV is not enabled.");
 
-	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
-
-	m_AutoHostAutoStartPlayers = CFG->GetInt( "bot_autohostautostartplayers", 0 );
-
-	m_AutoHostCountries2 = CFG->GetString( "bot_autohostdeniedcountries", string( ) );
 
 	if (m_AutoHostCountries2.length()>0)
 		m_AutoHostCountryCheck2 = true;
-
-	m_AutoHostCountries = CFG->GetString( "bot_autohostallowedcountries", string( ) );
 
 	if (m_AutoHostCountries.length() > 0)
 		m_AutoHostCountryCheck = true;
@@ -2722,24 +2501,25 @@ void CGHost :: ReloadConfig ()
 	if ((m_Config->m_AutoHostMapCFG.find("\\") == string::npos) && (m_Config->m_AutoHostMapCFG.find("/") == string::npos))
 		m_Config->m_AutoHostMapCFG = m_Config->mapcfgpath + m_Config->m_AutoHostMapCFG;
 
-	m_gamestateinhouse = CFG->GetInt( "bot_gamestateinhouse", 999 );
-	m_LobbyAnnounceUnoccupied = CFG->GetInt( "bot_lobbyannounceunoccupied", 1 ) == 0 ? false : true;
-	m_detectwtf = CFG->GetInt( "bot_detectwtf", 0 ) == 0 ? false : true;
-	ParseCensoredWords();
-	m_EndReq2ndTeamAccept = CFG->GetInt( "bot_endreq2ndteamaccept", 0 ) == 0 ? false : true;
-	LoadHostCounter();
-	m_AllowedCountries = CFG->GetString( "bot_allowedcountries", string( ) );
-	transform( m_AllowedCountries.begin( ), m_AllowedCountries.end( ), m_AllowedCountries.begin( ), (int(*)(int))toupper );
-	m_DeniedCountries = CFG->GetString( "bot_deniedcountries", string( ) );
-	transform( m_DeniedCountries.begin( ), m_DeniedCountries.end( ), m_DeniedCountries.begin( ), (int(*)(int))toupper );
-	m_DB->SetAdminAccess(m_Config->m_AdminAccess);
-	m_channeljoinexceptions = CFG->GetString( "bot_channeljoinexceptions", string() );
-	UTIL_ExtractStrings(m_channeljoinexceptions, m_channeljoinex);
-	m_broadcastinlan = CFG->GetInt( "bot_broadcastlan", 1 ) == 0 ? false : true;
-	string m_IPUsersString = CFG->GetString( "bot_ipusers", string() );
-	m_onlyownerscanstart = CFG->GetInt( "bot_onlyownerscanstart", 1 ) == 0 ? false : true;
-	m_MaxHostCounter = CFG->GetInt( "bot_maxhostcounter", 30 );
+	if( m_Config->m_VirtualHostName.size( ) > 15 )
+	{
+		m_Config->m_VirtualHostName = "|cFF4080C0GHost";
+		CONSOLE_Print( "[GHOST] warning - bot_virtualhostname is longer than 15 characters, using default virtual host name" );
+	}
 
+	if( m_Config->m_VoteKickPercentage > 100 )
+	{
+		m_Config->m_VoteKickPercentage = 100;
+		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
+	}
+
+	ParseCensoredWords();
+	LoadHostCounter();
+
+	m_DB->SetAdminAccess(m_Config->m_AdminAccess);
+
+	UTIL_ExtractStrings( m_Config->m_channeljoinexceptions, m_channeljoinex );
+	
 	if (m_Config->m_ReplayTimeShift)
 	{
 		char Time[17];
@@ -2759,38 +2539,16 @@ void CGHost :: ReloadConfig ()
 		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
 	}
 
-	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
-	m_LobbyTimeLimitMax = CFG->GetInt( "bot_lobbytimelimitmax", 15 );
-	m_newLatency = CFG->GetInt( "bot_newLatency", 0 ) == 0 ? false : true;
-	m_newTimer = CFG->GetInt( "bot_newTimer", 1 ) == 0 ? false : true;
-	m_newTimerResolution = CFG->GetInt( "bot_newTimerResolution", 5 );
 	EndTimer();
 
-	if (m_newTimer)
+	if (m_Config->m_newTimer)
 	{
 		SetTimerResolution();
 	}
 
-	m_SafeLobbyImmunity = CFG->GetInt( "bot_safelistedlobbyimmunity", 0 ) == 0 ? false : true;
-	m_TBanLastTime = CFG->GetInt( "bot_tbanlasttime", 30 );
-	m_BanLastTime = CFG->GetInt( "bot_banlasttime", 180 );
-	m_BanTime = CFG->GetInt( "bot_bantime", 180 );
-	m_WarnTimeOfWarnedPlayer = CFG->GetInt( "bot_warntimeofwarnedplayer", 14 );
-	m_GameNumToForgetAWarn = CFG->GetInt( "bot_gamenumtoforgetawarn", 7);
-
-	m_autoinsultlobby = CFG->GetInt( "bot_autoinsultlobby", 0 ) == 0 ? false : true;
-	m_doautowarn = CFG->GetInt("bot_doautowarn", 0 ) == 0 ? false : true;
-
-	m_ShowDownloadsInfoTime = CFG->GetInt( "bot_showdownloadsinfotime", 3 );
-
 	transform( m_Config->m_RootAdmins.begin( ), m_Config->m_RootAdmins.end( ), m_Config->m_RootAdmins.begin( ), (int(*)(int))tolower );
 
-	m_FakePings = CFG->GetString( "bot_fakepings", string () );
-	transform( m_FakePings.begin( ), m_FakePings.end( ), m_FakePings.begin( ), (int(*)(int))tolower );
-	m_HoldPlayersForRMK = CFG->GetInt( "bot_holdplayersforrmk", 1 ) == 0 ? false : true;
-	m_onlyownerscanswapadmins = CFG->GetInt( "bot_onlyownerscanswapadmins", 1 ) == 0 ? false : true;
 	m_PlayersfromRMK = string();
-	m_dropifdesync = CFG->GetInt( "bot_dropifdesync", 1 ) == 0 ? false : true; //Metal_Koola
 
 	if ( m_Config->m_VirtualHostName.length() > 15 )
 		m_Config->m_VirtualHostName = m_Config->m_VirtualHostName.substr(0,15);
@@ -2802,7 +2560,7 @@ void CGHost :: ReloadConfig ()
 	for(uint32_t i=0; i<m_Providers.size(); i++)
 	{
 		f = m_Providers[i].find("=");
-		if (f!=string :: npos)
+		if ( f !=string :: npos )
 		{
 			providersn.push_back(m_Providers[i].substr(0,f));
 			providers.push_back(m_Providers[i].substr(f+1,500));
@@ -3034,7 +2792,7 @@ bool CGHost :: ShouldFakePing(string name)
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	stringstream SS;
 	string s;
-	SS << m_FakePings;
+	SS << m_Config->m_FakePings;
 
 	while( !SS.eof( ) )
 	{
@@ -3261,10 +3019,11 @@ string CGHost :: IncGameNr ( string name )
 	stringstream SS;
 	SS << GameNr;
 	SS >> Nr;
-	Nr ++;
-	if (m_MaxHostCounter!=0)
-	if (Nr>m_MaxHostCounter)
+
+	Nr++;
+	if (m_Config->m_MaxHostCounter && Nr > m_Config->m_MaxHostCounter)
 		Nr = 1;
+
 	GameNr = UTIL_ToString(Nr);
 	GameName = GameName + GameNr;
 	return GameName;
@@ -3290,8 +3049,8 @@ void CGHost :: SetTimerResolution()
 	// attempt to set the resolution as low as possible from 1ms to 5ms
 
 	unsigned int ii = 1;
-	if (m_newTimerResolution>0)
-		ii = m_newTimerResolution;
+	if (m_Config->m_newTimerResolution>0)
+		ii = m_Config->m_newTimerResolution;
 	if (ii>5)
 		ii=5;
 
@@ -3299,7 +3058,7 @@ void CGHost :: SetTimerResolution()
 	{
 		if( timeBeginPeriod( i ) == TIMERR_NOERROR )
 		{
-			m_newTimerResolution = i;
+			m_Config->m_newTimerResolution = i;
 			break;
 		}
 		else if( i < 5 )
@@ -3307,12 +3066,12 @@ void CGHost :: SetTimerResolution()
 		else
 		{
 			CONSOLE_Print( "[GHOST] error setting Windows timer resolution, going back to old timer function" );
-			m_newTimer = false;
+			m_Config->m_newTimer = false;
 			return;
 		}
 	}
 
-	CONSOLE_Print( "[GHOST] using Windows timer with resolution " + UTIL_ToString( m_newTimerResolution ) + " milliseconds" );
+	CONSOLE_Print( "[GHOST] using Windows timer with resolution " + UTIL_ToString( m_Config->m_newTimerResolution ) + " milliseconds" );
 	m_newTimerStarted = true;
 #endif
 }
@@ -3322,7 +3081,7 @@ void CGHost :: EndTimer( )
 	if (m_newTimerStarted)
 	{
 #ifdef WIN32
-		timeEndPeriod( m_newTimerResolution );
+		timeEndPeriod( m_Config->m_newTimerResolution );
 #endif
 		m_newTimerStarted = false;
 	}

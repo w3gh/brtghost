@@ -1949,8 +1949,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						if (m_Config->m_WhisperAllMessages)
 							Usr = User;
 
-						uint32_t BanTime = m_GHost->m_BanTime;
-						m_PairedBanAdds.push_back( PairedBanAdd( Usr, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, BanTime, 0 ) ) );
+						m_PairedBanAdds.push_back( PairedBanAdd( Usr, m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, m_Config->m_BanTime, 0 ) ) );
 					}
 				}
 
@@ -2218,7 +2217,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_GHost->m_AutoHostCountryCheck = false;
 							m_GHost->m_AutoHostCountryCheck2 = false;
 							m_Config->m_AutoHostMaximumGames = 0;
-							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_Config->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 						}
 						else
@@ -2279,7 +2278,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_GHost->m_AutoHostCountryCheck = true;
 //										m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
 										m_Config->m_AutoHostMaximumGames = MaximumGames;
-										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 										m_GHost->m_LastAutoHostTime = GetTime( );
 									}
 								}
@@ -2307,7 +2306,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_Config->m_AutoHostOwner.clear( );
 							m_GHost->m_AutoHostServer.clear( );
 							m_Config->m_AutoHostMaximumGames = 0;
-							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_Config->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 							m_GHost->m_AutoHostMatchMaking = false;
 							m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -2355,7 +2354,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_Config->m_AutoHostOwner = User;
 										m_GHost->m_AutoHostServer = m_Server;
 										m_Config->m_AutoHostMaximumGames = MaximumGames;
-										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 										m_GHost->m_LastAutoHostTime = GetTime( );
 										m_GHost->m_AutoHostMatchMaking = false;
 										m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -2388,7 +2387,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_Config->m_AutoHostOwner.clear( );
 							m_GHost->m_AutoHostServer.clear( );
 							m_Config->m_AutoHostMaximumGames = 0;
-							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_Config->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 							m_GHost->m_AutoHostMatchMaking = false;
 							m_GHost->m_AutoHostMinimumScore = 0.0;
@@ -2448,7 +2447,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 												m_Config->m_AutoHostOwner = User;
 												m_GHost->m_AutoHostServer = m_Server;
 												m_Config->m_AutoHostMaximumGames = MaximumGames;
-												m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+												m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 												m_GHost->m_LastAutoHostTime = GetTime( );
 												m_GHost->m_AutoHostMatchMaking = true;
 												m_GHost->m_AutoHostMinimumScore = MinimumScore;
@@ -2484,7 +2483,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_GHost->m_AutoHostGArena = false;
 							m_Config->m_AutoHostLocal = false;
 							m_Config->m_AutoHostMaximumGames = 0;
-							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_Config->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 						}
 						else
@@ -2525,7 +2524,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_Config->m_AutoHostGameName = GameName;
 //										m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
 										m_Config->m_AutoHostMaximumGames = MaximumGames;
-										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 //										m_GHost->m_AutoHostCountryCheck = false;
 										m_GHost->m_AutoHostGArena = false;
 										m_Config->m_AutoHostLocal = true;
@@ -2558,7 +2557,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							m_Config->m_AutoHostLocal = false;
 							m_GHost->m_AutoHostGArena = false;
 							m_Config->m_AutoHostMaximumGames = 0;
-							m_GHost->m_AutoHostAutoStartPlayers = 0;
+							m_Config->m_AutoHostAutoStartPlayers = 0;
 							m_GHost->m_LastAutoHostTime = GetTime( );
 						}
 						else
@@ -2599,7 +2598,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 										m_Config->m_AutoHostGameName = GameName;
 //										m_GHost->m_AutoHostMapCFG = m_GHost->m_Map->GetCFGFile( );
 										m_Config->m_AutoHostMaximumGames = MaximumGames;
-										m_GHost->m_AutoHostAutoStartPlayers = AutoStartPlayers;
+										m_Config->m_AutoHostAutoStartPlayers = AutoStartPlayers;
 //										m_GHost->m_AutoHostCountryCheck = false;
 										m_Config->m_AutoHostLocal = false;
 										m_GHost->m_AutoHostGArena = true;
@@ -2621,7 +2620,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( ( Command == "autostart" || Command == "as" ) && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 				{
-					if (m_GHost->m_onlyownerscanstart)
+					if (m_Config->m_onlyownerscanstart)
 						if ((!m_GHost->m_CurrentGame->IsOwner( User) && m_GHost->m_CurrentGame->GetPlayerFromName(m_GHost->m_CurrentGame->GetOwnerName(), false)) && !RootAdminCheck )
 						{
 							QueueChatCommand( tr("lang_1072"), User, Whisper); // Only the owner can autostart the game.
@@ -3005,9 +3004,9 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 							QueueChatCommand( tr( "lang_0212", "$OWNER$", m_GHost->m_Games[GameNumber]->GetOwnerName( ) ), User, Whisper ); // CantEndGameOwnerIsStillPlaying( m_GHost->m_Games[GameNumber]->GetOwnerName( )
 						else
 						{
-							if (!RootAdminCheck)
-							if (m_GHost->m_EndReq2ndTeamAccept && m_GHost->m_Games[GameNumber]->m_GetMapNumTeams==2)
+							if (!RootAdminCheck && m_Config->m_EndReq2ndTeamAccept && m_GHost->m_Games[GameNumber]->m_GetMapNumTeams == 2 )
 								return;
+
 							QueueChatCommand( tr( "lang_0083", "$DESCRIPTION$", m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper ); // EndingGame
 							CONSOLE_Print( "[GAME: " + m_GHost->m_Games[GameNumber]->GetGameName( ) + "] is over (admin ended game)" );
 							m_GHost->m_Games[GameNumber]->SendAllChat(tr("lang_1130")); // Game will end in 5 seconds
@@ -3703,7 +3702,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 
 					if (Command=="pri")
-						m_GHost->CreateGame( m_GHost->m_Map, m_GHost->m_gamestateinhouse, false, Payload, User, User, m_Server, Whisper );
+						m_GHost->CreateGame( m_GHost->m_Map, m_Config->m_gamestateinhouse, false, Payload, User, User, m_Server, Whisper );
 					else
 						m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
 
@@ -3739,7 +3738,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						if (GameName.length()<1 || GameName==" ")
 							return;
 						if (Command == "priby")
-							m_GHost->CreateGame( m_GHost->m_Map, m_GHost->m_gamestateinhouse, false, GameName, Owner, User, m_Server, Whisper );
+							m_GHost->CreateGame( m_GHost->m_Map, m_Config->m_gamestateinhouse, false, GameName, Owner, User, m_Server, Whisper );
 						else
 							m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
 					}
@@ -4564,7 +4563,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( Command == "start" && m_GHost->m_CurrentGame && !m_GHost->m_CurrentGame->GetCountDownStarted( ) && m_GHost->m_CurrentGame->GetNumPlayers( ) > 0 )
 				{
-					if (m_GHost->m_onlyownerscanstart)
+					if (m_Config->m_onlyownerscanstart)
 						if ((!m_GHost->m_CurrentGame->IsOwner( User) && m_GHost->m_CurrentGame->GetPlayerFromName(m_GHost->m_CurrentGame->GetOwnerName(), false)) && !RootAdminCheck )
 						{
 							QueueChatCommand( tr("lang_1073"), User, Whisper); // Only the owner can start the game.
@@ -4632,7 +4631,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 									if (Player2->GetName()!=User)
 										if (IsRootAdmin(Player2->GetName()))
 											isRootAdmin = true;
-									if (m_GHost->m_onlyownerscanswapadmins && !sameteam)
+									if (m_Config->m_onlyownerscanswapadmins && !sameteam)
 									{
 										if (Player)
 										{
@@ -5134,8 +5133,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( Command == "reloadcfg" || Command == "rcfg" )
 				{
-					m_GHost->ReloadConfig();
-					QueueChatCommand( tr("lang_1104"), User, Whisper); // "GHOST.CFG loaded!"
+//					m_GHost->ReloadConfig();
+//					QueueChatCommand( tr("lang_1104"), User, Whisper); // "GHOST.CFG loaded!"
 				}
 
 				//
@@ -5184,8 +5183,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				else if( ( Command == "dlinfotime" || Command == "dlit" ) && !Payload.empty( ) )
 				{
-					uint32_t itime = m_GHost->m_ShowDownloadsInfoTime;
-					m_GHost->m_ShowDownloadsInfoTime = UTIL_ToUInt32( Payload );
+					uint32_t itime = m_Config->m_ShowDownloadsInfoTime;
+					m_Config->m_ShowDownloadsInfoTime = UTIL_ToUInt32( Payload );
 					QueueChatCommand( tr("lang_1109", "$SPEED$", Payload, "$PSPEED$", UTIL_ToString(itime)), User, Whisper); // "Show Downloads Info Time = "+ Payload+" s, previously "+UTIL_ToString(itime)+" s"
 				}
 
@@ -5774,13 +5773,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				else if( Command == "safeimmune" || Command =="si" || Command == "sk" )
 				{
 					string mess;
-					if (!m_GHost->m_SafeLobbyImmunity)
+					if (!m_Config->m_SafeLobbyImmunity)
 					{
-						m_GHost->m_SafeLobbyImmunity = true;
+						m_Config->m_SafeLobbyImmunity = true;
 						mess = tr("lang_1122"); // Safe are immune to lobby kicking
 					} else
 					{
-						m_GHost->m_SafeLobbyImmunity = false;
+						m_Config->m_SafeLobbyImmunity = false;
 						mess = tr("lang_1123"); // Safe are no longer immune to lobby kicking
 					}
 					QueueChatCommand( mess, User, Whisper);
@@ -5895,7 +5894,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					string GameState = string();
 
 					if (Command == "sdi")
-						GameState = UTIL_ToString(m_GHost->m_gamestateinhouse);
+						GameState = UTIL_ToString(m_Config->m_gamestateinhouse);
 
 					if (Command == "sdpub")
 						GameState = "16";
@@ -6950,7 +6949,7 @@ string CBNET :: GetPlayerFromNamePartial( string name )
 
 void CBNET :: WarnPlayer (string Victim, string Reason, string User, bool Whisper)
 {
-	if (m_GHost->m_DB->BanAdd( m_Server, Victim, string(), string(), User, Reason, m_GHost->m_WarnTimeOfWarnedPlayer, 1 ) )
+	if (m_GHost->m_DB->BanAdd( m_Server, Victim, string(), string(), User, Reason, m_Config->m_WarnTimeOfWarnedPlayer, 1 ) )
 	{
 
 		uint32_t WarnCount = 0;

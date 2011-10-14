@@ -174,7 +174,6 @@ protected:
 //	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 //	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
-	bool m_DoAutoWarns;								// enable automated warns for early leavers
 	uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 	uint32_t m_EntryKey;							// entry key for LAN games
 
@@ -303,7 +302,7 @@ public:
 	virtual uint32_t GetGameNr( );
 	virtual string GetOriginalName( )				{ return m_OriginalGameName; }
 //	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
-	virtual string GetWTVPlayerName( )				{ return m_GHost->m_wtvPlayerName; }
+	virtual string GetWTVPlayerName( )				{ return m_Config->m_wtvPlayerName; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetHCL( )						{ return m_HCLCommandString; }

@@ -39,14 +39,15 @@
 // CGHostDBMySQL
 //
 
-CGHostDBMySQL :: CGHostDBMySQL( CConfig *CFG ) : CGHostDB( CFG )
+CGHostDBMySQL :: CGHostDBMySQL( CConfigData *CFG ) : CGHostDB( CFG )
 {
-	m_Server = CFG->GetString( "db_mysql_server", string( ) );
-	m_Database = CFG->GetString( "db_mysql_database", "ghost" );
-	m_User = CFG->GetString( "db_mysql_user", string( ) );
-	m_Password = CFG->GetString( "db_mysql_password", string( ) );
-	m_Port = CFG->GetInt( "db_mysql_port", 3306 );
-	m_BotID = CFG->GetInt( "db_mysql_botid", 0 );
+	m_Server = CFG->m_MySql_Server;
+	m_Database = CFG->m_MySql_Database;
+	m_User = CFG->m_MySql_User;
+	m_Password = CFG->m_MySql_Password;
+	m_Port = CFG->m_MySql_Port;
+	m_BotID = CFG->m_MySql_BotID;
+
 	m_MaxConnections = 30;
 	m_NumConnections = 1;
 	m_OutstandingCallables = 0;
@@ -3527,8 +3528,10 @@ string CGHostDBMySQL :: RunQuery( string query )
 	}
 	else if( mysql_ping( (MYSQL *)Connection ) != 0 )
 		m_Error = mysql_error( (MYSQL *)Connection );
-	if (m_Error!="")
-		return false;
+	
+	if (!m_Error.empty())
+		return m_Error;
+
 	string error;
 	string result =  MySQLRunQuery(Connection, &error, query);
 
@@ -3736,8 +3739,10 @@ string CGHostDBMySQL :: WarnReasonsCheck( string user, uint32_t warn )
 	}
 	else if( mysql_ping( (MYSQL *)Connection ) != 0 )
 		m_Error = mysql_error( (MYSQL *)Connection );
-	if (m_Error!="")
-		return false;
+	
+	if (!m_Error.empty())
+		return m_Error;
+
 	string error;
 
 	string result;

@@ -1,6 +1,43 @@
 #ifndef CONFIGDATA_H
 #define CONFIGDATA_H
 
+class CBNetConfigContainer
+{
+public:
+		string Server;
+		string CDKeyROC;
+		string CDKeyTFT;
+		string ServerAlias;
+		string Locale;
+		string CountryAbbrev;
+		string Country;
+		int LocaleID;
+
+		string UserName;
+		string UserPassword;
+		string FirstChannel;
+		string RootAdmin;
+
+		bool Whereis;
+
+		string BNETCommandTrigger;
+
+		bool HoldFriends;
+		bool HoldClan;
+		bool PublicCommands;
+
+		string BNLSServer;
+		int BNLSPort;
+		int BNLSWardenCookie;
+
+		unsigned char War3Version;
+		BYTEARRAY EXEVersion;
+		BYTEARRAY EXEVersionHash;
+		string PasswordHashType;
+		string PVPGNRealmName;
+		uint32_t MaxMessageLength;
+};
+
 class CConfigData
 {
 private:
@@ -46,6 +83,14 @@ public:
 	bool m_patch21;							// config value: use for patch 1.21
 	bool m_channeljoingreets;
 	bool m_channeljoinmessage;
+	bool m_udp_dontroute;
+	string m_udp_broadcasttarget;
+	uint16_t m_newLatency;
+	bool m_newTimer;
+	uint16_t m_newTimerResolution;
+	string m_channeljoinexceptions;
+	string m_FakePings;
+	bool m_autoinsultlobby;
 
 	// dynamic latency
 	bool m_UseDynamicLatency;
@@ -97,6 +142,19 @@ public:
 	bool m_ShowNotesOnJoin;
 	uint32_t m_AutoRehostDelay;
 	bool m_RehostIfNameTaken;
+	bool m_EndReq2ndTeamAccept;
+	string m_DeniedCountries;
+	string m_AllowedCountries;
+	uint32_t m_gamestateinhouse;
+	bool m_LobbyAnnounceUnoccupied;
+	bool m_detectwtf;
+	uint16_t m_LobbyTimeLimit;
+	uint16_t m_LobbyTimeLimitMax;
+	bool m_broadcastinlan;
+	bool m_onlyownerscanstart;
+	uint16_t m_MaxHostCounter;
+	bool m_dropifdesync;
+	bool m_HoldPlayersForRMK;
 
 	// autohost
 	double m_AutoHostAllowedScores;
@@ -107,6 +165,8 @@ public:
 	uint32_t m_AutoHostMaximumGames;		// maximum number of games to auto host
 	bool m_AutoHostLocal;
 	bool m_AutoHostAllowStart;
+	string m_AutoHostCountries;
+	uint32_t m_AutoHostAutoStartPlayers;	// when using auto hosting auto start the game when this many players have joined
 
 	// replays
 	uint32_t m_ReplayWar3Version;			// config value: replay warcraft 3 version (for saving replays)
@@ -123,6 +183,13 @@ public:
 	bool m_DetourAllMessagesToAdmins;
 	string m_RootAdmins;
 	bool m_AdminsCantUnbanRootadminBans;
+	bool m_onlyownerscanswapadmins;
+
+	// files
+	string m_IPBlackListFile;
+	string m_MOTDFile;
+	string m_GameLoadedFile;
+	string m_GameOverFile;
 
 	// map_download
 	uint32_t m_AllowDownloads;				// config value: allow map downloads or not
@@ -132,6 +199,7 @@ public:
 	uint32_t m_clientdownloadspeed;			// config value: max download speed per client
 	uint32_t m_maxdownloaders;				// config value: max clients allowed to download at once
 	bool m_AdminsAndSafeCanDownload;
+	bool m_ShowDownloadsInfoTime;
 
 	// replay
 	bool issavereplays;
@@ -141,6 +209,7 @@ public:
 	bool gproxy_enable;
 	uint32_t m_ReconnectWaitTime;
 	bool m_EnableBnetCommandInChannel;		// config value: if 0 - bot don't responding any commands on bnet channel (only whisper)
+	bool m_BrtServerEnable;
 
 	// admin game
 	bool m_AdminGameCreate;					// config value: create the admin game or not
@@ -174,6 +243,13 @@ public:
 	uint32_t m_AutoBanGameEndMins;			// Ban if not left around x mins of game end time.
 	bool m_AdminsLimitedUnban;
 	uint32_t m_InformAboutWarnsPrintout;	// config value: how many secs should ghost wait to printout the warn count to each player.
+	bool m_SafeLobbyImmunity;
+	uint32_t m_TBanLastTime;				// number of days to tempban when tbanlast
+	uint32_t m_BanLastTime;					// number of days to tempban when banlast
+	uint32_t m_BanTime;						// number of days to tempban when banning
+	uint32_t m_WarnTimeOfWarnedPlayer;		// number of days the warn will last
+	uint32_t m_GameNumToForgetAWarn;		// number of games till the first of the warns gets forgotten
+	bool m_doautowarn;
 
 	// auto censor
 	string m_CensorWords;
@@ -183,26 +259,24 @@ public:
 	uint32_t m_CensorMuteSecondSeconds;
 	uint32_t m_CensorMuteExcessiveSeconds;
 
+	// wtv
+	string m_wtvPath;
+	string m_wtvPlayerName;
+	bool m_wtv;
 
+	// databases
+	string m_DBType;
+	string m_Sqlite3_file;
 
+	string m_MySql_Server;
+	string m_MySql_Database;
+	string m_MySql_User;
+	string m_MySql_Password;
+	uint32_t m_MySql_Port;
+	uint32_t m_MySql_BotID;
 
-
-
-
-
-
-
-
-
-
-	////////////////////// NOT PARSED \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-	/*
-	string m_bnetpacketdelaymediumpvpgn;
-	string m_bnetpacketdelaybigpvpgn;
-	string m_bnetpacketdelaymedium;
-	string m_bnetpacketdelaybig;
-*/
+	// b.net configs
+	vector<CBNetConfigContainer> m_BNETcfg;
 
 public:
 	CConfigData(void);
