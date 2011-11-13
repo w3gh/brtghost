@@ -67,7 +67,9 @@ string CLanguage :: GetLang(const string& lang_id, const string& v1, const strin
 
     int pos;
     string out = GetLang(lang_id);
-
+    
+    if (!out.compare("ignore")) return "#ignore#";
+    
     if (!v1.empty())
     {
 		if ((pos = out.find(v1)) != string :: npos)
@@ -194,6 +196,8 @@ string CLanguage :: GetLang(const string& lang_id, const string& v1)
 {
     string out = GetLang(lang_id);
 
+    if (!out.compare("ignore")) return "#ignore#";
+    
     if (v1.empty()) return out;
 
     int pos_start, pos_end;

@@ -1951,6 +1951,8 @@ void CBaseGame :: SendChat( unsigned char fromPID, CGamePlayer *player, string m
 {
 	// send a private message to one player - it'll be marked [Private] in Warcraft 3
 
+	if (!message.compare("#ignore#")) return;
+	
 	if (m_Config->m_DetourAllMessagesToAdmins)
 		if (player)
 		{
@@ -2006,6 +2008,8 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 {
 	// send a public message to all players - it'll be marked [All] in Warcraft 3
 
+	if (!message.compare("#ignore#")) return;
+	
 	if( GetNumHumanPlayers( ) > 0 )
 	{
 		if( !m_GameLoading && !m_GameLoaded )
