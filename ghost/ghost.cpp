@@ -955,6 +955,7 @@ CGHost :: CGHost( CConfig *CFG, CConfigData* nConfig )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
 	brtServer = new CbrtServer( m_Config->port_command );
+	boost :: thread Thread( brtUpdateThread );
 
 #ifdef GHOST_MYSQL
 	CONSOLE_Print( "[GHOST] brtGHost Version " + m_Version + " (with MySQL support)" );
@@ -1011,8 +1012,6 @@ CbrtServer :: CbrtServer( uint32_t nPort )
 	m_CommandSocketServer = new CTCPServer( );
 	m_CommandSocketServer->Listen( string( ), m_Port );
 	m_CommandSocket = NULL;
-
-	boost :: thread Thread( brtUpdateThread );
 
 	CONSOLE_Print( "[GHOST] Listening brtServer on port [" + UTIL_ToString( m_Port ) +"]");
 
@@ -2753,6 +2752,7 @@ void CGHost :: ReloadConfig ()
 {
 	CConfig CFGF;
 	CConfig *CFG;
+	CFGF.Read( "default.cfg" );
 	CFGF.Read( gCFGFile );
 	CFG = &CFGF;
 
@@ -2960,6 +2960,7 @@ void CGHost :: ReloadConfig ()
 		SetTimerResolution();
 	}
 
+	m_AnnouncePlayerJoin = CFG->GetInt( "bot_announceplayerjoin", 1) == 0 ? false : true;
 	m_Refresh0Uptime = CFG->GetInt( "bot_refresh0uptime", 0 ) == 0 ? false : true;
 	m_UsersCanHost = CFG->GetInt( "bot_userscanhost", 0 ) == 0 ? false : true;
 	m_SafeCanHost = CFG->GetInt( "bot_safecanhost", 0 ) == 0 ? false : true;
