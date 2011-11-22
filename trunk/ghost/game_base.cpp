@@ -3630,8 +3630,10 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	}
 
 	// join message from diff realms
-	SendAllChat( tr("lang_1504", "$NAME$", joinPlayer->GetName( ), "$FROM$", JoinedRealm == string( ) ? "garena\\lan" : JoinedRealm ));
-
+	if ( m_GHost->m_AnnouncePlayerJoin )
+	{
+		SendAllChat( tr("lang_1504", "$NAME$", joinPlayer->GetName( ), "$FROM$", JoinedRealm == string( ) ? "garena/lan" : JoinedRealm ));
+	}
 	if ( m_GHost->m_CheckMultipleIPUsage )
 	{
 		// check for multiple ip usage.

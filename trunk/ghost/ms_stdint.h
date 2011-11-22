@@ -62,6 +62,10 @@
 #  endif
 #endif
 
+// Workaround for MSVC10
+#ifndef _STDINT
+#define _STDINT
+#endif
 
 // 7.18.1 Integer types
 
