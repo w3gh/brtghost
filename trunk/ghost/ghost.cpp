@@ -2326,6 +2326,10 @@ void CGHost :: LoadIPToCountryDataOpt( )
 	bool oldips = true;
 
 	intmax_t file_len;
+  
+  if (!exists("ip-to-country.csv"))
+    return;
+
 	file_len = file_size("ip-to-country.csv");
 
 	if (exists("ips.cfg") && exists("ips.dbs"))
